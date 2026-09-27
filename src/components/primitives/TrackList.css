@@ -1,0 +1,79 @@
+.nocturne-tracklist-container {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.nocturne-tracklist__header {
+  display: grid;
+  grid-template-columns: 44px minmax(200px, 3fr) minmax(140px, 2fr) 90px 48px;
+  align-items: center;
+  padding: 8px 16px;
+  border-bottom: 1px solid var(--border-subtle);
+  color: var(--text-low);
+  font-size: 11px;
+  font-family: var(--font-mono);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 4px;
+  user-select: none;
+}
+
+.nocturne-tracklist__header--no-album {
+  grid-template-columns: 44px minmax(240px, 4fr) 90px 48px;
+}
+
+.nocturne-tracklist__header-num {
+  text-align: center;
+}
+
+.nocturne-tracklist__header-title {
+  padding-left: 8px;
+}
+
+.nocturne-tracklist__header-album {
+  padding-left: 8px;
+}
+
+.nocturne-tracklist__header-duration {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px;
+}
+
+.nocturne-tracklist__header-actions {
+  text-align: right;
+}
+
+.nocturne-tracklist__rows {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.nocturne-tracklist__empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 16px;
+  color: var(--text-medium);
+  font-size: 13.5px;
+  border: 1px dashed var(--border-subtle);
+  border-radius: var(--radius-md);
+  margin-top: 12px;
+  background: rgba(255, 255, 255, 0.01);
+}
+
+@media (max-width: 768px) {
+  .nocturne-tracklist__header {
+    grid-template-columns: 36px 1fr 60px;
+    padding: 8px 8px;
+  }
+
+  .nocturne-tracklist__header-album,
+  .nocturne-tracklist__header-actions {
+    display: none;
+  }
+}

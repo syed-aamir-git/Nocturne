@@ -1,14 +1,36 @@
-import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
 import { Plus } from 'lucide-react';
 import { PlaylistCard } from '../components/primitives/PlaylistCard';
 import { Button } from '../components/primitives/Button';
 import { useToast } from '../state/ToastContext';
-import { MOCK_PLAYLISTS } from '../data/mockData';
+import { usePlayer } from '../state/PlayerContext';
+import { musicService } from '../services/musicService';
+import type { Playlist } from '../types';
 
 export const PlaylistsPage: React.FC = () => {
-  const navigate = useNavigate();
+  const [playlists, setPlaylists] = useState<Playlist[]>([]);
   const { showToast } = useToast();
+  const { playTrack } = usePlayer();
+
+  useEffect(() => {
+    let isCancelled = false;
+    musicService.getAllPlaylists().then((pls) => {
+      if (!isCancelled) {
+        setPlaylists(pls);
+      }
+    });
+
+    return () => {
+      isCancelled = true;
+    };
+  }, []);
+
+  const handlePlayPlaylist = (p: Playlist) => {
+    if (p.tracks && p.tracks.length > 0) {
+      playTrack(p.tracks[0], p.tracks.slice(1));
+      showToast('Streaming Playlist', p.title, 'atmosphere');
+    }
+  };
 
   return (
     <div style={{ maxWidth: 1400, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 32 }}>
@@ -23,19 +45,18 @@ export const PlaylistsPage: React.FC = () => {
         <Button
           variant="primary"
           leftIcon={<Plus size={16} />}
-          onClick={() => showToast('New Playlist Chamber', 'Create ritual modal placeholder', 'atmosphere')}
+          onClick={() => showToast('New Playlist Chamber', 'Create ritual modal will open here', 'atmosphere')}
         >
           Create Playlist
         </Button>
       </div>
 
       <div className="nocturne-home__grid-cinematic">
-        {MOCK_PLAYLISTS.map((playlist) => (
+        {playlists.map((playlist) => (
           <PlaylistCard
             key={playlist.id}
             playlist={playlist}
-            onClick={(p) => navigate(`/playlist/${p.id}`)}
-            onPlay={(p) => showToast('Streaming Playlist', p.title, 'atmosphere')}
+            onPlay={handlePlayPlaylist}
           />
         ))}
       </div>

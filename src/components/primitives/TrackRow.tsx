@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Play, Pause, Heart, Music } from 'lucide-react';
+import { Play, Pause, Heart, Music, AlignLeft } from 'lucide-react';
 import type { Track } from '../../types';
 import { formatDuration } from '../../utilities/formatters';
 import { IconButton } from './IconButton';
@@ -44,10 +44,19 @@ export const TrackRow: React.FC<TrackRowProps> = ({
     onLikeToggle?.(track, next);
   };
 
+  const coverSrc = track.artwork || track.coverUrl || '';
+
   return (
     <div
       className={`nocturne-track-row ${isActive ? 'nocturne-track-row--active' : ''} ${className}`}
       onClick={handleRowClick}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter') {
+          handleRowClick();
+        }
+      }}
     >
       {/* Index or Equalizer or Play icon */}
       <div className="nocturne-track-row__index">
@@ -73,9 +82,9 @@ export const TrackRow: React.FC<TrackRowProps> = ({
 
       {/* Album cover art with error fallback */}
       <div className="nocturne-track-row__cover-wrap">
-        {!imgError ? (
+        {!imgError && coverSrc ? (
           <img
-            src={track.coverUrl}
+            src={coverSrc}
             alt={track.title}
             className="nocturne-track-row__cover"
             onError={() => setImgError(true)}
@@ -90,7 +99,30 @@ export const TrackRow: React.FC<TrackRowProps> = ({
 
       {/* Title & Artist */}
       <div className="nocturne-track-row__title-wrap">
-        <span className="nocturne-track-row__title">{track.title}</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <span className="nocturne-track-row__title">{track.title}</span>
+          {track.explicit && (
+            <span
+              style={{
+                fontSize: '9px',
+                fontWeight: 700,
+                color: 'var(--text-low)',
+                background: 'rgba(255, 255, 255, 0.08)',
+                padding: '1px 4px',
+                borderRadius: '2px',
+                lineHeight: 1,
+              }}
+              title="Explicit Content"
+            >
+              E
+            </span>
+          )}
+          {(track.lyrics || track.syncedLyrics) && (
+            <span title="Lyrics available" style={{ display: 'inline-flex', alignItems: 'center' }}>
+              <AlignLeft size={11} color="var(--text-low)" />
+            </span>
+          )}
+        </div>
         <span className="nocturne-track-row__artist">{track.artist}</span>
       </div>
 
@@ -104,6 +136,8 @@ export const TrackRow: React.FC<TrackRowProps> = ({
             ? 'MQA'
             : track.bitrate?.includes('FLAC')
             ? 'FLAC'
+            : track.bitrate?.includes('Master')
+            ? 'MASTER'
             : 'HI-RES'}
         </span>
       </div>

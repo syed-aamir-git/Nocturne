@@ -7,16 +7,17 @@ import { usePlayer } from '../state/PlayerContext';
 import { useToast } from '../state/ToastContext';
 import { Button } from '../components/primitives/Button';
 import { IconButton } from '../components/primitives/IconButton';
-import { TrackRow } from '../components/primitives/TrackRow';
+import { TrackList } from '../components/primitives/TrackList';
 import { Skeleton } from '../components/primitives/Skeleton';
 import { EmptyState } from '../components/primitives/EmptyState';
-import { MOCK_TRACKS } from '../data/mockData';
+import { formatNumber } from '../utilities/formatters';
 
 export const PlaylistViewPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const [playlist, setPlaylist] = useState<Playlist | null>(null);
   const [loading, setLoading] = useState(true);
   const [imgError, setImgError] = useState(false);
+  const [liked, setLiked] = useState(false);
   const { currentTrack, status, playTrack } = usePlayer();
   const { showToast } = useToast();
 
@@ -51,8 +52,8 @@ export const PlaylistViewPage: React.FC = () => {
           title="Sanctuary Archive Not Found"
           description="The requested nocturnal playlist has dissolved into the shadows or moved to another frequency."
           action={
-            <Link to="/">
-              <Button variant="primary">Return to Sanctum</Button>
+            <Link to="/playlists">
+              <Button variant="primary">Return to Playlists</Button>
             </Link>
           }
         />
@@ -60,14 +61,25 @@ export const PlaylistViewPage: React.FC = () => {
     );
   }
 
-  const tracks = MOCK_TRACKS;
+  const tracks = playlist.tracks || [];
+  const coverSrc = playlist.artwork || playlist.coverUrl || '';
 
   return (
     <div style={{ maxWidth: 1200, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 32 }}>
       {/* Back button */}
-      <Link to="/" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, color: 'var(--text-medium)', fontSize: '13px' }}>
+      <Link
+        to="/playlists"
+        style={{
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: 8,
+          color: 'var(--text-medium)',
+          fontSize: '13px',
+          textDecoration: 'none',
+        }}
+      >
         <ArrowLeft size={16} />
-        <span>Return to Sanctum</span>
+        <span>Return to Playlists</span>
       </Link>
 
       {/* Playlist Hero Header */}
@@ -83,6 +95,7 @@ export const PlaylistViewPage: React.FC = () => {
           boxShadow: 'var(--shadow-md)',
           position: 'relative',
           overflow: 'hidden',
+          flexWrap: 'wrap',
         }}
       >
         <div
@@ -96,9 +109,9 @@ export const PlaylistViewPage: React.FC = () => {
             boxShadow: 'var(--shadow-lg), 0 0 20px var(--accent-glow)',
           }}
         >
-          {!imgError ? (
+          {!imgError && coverSrc ? (
             <img
-              src={playlist.coverUrl}
+              src={coverSrc}
               alt={playlist.title}
               style={{ width: '100%', height: '100%', objectFit: 'cover' }}
               onError={() => setImgError(true)}
@@ -110,7 +123,7 @@ export const PlaylistViewPage: React.FC = () => {
           )}
         </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 8, flex: 1 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8, flex: 1, minWidth: 260 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <span style={{ fontSize: '11px', fontFamily: 'var(--font-mono)', letterSpacing: '0.06em', color: 'var(--accent-secondary)' }}>
               MIDNIGHT PLAYLIST
@@ -157,13 +170,19 @@ export const PlaylistViewPage: React.FC = () => {
             <IconButton
               variant="secondary"
               size="md"
-              aria-label="Add to favorites"
-              onClick={() => showToast('Saved', `Added ${playlist.title} to your library`, 'default')}
+              aria-label={liked ? 'Remove from favorites' : 'Add to favorites'}
+              onClick={() => {
+                const next = !liked;
+                setLiked(next);
+                showToast(next ? 'Saved' : 'Removed', `Playlist ${playlist.title}`, 'default');
+              }}
+              style={liked ? { color: 'var(--accent-primary)' } : undefined}
             >
-              <Heart size={18} />
+              <Heart size={18} fill={liked ? 'currentColor' : 'none'} />
             </IconButton>
             <span style={{ fontSize: '12px', color: 'var(--text-low)', fontFamily: 'var(--font-mono)' }}>
-              Curated by {playlist.curator} • {playlist.tracksCount} tracks
+              Curated by {playlist.creator} • {tracks.length} tracks
+              {playlist.followersCount ? ` • ${formatNumber(playlist.followersCount)} listeners` : ''}
             </span>
           </div>
         </div>
@@ -181,18 +200,17 @@ export const PlaylistViewPage: React.FC = () => {
           </span>
         </div>
 
-        <div className="nocturne-tracklist">
-          {tracks.map((track, i) => (
-            <TrackRow
-              key={track.id}
-              track={track}
-              index={i}
-              isActive={currentTrack?.id === track.id}
-              isPlaying={status === 'playing'}
-              onPlay={(t) => playTrack(t, tracks)}
-            />
-          ))}
-        </div>
+        <TrackList
+          tracks={tracks}
+          currentTrackId={currentTrack?.id}
+          isPlaying={status === 'playing'}
+          onTrackPlay={(track, _all, index) => {
+            playTrack(track, tracks.slice(index + 1));
+          }}
+          onLikeToggle={(t, l) => {
+            showToast(l ? 'Liked' : 'Unliked', t.title, 'default');
+          }}
+        />
       </section>
     </div>
   );

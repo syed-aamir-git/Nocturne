@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Play,
@@ -12,17 +12,12 @@ import {
 import { AlbumCard } from '../components/primitives/AlbumCard';
 import { ArtistCard } from '../components/primitives/ArtistCard';
 import { PlaylistCard } from '../components/primitives/PlaylistCard';
-import { TrackRow } from '../components/primitives/TrackRow';
+import { TrackList } from '../components/primitives/TrackList';
 import { usePlayer } from '../state/PlayerContext';
 import { useToast } from '../state/ToastContext';
-import {
-  MOCK_ALBUMS,
-  MOCK_ARTISTS,
-  MOCK_PLAYLISTS,
-  MOCK_TRACKS,
-} from '../data/mockData';
+import { musicService } from '../services/musicService';
 import { getNocturnalHourPhase } from '../utilities/formatters';
-import type { Album, Playlist, Track } from '../types';
+import type { Album, Playlist, Track, Artist } from '../types';
 import './HomePage.css';
 
 interface MoodCollectionItem {
@@ -38,6 +33,33 @@ export const HomePage: React.FC = () => {
   const { showToast } = useToast();
   const timePhase = getNocturnalHourPhase();
 
+  const [albums, setAlbums] = useState<Album[]>([]);
+  const [playlists, setPlaylists] = useState<Playlist[]>([]);
+  const [artists, setArtists] = useState<Artist[]>([]);
+  const [tracks, setTracks] = useState<Track[]>([]);
+
+  useEffect(() => {
+    let isCancelled = false;
+
+    Promise.all([
+      musicService.getFeaturedAlbums(),
+      musicService.getFeaturedPlaylists(),
+      musicService.getFeaturedArtists(),
+      musicService.getAllTracks(),
+    ]).then(([albs, pls, arts, trks]) => {
+      if (!isCancelled) {
+        setAlbums(albs);
+        setPlaylists(pls);
+        setArtists(arts);
+        setTracks(trks);
+      }
+    });
+
+    return () => {
+      isCancelled = true;
+    };
+  }, []);
+
   const handlePlayAlbum = (album: Album) => {
     if (album.tracks && album.tracks.length > 0) {
       playTrack(album.tracks[0], album.tracks.slice(1));
@@ -46,34 +68,16 @@ export const HomePage: React.FC = () => {
   };
 
   const handlePlayPlaylist = (playlist: Playlist) => {
-    if (MOCK_TRACKS.length > 0) {
-      playTrack(MOCK_TRACKS[0], MOCK_TRACKS.slice(1));
+    if (playlist.tracks && playlist.tracks.length > 0) {
+      playTrack(playlist.tracks[0], playlist.tracks.slice(1));
       showToast('Sanctuary Mix Active', playlist.title, 'atmosphere');
     }
   };
 
-  const handlePlayTrack = (track: Track) => {
-    playTrack(track, MOCK_TRACKS);
-    showToast('Immersed', `${track.title} • ${track.artist}`, 'default');
-  };
-
-  const continueItems = [
-    {
-      track: MOCK_TRACKS[0],
-      progress: 68,
-      timeLeft: '1:40 remaining',
-    },
-    {
-      track: MOCK_TRACKS[1],
-      progress: 32,
-      timeLeft: '2:52 remaining',
-    },
-    {
-      track: MOCK_TRACKS[2],
-      progress: 85,
-      timeLeft: '0:48 remaining',
-    },
-  ];
+  const continueItems = tracks.slice(0, 3).map((track, i) => ({
+    track,
+    progress: [68, 32, 85][i] || 50,
+  }));
 
   const moodCollections: MoodCollectionItem[] = [
     {
@@ -133,95 +137,100 @@ export const HomePage: React.FC = () => {
       </section>
 
       {/* 2. Continue Listening */}
-      <section>
-        <div className="nocturne-home__section-head">
-          <div>
-            <h2 className="nocturne-home__section-title">Continue Listening</h2>
-            <span className="nocturne-home__section-sub">Resume your ongoing midnight sessions</span>
-          </div>
-        </div>
-
-        <div className="nocturne-home__continue-grid">
-          {continueItems.map((item) => (
-            <div
-              key={item.track.id}
-              className="nocturne-continue-card"
-              onClick={() => handlePlayTrack(item.track)}
-            >
-              <div className="nocturne-continue-card__cover-wrap">
-                <img
-                  src={item.track.coverUrl}
-                  alt={item.track.title}
-                  className="nocturne-continue-card__cover"
-                  loading="lazy"
-                />
-                <div className="nocturne-continue-card__play-overlay">
-                  <Play size={18} fill="currentColor" />
-                </div>
-              </div>
-
-              <div className="nocturne-continue-card__info">
-                <span className="nocturne-continue-card__title" title={item.track.title}>
-                  {item.track.title}
-                </span>
-                <span className="nocturne-continue-card__artist">
-                  {item.track.artist}
-                </span>
-                <div className="nocturne-continue-card__progress-wrap">
-                  <div
-                    className="nocturne-continue-card__progress-bar"
-                    style={{ width: `${item.progress}%` }}
-                  />
-                </div>
-              </div>
+      {continueItems.length > 0 && (
+        <section>
+          <div className="nocturne-home__section-head">
+            <div>
+              <h2 className="nocturne-home__section-title">Continue Listening</h2>
+              <span className="nocturne-home__section-sub">Resume your ongoing midnight sessions</span>
             </div>
-          ))}
-        </div>
-      </section>
-
-      {/* 3. Recently Played */}
-      <section>
-        <div className="nocturne-home__section-head">
-          <div>
-            <h2 className="nocturne-home__section-title">Recently Played</h2>
-            <span className="nocturne-home__section-sub">Recent frequencies absorbed into your memory</span>
           </div>
-        </div>
 
-        <div className="nocturne-tracklist">
-          {MOCK_TRACKS.slice(0, 4).map((track, i) => (
-            <TrackRow
-              key={track.id}
-              track={track}
-              index={i}
-              isActive={currentTrack?.id === track.id}
-              isPlaying={status === 'playing'}
-              onPlay={handlePlayTrack}
-            />
-          ))}
-        </div>
-      </section>
-
-      {/* 4. Made For You */}
-      <section>
-        <div className="nocturne-home__section-head">
-          <div>
-            <h2 className="nocturne-home__section-title">Made For You</h2>
-            <span className="nocturne-home__section-sub">Algorithmic soundscapes tuned to your listening hour</span>
+          <div className="nocturne-home__continue-grid">
+            {continueItems.map((item) => {
+              const coverSrc = item.track.artwork || item.track.coverUrl || '';
+              return (
+                <div
+                  key={item.track.id}
+                  className="nocturne-continue-card"
+                  onClick={() => playTrack(item.track, tracks)}
+                >
+                  <div className="nocturne-continue-card__cover-wrap">
+                    {coverSrc && (
+                      <img
+                        src={coverSrc}
+                        alt={item.track.title}
+                        className="nocturne-continue-card__cover"
+                        loading="lazy"
+                      />
+                    )}
+                    <div className="nocturne-continue-card__play-overlay">
+                      <Play size={18} fill="currentColor" />
+                    </div>
+                  </div>
+                  <div className="nocturne-continue-card__info">
+                    <span className="nocturne-continue-card__title">
+                      {item.track.title}
+                    </span>
+                    <span className="nocturne-continue-card__artist">
+                      {item.track.artist}
+                    </span>
+                    <div className="nocturne-continue-card__progress-wrap">
+                      <div
+                        className="nocturne-continue-card__progress-bar"
+                        style={{ width: `${item.progress}%` }}
+                      />
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
           </div>
-        </div>
+        </section>
+      )}
 
-        <div className="nocturne-home__grid-cinematic">
-          {MOCK_PLAYLISTS.map((pl) => (
-            <PlaylistCard
-              key={pl.id}
-              playlist={pl}
-              onClick={(p) => navigate(`/playlist/${p.id}`)}
-              onPlay={handlePlayPlaylist}
-            />
-          ))}
-        </div>
-      </section>
+      {/* 3. Recently Played (TrackList) */}
+      {tracks.length > 0 && (
+        <section>
+          <div className="nocturne-home__section-head">
+            <div>
+              <h2 className="nocturne-home__section-title">Recently Played</h2>
+              <span className="nocturne-home__section-sub">Recent frequencies absorbed into your memory</span>
+            </div>
+          </div>
+
+          <TrackList
+            tracks={tracks.slice(0, 5)}
+            currentTrackId={currentTrack?.id}
+            isPlaying={status === 'playing'}
+            onTrackPlay={(t, _all, i) => playTrack(t, tracks.slice(i + 1))}
+            onLikeToggle={(t, l) => showToast(l ? 'Liked' : 'Unliked', t.title, 'default')}
+          />
+        </section>
+      )}
+
+      {/* 4. Made For You (Playlists) */}
+      {playlists.length > 0 && (
+        <section>
+          <div className="nocturne-home__section-head">
+            <div>
+              <h2 className="nocturne-home__section-title">Made For You</h2>
+              <span className="nocturne-home__section-sub">Algorithmic soundscapes tuned to your listening hour</span>
+            </div>
+          </div>
+
+          <div className="nocturne-home__grid-cinematic">
+            {playlists.map((pl) => (
+              <PlaylistCard
+                key={pl.id}
+                playlist={pl}
+                onClick={(p) => navigate(`/playlist/${p.id}`)}
+                onPlay={handlePlayPlaylist}
+              />
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* 5. Mood Collections */}
       <section>
@@ -247,49 +256,50 @@ export const HomePage: React.FC = () => {
         </div>
       </section>
 
-      {/* 6. Your Rotation */}
-      <section>
-        <div className="nocturne-home__section-head">
-          <div>
-            <h2 className="nocturne-home__section-title">Your Rotation</h2>
-            <span className="nocturne-home__section-sub">Sanctum creators in your constant frequency</span>
+      {/* 6. Your Rotation (Artists) */}
+      {artists.length > 0 && (
+        <section>
+          <div className="nocturne-home__section-head">
+            <div>
+              <h2 className="nocturne-home__section-title">Your Rotation</h2>
+              <span className="nocturne-home__section-sub">Sanctum creators in your constant frequency</span>
+            </div>
           </div>
-        </div>
 
-        <div className="nocturne-home__grid-artists">
-          {MOCK_ARTISTS.map((artist) => (
-            <ArtistCard
-              key={artist.id}
-              artist={artist}
-              onClick={(a) => {
-                navigate('/artists');
-                showToast('Artist Inquest', a.name, 'default');
-              }}
-            />
-          ))}
-        </div>
-      </section>
-
-      {/* 7. New Releases */}
-      <section>
-        <div className="nocturne-home__section-head">
-          <div>
-            <h2 className="nocturne-home__section-title">New Releases</h2>
-            <span className="nocturne-home__section-sub">Subterranean albums freshly unveiled into the dark</span>
+          <div className="nocturne-home__grid-artists">
+            {artists.map((artist) => (
+              <ArtistCard
+                key={artist.id}
+                artist={artist}
+                onClick={(a) => navigate(`/artist/${a.id}`)}
+              />
+            ))}
           </div>
-        </div>
+        </section>
+      )}
 
-        <div className="nocturne-home__grid-cinematic">
-          {MOCK_ALBUMS.map((album) => (
-            <AlbumCard
-              key={album.id}
-              album={album}
-              onClick={handlePlayAlbum}
-              onPlay={handlePlayAlbum}
-            />
-          ))}
-        </div>
-      </section>
+      {/* 7. New Releases (Albums) */}
+      {albums.length > 0 && (
+        <section>
+          <div className="nocturne-home__section-head">
+            <div>
+              <h2 className="nocturne-home__section-title">New Releases</h2>
+              <span className="nocturne-home__section-sub">Subterranean albums freshly unveiled into the dark</span>
+            </div>
+          </div>
+
+          <div className="nocturne-home__grid-cinematic">
+            {albums.map((album) => (
+              <AlbumCard
+                key={album.id}
+                album={album}
+                onClick={(a) => navigate(`/album/${a.id}`)}
+                onPlay={handlePlayAlbum}
+              />
+            ))}
+          </div>
+        </section>
+      )}
     </div>
   );
 };

@@ -1,24 +1,50 @@
-import React from 'react';
-import { Play, Sparkles, Moon } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Play, Sparkles, Moon, Compass } from 'lucide-react';
 import { Button } from '../components/primitives/Button';
 import { AlbumCard } from '../components/primitives/AlbumCard';
 import { ArtistCard } from '../components/primitives/ArtistCard';
 import { PlaylistCard } from '../components/primitives/PlaylistCard';
-import { TrackRow } from '../components/primitives/TrackRow';
+import { TrackList } from '../components/primitives/TrackList';
 import { usePlayer } from '../state/PlayerContext';
 import { useToast } from '../state/ToastContext';
-import {
-  MOCK_ALBUMS,
-  MOCK_ARTISTS,
-  MOCK_PLAYLISTS,
-  MOCK_TRACKS,
-} from '../data/mockData';
-import type { Album, Playlist, Track } from '../types';
+import { musicService } from '../services/musicService';
+import type { Album, Playlist, Track, Artist } from '../types';
 import './DiscoverPage.css';
 
 export const DiscoverPage: React.FC = () => {
   const { playTrack, currentTrack, status } = usePlayer();
   const { showToast } = useToast();
+
+  const [albums, setAlbums] = useState<Album[]>([]);
+  const [playlists, setPlaylists] = useState<Playlist[]>([]);
+  const [artists, setArtists] = useState<Artist[]>([]);
+  const [tracks, setTracks] = useState<Track[]>([]);
+  const [genres, setGenres] = useState<string[]>([]);
+  const [activeGenre, setActiveGenre] = useState<string>('All');
+
+  useEffect(() => {
+    let isCancelled = false;
+
+    Promise.all([
+      musicService.getAllAlbums(),
+      musicService.getAllPlaylists(),
+      musicService.getAllArtists(),
+      musicService.getAllTracks(),
+      musicService.getGenres(),
+    ]).then(([albs, pls, arts, trks, gnrs]) => {
+      if (!isCancelled) {
+        setAlbums(albs);
+        setPlaylists(pls);
+        setArtists(arts);
+        setTracks(trks);
+        setGenres(['All', ...gnrs]);
+      }
+    });
+
+    return () => {
+      isCancelled = true;
+    };
+  }, []);
 
   const handlePlayAlbum = (album: Album) => {
     if (album.tracks && album.tracks.length > 0) {
@@ -30,16 +56,21 @@ export const DiscoverPage: React.FC = () => {
   };
 
   const handlePlayPlaylist = (playlist: Playlist) => {
-    if (MOCK_TRACKS.length > 0) {
-      playTrack(MOCK_TRACKS[0], MOCK_TRACKS.slice(1));
+    if (playlist.tracks && playlist.tracks.length > 0) {
+      playTrack(playlist.tracks[0], playlist.tracks.slice(1));
       showToast('Curated Stream Initiated', playlist.title, 'atmosphere');
     }
   };
 
-  const handlePlayTrack = (track: Track) => {
-    playTrack(track, MOCK_TRACKS);
-    showToast('Playing Track', `${track.title} • ${track.artist}`, 'default');
-  };
+  const filteredTracks =
+    activeGenre === 'All'
+      ? tracks
+      : tracks.filter((t) => t.genre.toLowerCase().includes(activeGenre.toLowerCase()));
+
+  const filteredAlbums =
+    activeGenre === 'All'
+      ? albums
+      : albums.filter((a) => a.genre.toLowerCase().includes(activeGenre.toLowerCase()));
 
   return (
     <div className="nocturne-discover">
@@ -59,7 +90,12 @@ export const DiscoverPage: React.FC = () => {
             variant="primary"
             size="lg"
             leftIcon={<Play size={18} fill="currentColor" />}
-            onClick={() => handlePlayTrack(MOCK_TRACKS[0])}
+            onClick={() => {
+              if (tracks.length > 0) {
+                playTrack(tracks[0], tracks.slice(1));
+                showToast('Sanctuary Unlocked', 'Beginning midnight listening ritual', 'atmosphere');
+              }
+            }}
           >
             Enter Sanctuary
           </Button>
@@ -67,12 +103,45 @@ export const DiscoverPage: React.FC = () => {
             variant="gothic"
             size="lg"
             leftIcon={<Sparkles size={16} />}
-            onClick={() => showToast('Deep Drift Initiated', 'Continuous non-stop midnight ambient audio mode active', 'atmosphere')}
+            onClick={() =>
+              showToast('Deep Drift Initiated', 'Continuous non-stop midnight ambient audio mode active', 'atmosphere')
+            }
           >
             Nocturnal Drift
           </Button>
         </div>
       </section>
+
+      {/* Genre Filter Pills */}
+      {genres.length > 0 && (
+        <section style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'var(--text-medium)', fontSize: '13px' }}>
+            <Compass size={15} color="var(--accent-secondary)" />
+            <span>Explore Sonic Sub-Disciplines</span>
+          </div>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+            {genres.map((g) => (
+              <button
+                key={g}
+                type="button"
+                onClick={() => setActiveGenre(g)}
+                style={{
+                  padding: '6px 14px',
+                  borderRadius: 'var(--radius-full)',
+                  background: activeGenre === g ? 'var(--bg-surface-elevated)' : 'var(--bg-surface)',
+                  border: `1px solid ${activeGenre === g ? 'var(--accent-primary)' : 'var(--border-subtle)'}`,
+                  color: activeGenre === g ? 'var(--accent-secondary)' : 'var(--text-medium)',
+                  fontSize: '12px',
+                  cursor: 'pointer',
+                  transition: 'all var(--transition-snappy)',
+                }}
+              >
+                {g}
+              </button>
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* Featured Late-Night Playlists */}
       <section className="nocturne-section">
@@ -84,7 +153,7 @@ export const DiscoverPage: React.FC = () => {
         </div>
 
         <div className="nocturne-grid-albums">
-          {MOCK_PLAYLISTS.map((playlist) => (
+          {playlists.map((playlist) => (
             <PlaylistCard
               key={playlist.id}
               playlist={playlist}
@@ -103,18 +172,15 @@ export const DiscoverPage: React.FC = () => {
           </div>
         </div>
 
-        <div className="nocturne-tracklist">
-          {MOCK_TRACKS.slice(0, 5).map((track, idx) => (
-            <TrackRow
-              key={track.id}
-              track={track}
-              index={idx}
-              isActive={currentTrack?.id === track.id}
-              isPlaying={status === 'playing'}
-              onPlay={handlePlayTrack}
-            />
-          ))}
-        </div>
+        <TrackList
+          tracks={filteredTracks.slice(0, 8)}
+          currentTrackId={currentTrack?.id}
+          isPlaying={status === 'playing'}
+          onTrackPlay={(track, _all, index) => {
+            playTrack(track, filteredTracks.slice(index + 1));
+          }}
+          onLikeToggle={(t, l) => showToast(l ? 'Liked' : 'Unliked', t.title, 'default')}
+        />
       </section>
 
       {/* Essential Midnight Albums */}
@@ -127,7 +193,7 @@ export const DiscoverPage: React.FC = () => {
         </div>
 
         <div className="nocturne-grid-albums">
-          {MOCK_ALBUMS.map((album) => (
+          {filteredAlbums.map((album) => (
             <AlbumCard
               key={album.id}
               album={album}
@@ -147,11 +213,10 @@ export const DiscoverPage: React.FC = () => {
         </div>
 
         <div className="nocturne-grid-artists">
-          {MOCK_ARTISTS.map((artist) => (
+          {artists.map((artist) => (
             <ArtistCard
               key={artist.id}
               artist={artist}
-              onClick={(ar) => showToast('Artist Profile', ar.name, 'default')}
             />
           ))}
         </div>

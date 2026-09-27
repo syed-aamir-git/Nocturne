@@ -5,7 +5,7 @@ import { musicService } from '../services/musicService';
 import type { Track, Album, Artist } from '../types';
 import { useUI } from '../state/UIContext';
 import { usePlayer } from '../state/PlayerContext';
-import { TrackRow } from '../components/primitives/TrackRow';
+import { TrackList } from '../components/primitives/TrackList';
 import { AlbumCard } from '../components/primitives/AlbumCard';
 import { ArtistCard } from '../components/primitives/ArtistCard';
 import { Skeleton } from '../components/primitives/Skeleton';
@@ -160,18 +160,12 @@ export const SearchPage: React.FC = () => {
           {results.tracks.length > 0 && (
             <section>
               <h2 style={{ fontSize: '1.3rem', marginBottom: 16 }}>Tracks Found</h2>
-              <div className="nocturne-tracklist">
-                {results.tracks.map((track, i) => (
-                  <TrackRow
-                    key={track.id}
-                    track={track}
-                    index={i}
-                    isActive={currentTrack?.id === track.id}
-                    isPlaying={status === 'playing'}
-                    onPlay={(t) => playTrack(t, results.tracks)}
-                  />
-                ))}
-              </div>
+              <TrackList
+                tracks={results.tracks}
+                currentTrackId={currentTrack?.id}
+                isPlaying={status === 'playing'}
+                onTrackPlay={(t, _all, i) => playTrack(t, results.tracks.slice(i + 1))}
+              />
             </section>
           )}
 

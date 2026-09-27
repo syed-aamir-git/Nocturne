@@ -1,10 +1,23 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { ArtistCard } from '../components/primitives/ArtistCard';
-import { useToast } from '../state/ToastContext';
-import { MOCK_ARTISTS } from '../data/mockData';
+import { musicService } from '../services/musicService';
+import type { Artist } from '../types';
 
 export const ArtistsPage: React.FC = () => {
-  const { showToast } = useToast();
+  const [artists, setArtists] = useState<Artist[]>([]);
+
+  useEffect(() => {
+    let isCancelled = false;
+    musicService.getAllArtists().then((arts) => {
+      if (!isCancelled) {
+        setArtists(arts);
+      }
+    });
+
+    return () => {
+      isCancelled = true;
+    };
+  }, []);
 
   return (
     <div style={{ maxWidth: 1400, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 32 }}>
@@ -16,11 +29,10 @@ export const ArtistsPage: React.FC = () => {
       </div>
 
       <div className="nocturne-home__grid-artists">
-        {MOCK_ARTISTS.map((artist) => (
+        {artists.map((artist) => (
           <ArtistCard
             key={artist.id}
             artist={artist}
-            onClick={(a) => showToast('Artist Discovered', a.name, 'default')}
           />
         ))}
       </div>

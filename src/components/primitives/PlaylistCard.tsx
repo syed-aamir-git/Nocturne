@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Play, Music } from 'lucide-react';
 import type { Playlist } from '../../types';
 import { formatNumber } from '../../utilities/formatters';
@@ -18,16 +19,35 @@ export const PlaylistCard: React.FC<PlaylistCardProps> = ({
   className = '',
 }) => {
   const [imgError, setImgError] = useState(false);
+  const navigate = useNavigate();
+
+  const handleClick = () => {
+    if (onClick) {
+      onClick(playlist);
+    } else {
+      navigate(`/playlist/${playlist.id}`);
+    }
+  };
+
+  const coverSrc = playlist.artwork || playlist.coverUrl || '';
+  const tracksLength = playlist.tracks ? playlist.tracks.length : playlist.tracksCount || 0;
 
   return (
     <div
       className={`nocturne-playlist-card ${className}`}
-      onClick={() => onClick?.(playlist)}
+      onClick={handleClick}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          handleClick();
+        }
+      }}
     >
       <div className="nocturne-playlist-card__cover-wrap">
-        {!imgError ? (
+        {!imgError && coverSrc ? (
           <img
-            src={playlist.coverUrl}
+            src={coverSrc}
             alt={playlist.title}
             className="nocturne-playlist-card__cover"
             onError={() => setImgError(true)}
@@ -73,8 +93,10 @@ export const PlaylistCard: React.FC<PlaylistCardProps> = ({
       <p className="nocturne-playlist-card__desc">{playlist.description}</p>
 
       <div className="nocturne-playlist-card__footer">
-        <span>{playlist.tracksCount} tracks</span>
-        <span>{formatNumber(playlist.followersCount)} listeners</span>
+        <span>{tracksLength} tracks</span>
+        {playlist.followersCount !== undefined && (
+          <span>{formatNumber(playlist.followersCount)} listeners</span>
+        )}
       </div>
     </div>
   );

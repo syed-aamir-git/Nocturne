@@ -1,26 +1,53 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Tabs } from '../components/primitives/Tabs';
 import { AlbumCard } from '../components/primitives/AlbumCard';
 import { ArtistCard } from '../components/primitives/ArtistCard';
-import { TrackRow } from '../components/primitives/TrackRow';
 import { PlaylistCard } from '../components/primitives/PlaylistCard';
+import { TrackList } from '../components/primitives/TrackList';
 import { EmptyState } from '../components/primitives/EmptyState';
 import { Button } from '../components/primitives/Button';
 import { usePlayer } from '../state/PlayerContext';
 import { useToast } from '../state/ToastContext';
-import { MOCK_ALBUMS, MOCK_ARTISTS, MOCK_PLAYLISTS, MOCK_TRACKS } from '../data/mockData';
+import { musicService } from '../services/musicService';
+import type { Album, Artist, Playlist, Track } from '../types';
 
 export const LibraryPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState('playlists');
   const [showEmptyDemo, setShowEmptyDemo] = useState(false);
+  const [albums, setAlbums] = useState<Album[]>([]);
+  const [playlists, setPlaylists] = useState<Playlist[]>([]);
+  const [artists, setArtists] = useState<Artist[]>([]);
+  const [tracks, setTracks] = useState<Track[]>([]);
   const { currentTrack, status, playTrack } = usePlayer();
   const { showToast } = useToast();
 
+  useEffect(() => {
+    let isCancelled = false;
+
+    Promise.all([
+      musicService.getAllPlaylists(),
+      musicService.getAllAlbums(),
+      musicService.getAllArtists(),
+      musicService.getAllTracks(),
+    ]).then(([pls, albs, arts, trks]) => {
+      if (!isCancelled) {
+        setPlaylists(pls);
+        setAlbums(albs);
+        setArtists(arts);
+        setTracks(trks);
+      }
+    });
+
+    return () => {
+      isCancelled = true;
+    };
+  }, []);
+
   const tabs = [
-    { id: 'playlists', label: 'Playlists', badge: MOCK_PLAYLISTS.length },
-    { id: 'albums', label: 'Saved Albums', badge: MOCK_ALBUMS.length },
-    { id: 'artists', label: 'Followed Artists', badge: MOCK_ARTISTS.length },
-    { id: 'tracks', label: 'Preserved Tracks', badge: MOCK_TRACKS.length },
+    { id: 'playlists', label: 'Playlists', badge: playlists.length },
+    { id: 'albums', label: 'Saved Albums', badge: albums.length },
+    { id: 'artists', label: 'Followed Artists', badge: artists.length },
+    { id: 'tracks', label: 'Preserved Tracks', badge: tracks.length },
   ];
 
   return (
@@ -64,11 +91,16 @@ export const LibraryPage: React.FC = () => {
         <>
           {activeTab === 'playlists' && (
             <div className="nocturne-grid-albums">
-              {MOCK_PLAYLISTS.map((pl) => (
+              {playlists.map((pl) => (
                 <PlaylistCard
                   key={pl.id}
                   playlist={pl}
-                  onPlay={() => showToast('Playing Playlist', pl.title, 'atmosphere')}
+                  onPlay={(p) => {
+                    if (p.tracks && p.tracks.length > 0) {
+                      playTrack(p.tracks[0], p.tracks.slice(1));
+                      showToast('Playing Playlist', p.title, 'atmosphere');
+                    }
+                  }}
                 />
               ))}
             </div>
@@ -76,11 +108,16 @@ export const LibraryPage: React.FC = () => {
 
           {activeTab === 'albums' && (
             <div className="nocturne-grid-albums">
-              {MOCK_ALBUMS.map((alb) => (
+              {albums.map((alb) => (
                 <AlbumCard
                   key={alb.id}
                   album={alb}
-                  onPlay={() => showToast('Playing Album', alb.title, 'atmosphere')}
+                  onPlay={(a) => {
+                    if (a.tracks && a.tracks.length > 0) {
+                      playTrack(a.tracks[0], a.tracks.slice(1));
+                      showToast('Playing Album', alb.title, 'atmosphere');
+                    }
+                  }}
                 />
               ))}
             </div>
@@ -88,29 +125,23 @@ export const LibraryPage: React.FC = () => {
 
           {activeTab === 'artists' && (
             <div className="nocturne-grid-artists">
-              {MOCK_ARTISTS.map((art) => (
+              {artists.map((art) => (
                 <ArtistCard
                   key={art.id}
                   artist={art}
-                  onClick={(a) => showToast('Artist', a.name, 'default')}
                 />
               ))}
             </div>
           )}
 
           {activeTab === 'tracks' && (
-            <div className="nocturne-tracklist">
-              {MOCK_TRACKS.map((track, i) => (
-                <TrackRow
-                  key={track.id}
-                  track={track}
-                  index={i}
-                  isActive={currentTrack?.id === track.id}
-                  isPlaying={status === 'playing'}
-                  onPlay={(t) => playTrack(t, MOCK_TRACKS)}
-                />
-              ))}
-            </div>
+            <TrackList
+              tracks={tracks}
+              currentTrackId={currentTrack?.id}
+              isPlaying={status === 'playing'}
+              onTrackPlay={(t, _all, i) => playTrack(t, tracks.slice(i + 1))}
+              onLikeToggle={(t, l) => showToast(l ? 'Liked' : 'Unliked', t.title, 'default')}
+            />
           )}
         </>
       )}

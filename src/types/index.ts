@@ -9,15 +9,9 @@ export interface ThemeConfig {
   bgDark: string;
 }
 
-export interface Artist {
-  id: string;
-  name: string;
-  avatarUrl: string;
-  bannerUrl?: string;
-  bio?: string;
-  genres: string[];
-  monthlyListeners: number;
-  verified?: boolean;
+export interface SyncedLyricLine {
+  time: number; // in seconds
+  text: string;
 }
 
 export interface Track {
@@ -27,13 +21,19 @@ export interface Track {
   artistId: string;
   album: string;
   albumId: string;
-  coverUrl: string;
+  artwork: string;
+  coverUrl?: string; // alias for compatibility
+  audioUrl: string;
   duration: number; // in seconds
-  audioUrl?: string;
-  explicit?: boolean;
+  genre: string;
+  releaseDate: string;
+  trackNumber: number;
+  lyrics?: string;
+  syncedLyrics?: SyncedLyricLine[];
+  explicit: boolean;
+  playCount: number;
   bitrate?: string; // e.g. "24-bit / 96kHz FLAC"
-  vibe?: string; // e.g. "Deep Melancholy", "Midnight Ambient", "Gothic Neoclassical"
-  plays?: number;
+  vibe?: string; // e.g. "Gothic Darkwave", "Midnight Ambient"
 }
 
 export interface Album {
@@ -41,25 +41,44 @@ export interface Album {
   title: string;
   artist: string;
   artistId: string;
-  releaseYear: number;
-  coverUrl: string;
-  tracksCount: number;
-  totalDuration: number; // in seconds
+  artwork: string;
+  coverUrl?: string; // alias for compatibility
+  releaseDate: string;
+  releaseYear?: number;
   genre: string;
+  tracks: Track[];
+  isSingle?: boolean;
   description?: string;
-  tracks?: Track[];
+  tracksCount?: number;
+  totalDuration?: number; // in seconds
+}
+
+export interface Artist {
+  id: string;
+  name: string;
+  image: string;
+  avatarUrl?: string; // alias for compatibility
+  bannerUrl?: string;
+  biography: string;
+  bio?: string; // alias for compatibility
+  genres: string[];
+  albums: string[]; // album IDs
+  monthlyListeners?: number;
+  verified?: boolean;
 }
 
 export interface Playlist {
   id: string;
   title: string;
-  curator: string;
   description: string;
-  coverUrl: string;
-  tracksCount: number;
-  followersCount: number;
+  artwork: string;
+  coverUrl?: string; // alias for compatibility
+  tracks: Track[];
+  creator: string;
+  createdAt: string;
   curatedHour?: string; // e.g., "02:00 - 05:00 AM"
-  tracks?: Track[];
+  followersCount?: number;
+  tracksCount?: number;
 }
 
 export type PlaybackStatus = 'idle' | 'playing' | 'paused' | 'loading';

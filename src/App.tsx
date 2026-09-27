@@ -9,7 +9,9 @@ import { SearchPage } from './pages/SearchPage';
 import { PlaylistsPage } from './pages/PlaylistsPage';
 import { PlaylistViewPage } from './pages/PlaylistViewPage';
 import { AlbumsPage } from './pages/AlbumsPage';
+import { AlbumDetailPage } from './pages/AlbumDetailPage';
 import { ArtistsPage } from './pages/ArtistsPage';
+import { ArtistDetailPage } from './pages/ArtistDetailPage';
 import { LikedSongsPage } from './pages/LikedSongsPage';
 import { RecentlyPlayedPage } from './pages/RecentlyPlayedPage';
 import { HistoryPage } from './pages/HistoryPage';
@@ -31,7 +33,9 @@ export const App: React.FC = () => {
             <Route path="playlists" element={<PlaylistsPage />} />
             <Route path="playlist/:id" element={<PlaylistViewPage />} />
             <Route path="albums" element={<AlbumsPage />} />
+            <Route path="album/:id" element={<AlbumDetailPage />} />
             <Route path="artists" element={<ArtistsPage />} />
+            <Route path="artist/:id" element={<ArtistDetailPage />} />
             <Route path="liked" element={<LikedSongsPage />} />
             <Route path="recently-played" element={<RecentlyPlayedPage />} />
             <Route path="history" element={<HistoryPage />} />

@@ -10,6 +10,7 @@ export * from './Avatar';
 export * from './AlbumCard';
 export * from './ArtistCard';
 export * from './TrackRow';
+export * from './TrackList';
 export * from './PlaylistCard';
 export * from './Toast';
 export * from './Skeleton';

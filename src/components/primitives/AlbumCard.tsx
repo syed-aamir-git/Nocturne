@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Play, Disc } from 'lucide-react';
 import type { Album } from '../../types';
 import './AlbumCard.css';
@@ -17,16 +18,37 @@ export const AlbumCard: React.FC<AlbumCardProps> = ({
   className = '',
 }) => {
   const [imgError, setImgError] = useState(false);
+  const navigate = useNavigate();
+
+  const handleClick = () => {
+    if (onClick) {
+      onClick(album);
+    } else {
+      navigate(`/album/${album.id}`);
+    }
+  };
+
+  const coverSrc = album.artwork || album.coverUrl || '';
+  const yearText = album.isSingle
+    ? 'Single'
+    : album.releaseYear || album.releaseDate?.slice(0, 4) || 'Album';
 
   return (
     <div
       className={`nocturne-album-card ${className}`}
-      onClick={() => onClick?.(album)}
+      onClick={handleClick}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          handleClick();
+        }
+      }}
     >
       <div className="nocturne-album-card__cover-wrap">
-        {!imgError ? (
+        {!imgError && coverSrc ? (
           <img
-            src={album.coverUrl}
+            src={coverSrc}
             alt={album.title}
             className="nocturne-album-card__cover"
             onError={() => setImgError(true)}
@@ -69,7 +91,7 @@ export const AlbumCard: React.FC<AlbumCardProps> = ({
           {album.artist}
         </span>
         <div className="nocturne-album-card__meta">
-          <span>{album.releaseYear}</span>
+          <span>{yearText}</span>
           <span>•</span>
           <span>{album.genre}</span>
         </div>
