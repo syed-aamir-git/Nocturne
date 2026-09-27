@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Play, Music } from 'lucide-react';
 import type { Playlist } from '../../types';
 import { formatNumber } from '../../utilities/formatters';
+import { usePlayer } from '../../state/PlayerContext';
 import './PlaylistCard.css';
 
 export interface PlaylistCardProps {
@@ -20,6 +21,16 @@ export const PlaylistCard: React.FC<PlaylistCardProps> = ({
 }) => {
   const [imgError, setImgError] = useState(false);
   const navigate = useNavigate();
+  const { playPlaylist } = usePlayer();
+
+  const handlePlayClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (onPlay) {
+      onPlay(playlist);
+    } else {
+      playPlaylist(playlist);
+    }
+  };
 
   const handleClick = () => {
     if (onClick) {
@@ -72,19 +83,14 @@ export const PlaylistCard: React.FC<PlaylistCardProps> = ({
             {playlist.curatedHour}
           </span>
         )}
-        {onPlay && (
-          <button
-            type="button"
-            className="nocturne-playlist-card__play-btn"
-            onClick={(e) => {
-              e.stopPropagation();
-              onPlay(playlist);
-            }}
-            aria-label={`Play playlist ${playlist.title}`}
-          >
-            <Play size={20} fill="currentColor" />
-          </button>
-        )}
+        <button
+          type="button"
+          className="nocturne-playlist-card__play-btn"
+          onClick={handlePlayClick}
+          aria-label={`Play playlist ${playlist.title}`}
+        >
+          <Play size={20} fill="currentColor" />
+        </button>
       </div>
 
       <h3 className="nocturne-playlist-card__title" title={playlist.title}>

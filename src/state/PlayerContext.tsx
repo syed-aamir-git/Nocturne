@@ -208,10 +208,15 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
   // Play / Pause toggles
   const play = useCallback(() => {
+    const { currentTrack: currTrk, queue: currQ, queueIndex: currIdx, status: currStatus } = stateRef.current;
+    if (currStatus === 'idle' && currTrk) {
+      playTrack(currTrk, currQ, currIdx);
+      return;
+    }
     setStatus('playing');
     setPlaybackError(null);
     audioEngine.play();
-  }, []);
+  }, [playTrack]);
 
   const pause = useCallback(() => {
     setStatus('paused');
@@ -219,16 +224,18 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   }, []);
 
   const togglePlayPause = useCallback(() => {
-    const { status: currStatus, currentTrack: currTrk, queue: currQ } = stateRef.current;
+    const { status: currStatus, currentTrack: currTrk, queue: currQ, queueIndex: currIdx } = stateRef.current;
 
     if (currStatus === 'playing') {
       pause();
-    } else {
-      if (!currTrk && currQ.length > 0) {
-        playTrack(currQ[0], currQ, 0);
+    } else if (currTrk) {
+      if (currStatus === 'idle') {
+        playTrack(currTrk, currQ, currIdx);
       } else {
         play();
       }
+    } else if (currQ.length > 0) {
+      playTrack(currQ[0], currQ, 0);
     }
   }, [pause, play, playTrack]);
 
@@ -354,6 +361,7 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         (target.tagName === 'INPUT' ||
           target.tagName === 'TEXTAREA' ||
           target.tagName === 'SELECT' ||
+          target.getAttribute('role') === 'slider' ||
           target.isContentEditable)
       ) {
         return;

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Play, Disc } from 'lucide-react';
 import type { Album } from '../../types';
+import { usePlayer } from '../../state/PlayerContext';
 import './AlbumCard.css';
 
 export interface AlbumCardProps {
@@ -19,6 +20,16 @@ export const AlbumCard: React.FC<AlbumCardProps> = ({
 }) => {
   const [imgError, setImgError] = useState(false);
   const navigate = useNavigate();
+  const { playAlbum } = usePlayer();
+
+  const handlePlayClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (onPlay) {
+      onPlay(album);
+    } else {
+      playAlbum(album);
+    }
+  };
 
   const handleClick = () => {
     if (onClick) {
@@ -68,19 +79,14 @@ export const AlbumCard: React.FC<AlbumCardProps> = ({
             <Disc size={36} color="var(--accent-primary)" />
           </div>
         )}
-        {onPlay && (
-          <button
-            type="button"
-            className="nocturne-album-card__play-btn"
-            onClick={(e) => {
-              e.stopPropagation();
-              onPlay(album);
-            }}
-            aria-label={`Play ${album.title}`}
-          >
-            <Play size={20} fill="currentColor" />
-          </button>
-        )}
+        <button
+          type="button"
+          className="nocturne-album-card__play-btn"
+          onClick={handlePlayClick}
+          aria-label={`Play album ${album.title}`}
+        >
+          <Play size={20} fill="currentColor" />
+        </button>
       </div>
 
       <div className="nocturne-album-card__info">
