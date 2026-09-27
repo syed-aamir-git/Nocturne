@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Plus } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Plus, Radio } from 'lucide-react';
 import { Tabs } from '../components/primitives/Tabs';
 import { AlbumCard } from '../components/primitives/AlbumCard';
 import { ArtistCard } from '../components/primitives/ArtistCard';
@@ -15,6 +16,7 @@ import { musicService } from '../services/musicService';
 import type { Album, Artist } from '../types';
 
 export const LibraryPage: React.FC = () => {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('playlists');
   const [showEmptyDemo, setShowEmptyDemo] = useState(false);
   const [isPlaylistModalOpen, setIsPlaylistModalOpen] = useState(false);
@@ -73,14 +75,24 @@ export const LibraryPage: React.FC = () => {
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           {activeTab === 'playlists' && (
-            <Button
-              variant="primary"
-              size="sm"
-              leftIcon={<Plus size={15} />}
-              onClick={() => setIsPlaylistModalOpen(true)}
-            >
-              New Playlist
-            </Button>
+            <>
+              <Button
+                variant="secondary"
+                size="sm"
+                leftIcon={<Radio size={14} color="#1db954" />}
+                onClick={() => navigate('/import')}
+              >
+                Import from Spotify
+              </Button>
+              <Button
+                variant="primary"
+                size="sm"
+                leftIcon={<Plus size={15} />}
+                onClick={() => setIsPlaylistModalOpen(true)}
+              >
+                New Playlist
+              </Button>
+            </>
           )}
 
           <Button

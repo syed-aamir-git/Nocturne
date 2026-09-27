@@ -35,6 +35,37 @@ async function generateCodeChallenge(codeVerifier: string): Promise<string> {
     .replace(/\//g, '_');
 }
 
+const safeStorage = {
+  getItem: (key: string): string | null => {
+    try {
+      if (typeof window !== 'undefined' && window.localStorage) {
+        return window.localStorage.getItem(key);
+      }
+    } catch {
+      // ignore
+    }
+    return null;
+  },
+  setItem: (key: string, value: string): void => {
+    try {
+      if (typeof window !== 'undefined' && window.localStorage) {
+        window.localStorage.setItem(key, value);
+      }
+    } catch {
+      // ignore
+    }
+  },
+  removeItem: (key: string): void => {
+    try {
+      if (typeof window !== 'undefined' && window.localStorage) {
+        window.localStorage.removeItem(key);
+      }
+    } catch {
+      // ignore
+    }
+  },
+};
+
 export class SpotifyAuthService {
   /**
    * Retrieves the configured Spotify Client ID from:
@@ -42,36 +73,45 @@ export class SpotifyAuthService {
    * 2. User-configured custom client ID in localStorage
    */
   public getClientId(): string {
-    const envId = import.meta.env.VITE_SPOTIFY_CLIENT_ID;
+    const envId =
+      typeof import.meta !== 'undefined' && import.meta.env
+        ? import.meta.env.VITE_SPOTIFY_CLIENT_ID
+        : undefined;
     if (envId && envId.trim() && envId !== 'your_spotify_client_id_here') {
       return envId.trim();
     }
-    const saved = localStorage.getItem(CUSTOM_CLIENT_ID_KEY);
+    const saved = safeStorage.getItem(CUSTOM_CLIENT_ID_KEY);
     return saved ? saved.trim() : '';
   }
 
   public setCustomClientId(clientId: string) {
     if (clientId.trim()) {
-      localStorage.setItem(CUSTOM_CLIENT_ID_KEY, clientId.trim());
+      safeStorage.setItem(CUSTOM_CLIENT_ID_KEY, clientId.trim());
     } else {
-      localStorage.removeItem(CUSTOM_CLIENT_ID_KEY);
+      safeStorage.removeItem(CUSTOM_CLIENT_ID_KEY);
     }
   }
 
   public getRedirectUri(): string {
-    const envUri = import.meta.env.VITE_SPOTIFY_REDIRECT_URI;
+    const envUri =
+      typeof import.meta !== 'undefined' && import.meta.env
+        ? import.meta.env.VITE_SPOTIFY_REDIRECT_URI
+        : undefined;
     if (envUri && envUri.trim()) {
       return envUri.trim();
     }
-    return `${window.location.origin}/callback`;
+    if (typeof window !== 'undefined' && window.location) {
+      return `${window.location.origin}/callback`;
+    }
+    return 'http://localhost:5173/callback';
   }
 
   public isDemoMode(): boolean {
-    return localStorage.getItem(DEMO_MODE_KEY) === 'true';
+    return safeStorage.getItem(DEMO_MODE_KEY) === 'true';
   }
 
   public enableDemoMode(profile?: UserImportProfile) {
-    localStorage.setItem(DEMO_MODE_KEY, 'true');
+    safeStorage.setItem(DEMO_MODE_KEY, 'true');
     const demoUser: UserImportProfile = profile || {
       id: 'spotify-demo-nocturne',
       name: 'Nocturne Pilgrim',
@@ -80,9 +120,9 @@ export class SpotifyAuthService {
       provider: 'spotify',
       product: 'Premium',
     };
-    localStorage.setItem(USER_KEY, JSON.stringify(demoUser));
-    localStorage.setItem(TOKEN_KEY, 'demo_access_token_' + Date.now());
-    localStorage.setItem(EXPIRES_AT_KEY, String(Date.now() + 3600 * 1000));
+    safeStorage.setItem(USER_KEY, JSON.stringify(demoUser));
+    safeStorage.setItem(TOKEN_KEY, 'demo_access_token_' + Date.now());
+    safeStorage.setItem(EXPIRES_AT_KEY, String(Date.now() + 3600 * 1000));
   }
 
   /**
@@ -163,19 +203,19 @@ export class SpotifyAuthService {
 
     // Fetch user profile
     const profile = await this.fetchUserProfile(tokenData.access_token);
-    localStorage.setItem(USER_KEY, JSON.stringify(profile));
-    localStorage.removeItem(DEMO_MODE_KEY);
+    safeStorage.setItem(USER_KEY, JSON.stringify(profile));
+    safeStorage.removeItem(DEMO_MODE_KEY);
 
     return profile;
   }
 
   private saveTokens(accessToken: string, refreshToken?: string, expiresIn = 3600) {
-    localStorage.setItem(TOKEN_KEY, accessToken);
+    safeStorage.setItem(TOKEN_KEY, accessToken);
     if (refreshToken) {
-      localStorage.setItem(REFRESH_KEY, refreshToken);
+      safeStorage.setItem(REFRESH_KEY, refreshToken);
     }
     const expiresAt = Date.now() + (expiresIn - 60) * 1000;
-    localStorage.setItem(EXPIRES_AT_KEY, String(expiresAt));
+    safeStorage.setItem(EXPIRES_AT_KEY, String(expiresAt));
   }
 
   /**
@@ -183,19 +223,19 @@ export class SpotifyAuthService {
    */
   public async getValidAccessToken(): Promise<string | null> {
     if (this.isDemoMode()) {
-      return localStorage.getItem(TOKEN_KEY) || 'demo_token';
+      return safeStorage.getItem(TOKEN_KEY) || 'demo_token';
     }
 
-    const token = localStorage.getItem(TOKEN_KEY);
+    const token = safeStorage.getItem(TOKEN_KEY);
     if (!token) return null;
 
-    const expiresAt = Number(localStorage.getItem(EXPIRES_AT_KEY) || 0);
+    const expiresAt = Number(safeStorage.getItem(EXPIRES_AT_KEY) || 0);
     if (Date.now() < expiresAt) {
       return token;
     }
 
     // Attempt token refresh
-    const refreshToken = localStorage.getItem(REFRESH_KEY);
+    const refreshToken = safeStorage.getItem(REFRESH_KEY);
     const clientId = this.getClientId();
     if (!refreshToken || !clientId) {
       this.disconnect();
@@ -252,7 +292,7 @@ export class SpotifyAuthService {
   }
 
   public getUserProfile(): UserImportProfile | null {
-    const raw = localStorage.getItem(USER_KEY);
+    const raw = safeStorage.getItem(USER_KEY);
     if (!raw) return null;
     try {
       return JSON.parse(raw);
@@ -263,20 +303,20 @@ export class SpotifyAuthService {
 
   public isAuthenticated(): boolean {
     if (this.isDemoMode()) {
-      return Boolean(localStorage.getItem(TOKEN_KEY));
+      return Boolean(safeStorage.getItem(TOKEN_KEY));
     }
-    const token = localStorage.getItem(TOKEN_KEY);
-    const expiresAt = Number(localStorage.getItem(EXPIRES_AT_KEY) || 0);
-    const refreshToken = localStorage.getItem(REFRESH_KEY);
+    const token = safeStorage.getItem(TOKEN_KEY);
+    const expiresAt = Number(safeStorage.getItem(EXPIRES_AT_KEY) || 0);
+    const refreshToken = safeStorage.getItem(REFRESH_KEY);
     return Boolean(token && (Date.now() < expiresAt || refreshToken));
   }
 
   public disconnect(): void {
-    localStorage.removeItem(TOKEN_KEY);
-    localStorage.removeItem(REFRESH_KEY);
-    localStorage.removeItem(EXPIRES_AT_KEY);
-    localStorage.removeItem(USER_KEY);
-    localStorage.removeItem(DEMO_MODE_KEY);
+    safeStorage.removeItem(TOKEN_KEY);
+    safeStorage.removeItem(REFRESH_KEY);
+    safeStorage.removeItem(EXPIRES_AT_KEY);
+    safeStorage.removeItem(USER_KEY);
+    safeStorage.removeItem(DEMO_MODE_KEY);
   }
 }
 

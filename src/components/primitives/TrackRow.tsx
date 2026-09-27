@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Play, Pause, Heart, Music, AlignLeft, MoreHorizontal, GripVertical } from 'lucide-react';
+import { Play, Pause, Heart, Music, AlignLeft, MoreHorizontal, GripVertical, AlertCircle } from 'lucide-react';
 import type { Track, Playlist } from '../../types';
 import { formatDuration } from '../../utilities/formatters';
 import { IconButton } from './IconButton';
@@ -96,7 +96,9 @@ export const TrackRow: React.FC<TrackRowProps> = ({
   return (
     <>
       <div
-        className={`nocturne-track-row ${isActive ? 'nocturne-track-row--active' : ''} ${className}`}
+        className={`nocturne-track-row ${isActive ? 'nocturne-track-row--active' : ''} ${
+          track.isUnavailable ? 'nocturne-track-row--unavailable' : ''
+        } ${className}`}
         onClick={handleRowClick}
         onContextMenu={handleContextMenu}
         role="button"
@@ -138,7 +140,9 @@ export const TrackRow: React.FC<TrackRowProps> = ({
             <>
               <span className="nocturne-track-row__num">{index + 1}</span>
               <span className="nocturne-track-row__play-icon">
-                {isActive && isPlaying ? (
+                {track.isUnavailable ? (
+                  <AlertCircle size={13} color="var(--indicator-error)" />
+                ) : isActive && isPlaying ? (
                   <Pause size={14} fill="currentColor" />
                 ) : (
                   <Play size={14} fill="currentColor" />

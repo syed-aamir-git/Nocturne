@@ -26,6 +26,15 @@
   color: var(--accent-secondary);
 }
 
+.nocturne-track-row--unavailable {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.nocturne-track-row--unavailable:hover {
+  background: rgba(239, 68, 68, 0.04);
+}
+
 /* Number / Play Button Column */
 .nocturne-track-row__index {
   display: flex;

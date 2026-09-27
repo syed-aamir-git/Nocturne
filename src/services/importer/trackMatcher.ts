@@ -72,7 +72,9 @@ export function matchTrack(external: ExternalTrack, library: Track[]): TrackMatc
   let bestScore = 0;
   let matchReason = '';
 
-  for (const libTrack of library) {
+  const safeLibrary = Array.isArray(library) ? library : [];
+
+  for (const libTrack of safeLibrary) {
     const normLibTitle = normalizeString(libTrack.title);
     const normLibArtist = normalizeString(libTrack.artist);
 
@@ -142,7 +144,9 @@ export function matchPlaylistTracks(
   tracks: ExternalTrack[],
   library: Track[]
 ): PlaylistImportPreview {
-  const matches = tracks.map((t) => matchTrack(t, library));
+  const safeTracks = Array.isArray(tracks) ? tracks : [];
+  const safeLibrary = Array.isArray(library) ? library : [];
+  const matches = safeTracks.map((t) => matchTrack(t, safeLibrary));
 
   let matchedCount = 0;
   let unmatchedCount = 0;

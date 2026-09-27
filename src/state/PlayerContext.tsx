@@ -119,12 +119,15 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         }
       }
 
-      if (track.audioUrl) {
+      if (track.audioUrl && !track.isUnavailable) {
         audioEngine.loadTrack(track.audioUrl, true).catch((err) => {
           console.warn('[PlayerContext] Audio playback could not be initiated:', err);
           setIsLoading(false);
           setStatus('paused');
         });
+      } else {
+        setIsLoading(false);
+        setStatus('paused');
       }
     },
     []
@@ -142,7 +145,9 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const playPlaylist = useCallback(
     (playlist: Playlist) => {
       if (playlist.tracks && playlist.tracks.length > 0) {
-        playTrack(playlist.tracks[0], playlist.tracks, 0);
+        const firstPlayableIdx = playlist.tracks.findIndex((t) => !t.isUnavailable && Boolean(t.audioUrl));
+        const targetIdx = firstPlayableIdx !== -1 ? firstPlayableIdx : 0;
+        playTrack(playlist.tracks[targetIdx], playlist.tracks, targetIdx);
       }
     },
     [playTrack]
@@ -156,19 +161,33 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     if (currentQ.length === 0) return;
 
     if (isShuff && currentQ.length > 1) {
-      let randomIdx = Math.floor(Math.random() * currentQ.length);
-      if (randomIdx === currentIdx) {
-        randomIdx = (randomIdx + 1) % currentQ.length;
+      const playableIndices = currentQ
+        .map((t, idx) => (!t.isUnavailable && Boolean(t.audioUrl) ? idx : -1))
+        .filter((idx) => idx !== -1);
+
+      if (playableIndices.length > 0) {
+        let randomIdx = playableIndices[Math.floor(Math.random() * playableIndices.length)];
+        if (randomIdx === currentIdx && playableIndices.length > 1) {
+          const others = playableIndices.filter((i) => i !== currentIdx);
+          randomIdx = others[Math.floor(Math.random() * others.length)];
+        }
+        playTrack(currentQ[randomIdx], currentQ, randomIdx);
+        return;
       }
-      playTrack(currentQ[randomIdx], currentQ, randomIdx);
-      return;
     }
 
-    const nextIdx = currentIdx + 1;
+    let nextIdx = currentIdx + 1;
+    while (nextIdx < currentQ.length && (currentQ[nextIdx].isUnavailable || !currentQ[nextIdx].audioUrl)) {
+      nextIdx++;
+    }
+
     if (nextIdx < currentQ.length) {
       playTrack(currentQ[nextIdx], currentQ, nextIdx);
     } else if (currentRep === 'all') {
-      playTrack(currentQ[0], currentQ, 0);
+      const firstPlayableIdx = currentQ.findIndex((t) => !t.isUnavailable && Boolean(t.audioUrl));
+      if (firstPlayableIdx !== -1) {
+        playTrack(currentQ[firstPlayableIdx], currentQ, firstPlayableIdx);
+      }
     } else {
       audioEngine.pause();
       setStatus('idle');
@@ -189,7 +208,11 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       return;
     }
 
-    const prevIdx = currentIdx - 1;
+    let prevIdx = currentIdx - 1;
+    while (prevIdx >= 0 && (currentQ[prevIdx].isUnavailable || !currentQ[prevIdx].audioUrl)) {
+      prevIdx--;
+    }
+
     if (prevIdx >= 0 && prevIdx < currentQ.length) {
       playTrack(currentQ[prevIdx], currentQ, prevIdx);
     } else {

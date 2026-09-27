@@ -88,15 +88,26 @@ export const PlaylistViewPage: React.FC = () => {
 
   const handlePlayAll = () => {
     if (tracks.length > 0) {
-      playTrack(tracks[0], tracks, 0);
+      const firstPlayableIdx = tracks.findIndex((t) => !t.isUnavailable && Boolean(t.audioUrl));
+      if (firstPlayableIdx === -1) {
+        showToast('Tracks Unavailable', 'No playable audio sources available for this imported playlist.', 'warning');
+        return;
+      }
+      playTrack(tracks[firstPlayableIdx], tracks, firstPlayableIdx);
       showToast('Playing Ritual Sequence', playlist.title, 'atmosphere');
     }
   };
 
   const handleShufflePlay = () => {
-    if (tracks.length === 0) return;
+    const playable = tracks.filter((t) => !t.isUnavailable && Boolean(t.audioUrl));
+    if (playable.length === 0) {
+      showToast('Tracks Unavailable', 'No playable audio sources available for this imported playlist.', 'warning');
+      return;
+    }
     const shuffled = [...tracks].sort(() => Math.random() - 0.5);
-    playTrack(shuffled[0], shuffled, 0);
+    const startTrack = shuffled.find((t) => !t.isUnavailable && Boolean(t.audioUrl)) || playable[0];
+    const startIdx = tracks.indexOf(startTrack);
+    playTrack(startTrack, tracks, startIdx !== -1 ? startIdx : 0);
     showToast('Shuffling Playlist', playlist.title, 'atmosphere');
   };
 

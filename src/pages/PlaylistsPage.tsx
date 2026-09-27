@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus } from 'lucide-react';
+import { Plus, Radio } from 'lucide-react';
 import { PlaylistCard } from '../components/primitives/PlaylistCard';
 import { Button } from '../components/primitives/Button';
 import { PlaylistModal } from '../components/modals/PlaylistModal';
@@ -18,7 +18,9 @@ export const PlaylistsPage: React.FC = () => {
 
   const handlePlayPlaylist = (p: Playlist) => {
     if (p.tracks && p.tracks.length > 0) {
-      playTrack(p.tracks[0], p.tracks, 0);
+      const firstPlayableIdx = p.tracks.findIndex((t) => !t.isUnavailable && Boolean(t.audioUrl));
+      const targetIdx = firstPlayableIdx !== -1 ? firstPlayableIdx : 0;
+      playTrack(p.tracks[targetIdx], p.tracks, targetIdx);
       showToast('Streaming Playlist', p.title, 'atmosphere');
     }
   };
@@ -37,13 +39,23 @@ export const PlaylistsPage: React.FC = () => {
           </p>
         </div>
 
-        <Button
-          variant="primary"
-          leftIcon={<Plus size={16} />}
-          onClick={() => setIsModalOpen(true)}
-        >
-          Create Playlist
-        </Button>
+        <div style={{ display: 'flex', gap: 10 }}>
+          <Button
+            variant="secondary"
+            leftIcon={<Radio size={15} color="#1db954" />}
+            onClick={() => navigate('/import')}
+          >
+            Import from Spotify
+          </Button>
+
+          <Button
+            variant="primary"
+            leftIcon={<Plus size={16} />}
+            onClick={() => setIsModalOpen(true)}
+          >
+            Create Playlist
+          </Button>
+        </div>
       </div>
 
       <div className="nocturne-home__grid-cinematic">

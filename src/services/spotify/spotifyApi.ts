@@ -13,6 +13,9 @@ export class SpotifyApiService {
 
     const token = await spotifyAuth.getValidAccessToken();
     if (!token) {
+      if (spotifyAuth.isDemoMode() || !spotifyAuth.getClientId()) {
+        return SPOTIFY_DEMO_PLAYLISTS;
+      }
       throw new Error('Spotify session has expired. Please reconnect your account.');
     }
 
@@ -70,6 +73,10 @@ export class SpotifyApiService {
 
     const token = await spotifyAuth.getValidAccessToken();
     if (!token) {
+      const demo = SPOTIFY_DEMO_PLAYLISTS.find((p) => p.id === playlistId);
+      if (demo || !spotifyAuth.getClientId()) {
+        return demo?.tracks || [];
+      }
       throw new Error('Spotify session has expired. Please reconnect your account.');
     }
 
