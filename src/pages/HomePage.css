@@ -1,0 +1,266 @@
+.nocturne-home {
+  display: flex;
+  flex-direction: column;
+  gap: 48px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+/* Greeting Section */
+.nocturne-home__greeting-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: -8px;
+}
+
+.nocturne-home__greeting-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  color: var(--accent-secondary);
+  text-transform: uppercase;
+}
+
+.nocturne-home__greeting-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent-primary);
+  box-shadow: 0 0 8px var(--accent-primary);
+}
+
+.nocturne-home__greeting-title {
+  font-family: var(--font-serif);
+  font-size: 2.5rem;
+  letter-spacing: 0.02em;
+  color: var(--text-pure);
+  font-weight: 700;
+  line-height: 1.15;
+}
+
+.nocturne-home__greeting-sub {
+  font-size: 14px;
+  color: var(--text-medium);
+  font-style: italic;
+  max-width: 620px;
+}
+
+/* Section Common Headers */
+.nocturne-home__section-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.nocturne-home__section-title {
+  font-family: var(--font-serif);
+  font-size: 1.35rem;
+  letter-spacing: 0.04em;
+  color: var(--text-pure);
+  font-weight: 700;
+}
+
+.nocturne-home__section-sub {
+  font-size: 12.5px;
+  color: var(--text-low);
+  font-style: italic;
+}
+
+/* 1. Continue Listening Grid */
+.nocturne-home__continue-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+.nocturne-continue-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 12px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  transition: all var(--transition-smooth);
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+}
+
+.nocturne-continue-card:hover {
+  background: var(--bg-surface-hover);
+  border-color: var(--border-glow);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.nocturne-continue-card__cover-wrap {
+  width: 64px;
+  height: 64px;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  flex-shrink: 0;
+  position: relative;
+  background: var(--bg-surface-elevated);
+}
+
+.nocturne-continue-card__cover {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.nocturne-continue-card__play-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  opacity: 0;
+  transition: opacity var(--transition-snappy);
+}
+
+.nocturne-continue-card:hover .nocturne-continue-card__play-overlay {
+  opacity: 1;
+}
+
+.nocturne-continue-card__info {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  overflow: hidden;
+  gap: 3px;
+}
+
+.nocturne-continue-card__title {
+  font-family: var(--font-serif);
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--text-pure);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.nocturne-continue-card__artist {
+  font-size: 12px;
+  color: var(--text-medium);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.nocturne-continue-card__progress-wrap {
+  width: 100%;
+  height: 3px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-full);
+  margin-top: 6px;
+  overflow: hidden;
+}
+
+.nocturne-continue-card__progress-bar {
+  height: 100%;
+  background: var(--accent-primary);
+  border-radius: var(--radius-full);
+}
+
+/* 2. Mood Collections */
+.nocturne-home__mood-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 14px;
+}
+
+.nocturne-mood-slab {
+  padding: 18px 16px;
+  border-radius: var(--radius-md);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  cursor: pointer;
+  transition: all var(--transition-smooth);
+  position: relative;
+  overflow: hidden;
+}
+
+.nocturne-mood-slab::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--accent-primary);
+  opacity: 0;
+  transition: opacity var(--transition-snappy);
+}
+
+.nocturne-mood-slab:hover {
+  background: var(--bg-surface-hover);
+  border-color: var(--border-glow);
+  transform: translateY(-2px);
+}
+
+.nocturne-mood-slab:hover::after {
+  opacity: 1;
+}
+
+.nocturne-mood-slab__icon {
+  color: var(--accent-primary);
+  margin-bottom: 2px;
+}
+
+.nocturne-mood-slab__name {
+  font-family: var(--font-serif);
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--text-pure);
+}
+
+.nocturne-mood-slab__desc {
+  font-size: 11.5px;
+  color: var(--text-low);
+  line-height: 1.4;
+}
+
+/* 3. Common Showcase Grids */
+.nocturne-home__grid-cinematic {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+  gap: 20px;
+}
+
+.nocturne-home__grid-artists {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 20px;
+}
+
+@media (max-width: 768px) {
+  .nocturne-home {
+    gap: 36px;
+  }
+  .nocturne-home__greeting-title {
+    font-size: 1.85rem;
+  }
+  .nocturne-home__continue-grid {
+    grid-template-columns: 1fr;
+  }
+  .nocturne-home__mood-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .nocturne-home__grid-cinematic {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+}

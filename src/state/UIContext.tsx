@@ -6,6 +6,9 @@ interface UIContextType {
   toggleSidebar: () => void;
   mobileMenuOpen: boolean;
   setMobileMenuOpen: (open: boolean) => void;
+  rightPanelOpen: boolean;
+  setRightPanelOpen: (open: boolean) => void;
+  toggleRightPanel: () => void;
   searchQuery: string;
   setSearchQuery: (query: string) => void;
   activeModal: string | null;
@@ -18,10 +21,12 @@ const UIContext = createContext<UIContextType | undefined>(undefined);
 export const UIProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState<boolean>(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState<boolean>(false);
+  const [rightPanelOpen, setRightPanelOpen] = useState<boolean>(false);
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [activeModal, setActiveModal] = useState<string | null>(null);
 
   const toggleSidebar = () => setSidebarCollapsed((prev) => !prev);
+  const toggleRightPanel = () => setRightPanelOpen((prev) => !prev);
   const openModal = (id: string) => setActiveModal(id);
   const closeModal = () => setActiveModal(null);
 
@@ -33,6 +38,9 @@ export const UIProvider: React.FC<{ children: React.ReactNode }> = ({ children }
         toggleSidebar,
         mobileMenuOpen,
         setMobileMenuOpen,
+        rightPanelOpen,
+        setRightPanelOpen,
+        toggleRightPanel,
         searchQuery,
         setSearchQuery,
         activeModal,

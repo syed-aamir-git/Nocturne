@@ -14,8 +14,8 @@ html, body {
   background-color: var(--bg-canvas);
   color: var(--text-high);
   font-family: var(--font-sans);
-  font-size: 14px;
-  line-height: 1.5;
+  font-size: 13.5px;
+  line-height: 1.55;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   user-select: none;
@@ -30,7 +30,7 @@ html, body {
   flex-direction: column;
 }
 
-/* Atmospheric Noise Texture & Ambient Glow */
+/* Atmospheric Ambient Whisper & Subtle Grain */
 body::before {
   content: '';
   position: fixed;
@@ -38,6 +38,7 @@ body::before {
   background-image: var(--ambient-gradient);
   pointer-events: none;
   z-index: 0;
+  opacity: 0.9;
   transition: background-image var(--transition-flow);
 }
 
@@ -45,17 +46,17 @@ body::after {
   content: '';
   position: fixed;
   inset: 0;
-  background-image: radial-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 0);
-  background-size: 24px 24px;
-  opacity: 0.5;
+  background-image: radial-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 0);
+  background-size: 28px 28px;
+  opacity: 0.4;
   pointer-events: none;
   z-index: 1;
 }
 
-/* Custom Nocturnal Scrollbar */
+/* Custom Nocturnal Minimal Scrollbar */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
 }
 
 ::-webkit-scrollbar-track {
@@ -63,19 +64,19 @@ body::after {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.08);
   border-radius: var(--radius-full);
   transition: background var(--transition-snappy);
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--accent-primary);
+  background: rgba(255, 255, 255, 0.16);
 }
 
 /* Typography Helpers */
 h1, h2, h3, .font-serif {
   font-family: var(--font-serif);
-  letter-spacing: 0.04em;
+  letter-spacing: 0.03em;
   font-weight: 700;
   color: var(--text-pure);
 }
@@ -84,62 +85,34 @@ h1, h2, h3, .font-serif {
   font-family: var(--font-mono);
 }
 
-/* Atmospheric Glass Surface */
-.glass-panel {
+/* Restrained Charcoal Surfaces */
+.charcoal-panel {
   background: var(--bg-surface);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
   border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+}
+
+.charcoal-panel-elevated {
+  background: var(--bg-surface-elevated);
+  border: 1px solid var(--border-medium);
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-md);
 }
 
-.glass-panel-elevated {
-  background: var(--bg-surface-elevated);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
-  border: 1px solid var(--border-medium);
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-lg);
+/* Subtle Restrained Glow */
+.subtle-glow {
+  box-shadow: 0 0 16px var(--accent-glow);
 }
 
-/* Gothic Glow Accents */
-.glow-accent {
-  box-shadow: 0 0 20px var(--accent-glow);
+/* Soft Fade Transitions */
+@keyframes calmFadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
-.glow-accent-strong {
-  box-shadow: 0 0 35px var(--accent-glow-strong);
-}
-
-.text-gradient {
-  background: linear-gradient(135deg, var(--text-pure) 30%, var(--accent-secondary) 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-
-/* Micro-animations */
-@keyframes pulseSubtle {
-  0%, 100% { opacity: 0.85; transform: scale(1); }
-  50% { opacity: 1; transform: scale(1.02); }
-}
-
-@keyframes shimmer {
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
-}
-
-@keyframes breatheGlow {
-  0%, 100% { box-shadow: 0 0 14px var(--accent-glow); }
-  50% { box-shadow: 0 0 28px var(--accent-glow-strong); }
-}
-
-.animate-pulse-subtle {
-  animation: pulseSubtle 3s ease-in-out infinite;
-}
-
-.animate-breathe {
-  animation: breatheGlow 4s ease-in-out infinite;
+.animate-fade-in {
+  animation: calmFadeIn var(--transition-smooth) ease-out forwards;
 }
 
 /* Button & Link reset */

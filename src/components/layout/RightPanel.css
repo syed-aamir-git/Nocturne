@@ -1,0 +1,180 @@
+.nocturne-right-panel {
+  width: var(--right-panel-width);
+  height: 100%;
+  background: var(--bg-surface);
+  border-left: 1px solid var(--border-subtle);
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  transition: width var(--transition-smooth), transform var(--transition-smooth);
+  position: relative;
+  z-index: 85;
+  overflow: hidden;
+}
+
+.nocturne-right-panel--hidden {
+  display: none;
+}
+
+.nocturne-right-panel__header {
+  padding: 18px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.nocturne-right-panel__title {
+  font-family: var(--font-serif);
+  font-size: 13.5px;
+  letter-spacing: 0.06em;
+  color: var(--text-pure);
+  text-transform: uppercase;
+}
+
+.nocturne-right-panel__content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 22px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+/* Large Cinematic Artwork */
+.nocturne-right-panel__art-wrap {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background: var(--bg-surface-elevated);
+  border: 1px solid var(--border-subtle);
+  box-shadow: var(--shadow-md);
+  position: relative;
+}
+
+.nocturne-right-panel__art {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.nocturne-right-panel__track-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.nocturne-right-panel__track-title {
+  font-family: var(--font-serif);
+  font-size: 1.15rem;
+  color: var(--text-pure);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.nocturne-right-panel__artist-name {
+  font-size: 13.5px;
+  color: var(--text-medium);
+}
+
+.nocturne-right-panel__album-name {
+  font-size: 12px;
+  color: var(--text-low);
+  font-style: italic;
+}
+
+/* Audio Signal Matrix */
+.nocturne-right-panel__signal {
+  background: var(--bg-surface-elevated);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.nocturne-right-panel__signal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 10px;
+  font-family: var(--font-mono);
+  letter-spacing: 0.06em;
+  color: var(--accent-secondary);
+  text-transform: uppercase;
+}
+
+.nocturne-right-panel__signal-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  font-size: 11px;
+  font-family: var(--font-mono);
+}
+
+.nocturne-right-panel__signal-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.nocturne-right-panel__signal-label {
+  color: var(--text-low);
+  font-size: 9.5px;
+}
+
+.nocturne-right-panel__signal-val {
+  color: var(--text-high);
+}
+
+/* Liner notes / lore */
+.nocturne-right-panel__lore {
+  font-size: 12px;
+  color: var(--text-medium);
+  line-height: 1.6;
+  border-left: 2px solid var(--border-medium);
+  padding-left: 12px;
+  font-style: italic;
+}
+
+/* Upcoming queue preview */
+.nocturne-right-panel__queue-title {
+  font-size: 11px;
+  font-family: var(--font-mono);
+  text-transform: uppercase;
+  color: var(--text-low);
+  letter-spacing: 0.05em;
+  margin-bottom: 8px;
+}
+
+.nocturne-right-panel__queue-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px;
+  border-radius: var(--radius-xs);
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--border-subtle);
+  margin-bottom: 6px;
+}
+
+.nocturne-right-panel__queue-thumb {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-xs);
+  object-fit: cover;
+}
+
+@media (max-width: 1200px) {
+  .nocturne-right-panel {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: var(--player-height);
+    box-shadow: var(--shadow-floating);
+    z-index: 150;
+  }
+}

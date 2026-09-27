@@ -1,28 +1,45 @@
 import React, { useState, useEffect } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import {
+  Home,
   Compass,
-  Library,
   Search,
-  Sparkles,
+  Library,
+  ListMusic,
+  Disc,
+  Users,
+  Heart,
+  History,
+  Clock,
+  BarChart2,
+  Settings,
   ChevronLeft,
   ChevronRight,
-  Music2,
-  Clock,
-  Layers,
+  Sparkles,
 } from 'lucide-react';
 import { useUI } from '../../state/UIContext';
 import { IconButton } from '../primitives/IconButton';
-import { MOCK_PLAYLISTS } from '../../data/mockData';
+import { Tooltip } from '../primitives/Tooltip';
 import { getNocturnalHourPhase } from '../../utilities/formatters';
 import './Sidebar.css';
+
+interface NavItemConfig {
+  to: string;
+  label: string;
+  icon: React.ReactNode;
+  badge?: string | number;
+}
+
+interface NavGroupConfig {
+  label: string;
+  items: NavItemConfig[];
+}
 
 export const Sidebar: React.FC = () => {
   const { sidebarCollapsed, toggleSidebar, mobileMenuOpen, setMobileMenuOpen } = useUI();
   const location = useLocation();
   const [timePhase, setTimePhase] = useState(() => getNocturnalHourPhase());
 
-  // Update late-night phase every minute
   useEffect(() => {
     const timer = setInterval(() => {
       setTimePhase(getNocturnalHourPhase());
@@ -36,11 +53,39 @@ export const Sidebar: React.FC = () => {
     }
   };
 
-  const navItems = [
-    { to: '/', label: 'Sanctum', icon: <Compass size={19} /> },
-    { to: '/search', label: 'Resonance', icon: <Search size={19} /> },
-    { to: '/library', label: 'Archived Souls', icon: <Library size={19} /> },
-    { to: '/design-system', label: 'Design System', icon: <Layers size={19} /> },
+  const navGroups: NavGroupConfig[] = [
+    {
+      label: 'Sanctum',
+      items: [
+        { to: '/', label: 'Home', icon: <Home size={18} /> },
+        { to: '/discover', label: 'Discover', icon: <Compass size={18} /> },
+        { to: '/search', label: 'Search', icon: <Search size={18} /> },
+      ],
+    },
+    {
+      label: 'Archive',
+      items: [
+        { to: '/library', label: 'Library', icon: <Library size={18} /> },
+        { to: '/playlists', label: 'Playlists', icon: <ListMusic size={18} />, badge: '4' },
+        { to: '/albums', label: 'Albums', icon: <Disc size={18} /> },
+        { to: '/artists', label: 'Artists', icon: <Users size={18} /> },
+        { to: '/liked', label: 'Liked Songs', icon: <Heart size={18} /> },
+      ],
+    },
+    {
+      label: 'Chronicles',
+      items: [
+        { to: '/recently-played', label: 'Recently Played', icon: <History size={18} /> },
+        { to: '/history', label: 'History', icon: <Clock size={18} /> },
+        { to: '/statistics', label: 'Statistics', icon: <BarChart2 size={18} /> },
+      ],
+    },
+    {
+      label: 'System',
+      items: [
+        { to: '/settings', label: 'Settings', icon: <Settings size={18} /> },
+      ],
+    },
   ];
 
   return (
@@ -48,22 +93,22 @@ export const Sidebar: React.FC = () => {
       className={`nocturne-sidebar ${sidebarCollapsed ? 'nocturne-sidebar--collapsed' : ''} ${
         mobileMenuOpen ? 'nocturne-sidebar--open' : ''
       }`}
+      aria-label="Primary Navigation"
     >
-      {/* Brand & Collapse */}
+      {/* Brand Header */}
       <div className="nocturne-sidebar__brand">
         <NavLink to="/" className="nocturne-sidebar__logo-link" onClick={handleLinkClick}>
           <div className="nocturne-sidebar__logo-icon">
-            <Sparkles size={20} />
+            <Sparkles size={16} />
           </div>
           {!sidebarCollapsed && (
             <div className="nocturne-sidebar__logo-text">
               <span className="nocturne-sidebar__title">NOCTURNE</span>
-              <span className="nocturne-sidebar__tagline">
-                Music for the hours that belong to you.
-              </span>
+              <span className="nocturne-sidebar__tagline">Music for the hours that belong to you.</span>
             </div>
           )}
         </NavLink>
+
         <IconButton
           variant="ghost"
           size="sm"
@@ -71,66 +116,61 @@ export const Sidebar: React.FC = () => {
           aria-label={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
           className="desktop-only"
         >
-          {sidebarCollapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
+          {sidebarCollapsed ? <ChevronRight size={15} /> : <ChevronLeft size={15} />}
         </IconButton>
       </div>
 
-      {/* Main Navigation */}
-      <nav className="nocturne-sidebar__nav">
-        {navItems.map((item) => {
-          const isActive = location.pathname === item.to;
-          return (
-            <NavLink
-              key={item.to}
-              to={item.to}
-              onClick={handleLinkClick}
-              className={`nocturne-nav-item ${isActive ? 'nocturne-nav-item--active' : ''}`}
-              title={sidebarCollapsed ? item.label : undefined}
-            >
-              {item.icon}
-              {!sidebarCollapsed && <span>{item.label}</span>}
-            </NavLink>
-          );
-        })}
-      </nav>
+      {/* Nav Groups */}
+      <div className="nocturne-sidebar__scroll-area">
+        {navGroups.map((group) => (
+          <div key={group.label} className="nocturne-sidebar__group">
+            {!sidebarCollapsed && (
+              <span className="nocturne-sidebar__group-label">{group.label}</span>
+            )}
+            {group.items.map((item) => {
+              const isActive = location.pathname === item.to;
+              const linkElement = (
+                <NavLink
+                  to={item.to}
+                  onClick={handleLinkClick}
+                  className={`nocturne-sidebar__nav-item ${
+                    isActive ? 'nocturne-sidebar__nav-item--active' : ''
+                  }`}
+                >
+                  {item.icon}
+                  {!sidebarCollapsed && <span>{item.label}</span>}
+                  {!sidebarCollapsed && item.badge && (
+                    <span className="nocturne-sidebar__badge">{item.badge}</span>
+                  )}
+                </NavLink>
+              );
 
-      {/* Curated Playlists */}
-      {!sidebarCollapsed && (
-        <>
-          <div className="nocturne-sidebar__section-title">
-            <span>Midnight Archives</span>
-            <Music2 size={13} />
-          </div>
+              if (sidebarCollapsed) {
+                return (
+                  <Tooltip key={item.to} content={item.label} position="right">
+                    {linkElement}
+                  </Tooltip>
+                );
+              }
 
-          <div className="nocturne-sidebar__playlists">
-            {MOCK_PLAYLISTS.map((pl) => (
-              <NavLink
-                key={pl.id}
-                to={`/playlist/${pl.id}`}
-                onClick={handleLinkClick}
-                className="nocturne-playlist-link"
-                title={pl.title}
-              >
-                <span>{pl.title}</span>
-              </NavLink>
-            ))}
+              return <React.Fragment key={item.to}>{linkElement}</React.Fragment>;
+            })}
           </div>
-        </>
-      )}
+        ))}
+      </div>
 
-      {/* Footer / Nocturnal Phase */}
-      {!sidebarCollapsed && (
-        <div className="nocturne-sidebar__footer">
-          <div className="nocturne-sidebar__phase-badge">
-            <span className="nocturne-sidebar__phase-dot" />
-            <Clock size={13} />
-            <span>{timePhase.label}</span>
-          </div>
-          <span style={{ fontSize: '10.5px', color: 'var(--text-low)', fontStyle: 'italic' }}>
-            {timePhase.subtext}
-          </span>
+      {/* Footer Clock Phase */}
+      <div className="nocturne-sidebar__footer">
+        <div className="nocturne-sidebar__phase-badge">
+          <span className="nocturne-sidebar__phase-dot" />
+          {!sidebarCollapsed && <span>{timePhase.label}</span>}
         </div>
-      )}
+        {!sidebarCollapsed && (
+          <span style={{ fontSize: '10.5px', color: 'var(--text-low)', fontFamily: 'var(--font-mono)' }}>
+            24-BIT
+          </span>
+        )}
+      </div>
     </aside>
   );
 };

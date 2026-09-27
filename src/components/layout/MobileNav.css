@@ -1,0 +1,46 @@
+.nocturne-mobile-nav {
+  display: none;
+}
+
+@media (max-width: 900px) {
+  .nocturne-mobile-nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: var(--bottom-nav-height);
+    background: var(--bg-surface);
+    border-top: 1px solid var(--border-subtle);
+    z-index: 190;
+    padding: 0 8px;
+    box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.7);
+  }
+
+  .nocturne-mobile-nav__item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    flex: 1;
+    height: 100%;
+    color: var(--text-medium);
+    text-decoration: none;
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    transition: color var(--transition-snappy);
+  }
+
+  .nocturne-mobile-nav__item:hover,
+  .nocturne-mobile-nav__item--active {
+    color: var(--text-pure);
+  }
+
+  .nocturne-mobile-nav__item--active svg {
+    color: var(--accent-primary);
+  }
+}

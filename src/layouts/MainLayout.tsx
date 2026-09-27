@@ -3,6 +3,8 @@ import { Outlet } from 'react-router-dom';
 import { Sidebar } from '../components/layout/Sidebar';
 import { TopBar } from '../components/layout/TopBar';
 import { PlayerBar } from '../components/layout/PlayerBar';
+import { RightPanel } from '../components/layout/RightPanel';
+import { MobileNav } from '../components/layout/MobileNav';
 import { ToastContainer } from '../components/primitives/Toast';
 import { useUI } from '../state/UIContext';
 import { useToast } from '../state/ToastContext';
@@ -22,19 +24,26 @@ export const MainLayout: React.FC = () => {
         />
       )}
 
-      {/* Persistent Sidebar */}
+      {/* Persistent Collapsible Sidebar */}
       <Sidebar />
 
       {/* Main Content Viewport */}
       <div className="nocturne-layout__body">
         <TopBar />
-        <main className="nocturne-layout__content" id="main-content">
-          <Outlet />
-        </main>
+        <div className="nocturne-layout__center-split">
+          <main className="nocturne-layout__content" id="main-content">
+            <Outlet />
+          </main>
+          {/* Optional Right-Side Panel */}
+          <RightPanel />
+        </div>
       </div>
 
       {/* Persistent Bottom Audio Player Placeholder */}
       <PlayerBar />
+
+      {/* Mobile Bottom Navigation Bar */}
+      <MobileNav />
 
       {/* Global Notifications & Toasts */}
       <ToastContainer toasts={toasts} onDismiss={removeToast} />

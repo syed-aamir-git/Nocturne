@@ -42,17 +42,19 @@ export const SearchPage: React.FC = () => {
   }, [queryFromUrl, setSearchQuery]);
 
   useEffect(() => {
-    const trimmed = searchQuery.trim();
-    if (!trimmed) {
-      setResults({ tracks: [], albums: [], artists: [] });
-      setIsLoading(false);
-      return;
-    }
-
     let isCancelled = false;
-    setIsLoading(true);
+    const trimmed = searchQuery.trim();
 
     const timer = setTimeout(() => {
+      if (!trimmed) {
+        if (!isCancelled) {
+          setResults({ tracks: [], albums: [], artists: [] });
+          setIsLoading(false);
+        }
+        return;
+      }
+
+      setIsLoading(true);
       musicService.search(trimmed).then((res) => {
         if (!isCancelled) {
           setResults(res);

@@ -18,11 +18,19 @@
   padding-bottom: var(--player-height);
 }
 
+.nocturne-layout__center-split {
+  flex: 1;
+  display: flex;
+  height: calc(100% - var(--topbar-height));
+  overflow: hidden;
+  position: relative;
+}
+
 .nocturne-layout__content {
   flex: 1;
   overflow-y: auto;
   overflow-x: hidden;
-  padding: 32px 36px 64px;
+  padding: 32px 40px 60px;
   position: relative;
   z-index: 10;
 }
@@ -31,7 +39,7 @@
 .nocturne-layout__backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.7);
+  background: rgba(0, 0, 0, 0.75);
   backdrop-filter: blur(4px);
   z-index: 95;
   animation: fadeIn 200ms ease-out;
@@ -42,7 +50,10 @@
   to { opacity: 1; }
 }
 
-@media (max-width: 768px) {
+@media (max-width: 900px) {
+  .nocturne-layout__body {
+    padding-bottom: calc(var(--player-height) + var(--bottom-nav-height));
+  }
   .nocturne-layout__content {
     padding: 20px 16px 40px;
   }

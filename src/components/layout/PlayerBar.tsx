@@ -10,11 +10,11 @@ import {
   Volume2,
   VolumeX,
   Heart,
-  ListMusic,
-  Maximize2,
+  PanelRight,
   Music,
 } from 'lucide-react';
 import { usePlayer } from '../../state/PlayerContext';
+import { useUI } from '../../state/UIContext';
 import { useToast } from '../../state/ToastContext';
 import { formatDuration } from '../../utilities/formatters';
 import { Slider } from '../primitives/Slider';
@@ -42,6 +42,7 @@ export const PlayerBar: React.FC = () => {
     cycleRepeatMode,
   } = usePlayer();
 
+  const { rightPanelOpen, toggleRightPanel } = useUI();
   const { showToast } = useToast();
   const [imgError, setImgError] = useState(false);
   const [displayTime, setDisplayTime] = useState<number | null>(null);
@@ -98,7 +99,7 @@ export const PlayerBar: React.FC = () => {
                 background: 'var(--bg-surface-elevated)',
               }}
             >
-              <Music size={22} color="var(--accent-secondary)" />
+              <Music size={20} color="var(--accent-secondary)" />
             </div>
           )}
         </div>
@@ -122,7 +123,7 @@ export const PlayerBar: React.FC = () => {
             aria-label="Add to favorites"
             onClick={() => showToast('Preserved', `Added "${currentTrack.title}" to Midnight Sanctuary`, 'atmosphere')}
           >
-            <Heart size={16} />
+            <Heart size={15} />
           </IconButton>
         </Tooltip>
       </div>
@@ -130,7 +131,7 @@ export const PlayerBar: React.FC = () => {
       {/* Center: Controls & Scrubber */}
       <div className="nocturne-player__center">
         <div className="nocturne-player__controls">
-          <Tooltip content={isShuffle ? 'Shuffle Enabled' : 'Shuffle Disabled'} position="top">
+          <Tooltip content={isShuffle ? 'Shuffle Active' : 'Shuffle Inactive'} position="top">
             <IconButton
               variant="ghost"
               size="sm"
@@ -138,18 +139,18 @@ export const PlayerBar: React.FC = () => {
               onClick={toggleShuffle}
               aria-label="Toggle shuffle"
             >
-              <Shuffle size={16} />
+              <Shuffle size={15} />
             </IconButton>
           </Tooltip>
 
           <Tooltip content="Previous track" position="top">
             <IconButton
               variant="ghost"
-              size="md"
+              size="sm"
               onClick={previousTrack}
               aria-label="Previous track"
             >
-              <SkipBack size={18} />
+              <SkipBack size={17} />
             </IconButton>
           </Tooltip>
 
@@ -160,20 +161,20 @@ export const PlayerBar: React.FC = () => {
             aria-label={isPlaying ? 'Pause' : 'Play'}
           >
             {isPlaying ? (
-              <Pause size={20} fill="currentColor" />
+              <Pause size={18} fill="currentColor" />
             ) : (
-              <Play size={20} fill="currentColor" style={{ marginLeft: 2 }} />
+              <Play size={18} fill="currentColor" style={{ marginLeft: 2 }} />
             )}
           </button>
 
           <Tooltip content="Next track" position="top">
             <IconButton
               variant="ghost"
-              size="md"
+              size="sm"
               onClick={nextTrack}
               aria-label="Next track"
             >
-              <SkipForward size={18} />
+              <SkipForward size={17} />
             </IconButton>
           </Tooltip>
 
@@ -185,7 +186,7 @@ export const PlayerBar: React.FC = () => {
               onClick={cycleRepeatMode}
               aria-label="Cycle repeat mode"
             >
-              {repeatMode === 'one' ? <Repeat1 size={16} /> : <Repeat size={16} />}
+              {repeatMode === 'one' ? <Repeat1 size={15} /> : <Repeat size={15} />}
             </IconButton>
           </Tooltip>
         </div>
@@ -206,7 +207,7 @@ export const PlayerBar: React.FC = () => {
         </div>
       </div>
 
-      {/* Right: Volume & Queue */}
+      {/* Right: Volume & Details Panel */}
       <div className="nocturne-player__right">
         <div className="nocturne-player__volume">
           <IconButton
@@ -215,7 +216,7 @@ export const PlayerBar: React.FC = () => {
             onClick={toggleMute}
             aria-label={isMuted ? 'Unmute' : 'Mute'}
           >
-            {isMuted || volume === 0 ? <VolumeX size={16} /> : <Volume2 size={16} />}
+            {isMuted || volume === 0 ? <VolumeX size={15} /> : <Volume2 size={15} />}
           </IconButton>
           <Slider
             value={isMuted ? 0 : Math.round(volume * 100)}
@@ -227,25 +228,15 @@ export const PlayerBar: React.FC = () => {
           />
         </div>
 
-        <Tooltip content="Queue & Upcoming Tracks" position="top">
+        <Tooltip content="Now Playing Sanctum Details" position="top">
           <IconButton
             variant="ghost"
             size="sm"
-            onClick={() => showToast('Queue Active', 'Next up: Prague at 03:45 AM', 'default')}
-            aria-label="Open queue"
+            active={rightPanelOpen}
+            onClick={toggleRightPanel}
+            aria-label="Toggle details panel"
           >
-            <ListMusic size={17} />
-          </IconButton>
-        </Tooltip>
-
-        <Tooltip content="Atmospheric Visualizer" position="top">
-          <IconButton
-            variant="ghost"
-            size="sm"
-            onClick={() => showToast('Atmospheric Focus', 'Visualizer placeholder active', 'atmosphere')}
-            aria-label="Fullscreen atmospheric view"
-          >
-            <Maximize2 size={16} />
+            <PanelRight size={16} />
           </IconButton>
         </Tooltip>
       </div>
