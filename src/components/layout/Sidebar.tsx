@@ -66,7 +66,7 @@ export const Sidebar: React.FC = () => {
       label: 'Archive',
       items: [
         { to: '/library', label: 'Library', icon: <Library size={18} /> },
-        { to: '/playlists', label: 'Playlists', icon: <ListMusic size={18} />, badge: '4' },
+        { to: '/playlists', label: 'Playlists', icon: <ListMusic size={18} />, badge: '6' },
         { to: '/albums', label: 'Albums', icon: <Disc size={18} /> },
         { to: '/artists', label: 'Artists', icon: <Users size={18} /> },
         { to: '/liked', label: 'Liked Songs', icon: <Heart size={18} /> },

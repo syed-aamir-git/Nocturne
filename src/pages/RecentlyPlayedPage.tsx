@@ -1,16 +1,31 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { History } from 'lucide-react';
-import { TrackRow } from '../components/primitives/TrackRow';
+import { TrackList } from '../components/primitives/TrackList';
 import { usePlayer } from '../state/PlayerContext';
-import { MOCK_TRACKS } from '../data/mockData';
+import { useToast } from '../state/ToastContext';
+import { musicService } from '../services/musicService';
 import type { Track } from '../types';
 
 export const RecentlyPlayedPage: React.FC = () => {
-  const { playTrack, currentTrack, status } = usePlayer();
+  const { playTrack, currentTrack, status, history } = usePlayer();
+  const { showToast } = useToast();
+  const [fallbackTracks, setFallbackTracks] = useState<Track[]>([]);
 
-  const handlePlayTrack = (track: Track) => {
-    playTrack(track, MOCK_TRACKS);
-  };
+  useEffect(() => {
+    let isCancelled = false;
+    if (history.length === 0) {
+      musicService.getAllTracks().then((all) => {
+        if (!isCancelled) {
+          setFallbackTracks(all.slice(0, 10));
+        }
+      });
+    }
+    return () => {
+      isCancelled = true;
+    };
+  }, [history.length]);
+
+  const tracks = history.length > 0 ? history : fallbackTracks;
 
   return (
     <div style={{ maxWidth: 1200, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 32 }}>
@@ -24,18 +39,13 @@ export const RecentlyPlayedPage: React.FC = () => {
         </p>
       </div>
 
-      <div className="nocturne-tracklist">
-        {MOCK_TRACKS.map((track, i) => (
-          <TrackRow
-            key={track.id}
-            track={track}
-            index={i}
-            isActive={currentTrack?.id === track.id}
-            isPlaying={status === 'playing'}
-            onPlay={handlePlayTrack}
-          />
-        ))}
-      </div>
+      <TrackList
+        tracks={tracks}
+        currentTrackId={currentTrack?.id}
+        isPlaying={status === 'playing'}
+        onTrackPlay={(t, _all, i) => playTrack(t, tracks.slice(i + 1))}
+        onLikeToggle={(t, l) => showToast(l ? 'Liked' : 'Unliked', t.title, 'default')}
+      />
     </div>
   );
 };

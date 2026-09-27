@@ -1,31 +1,42 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Clock, Calendar } from 'lucide-react';
-import { TrackRow } from '../components/primitives/TrackRow';
+import { TrackList } from '../components/primitives/TrackList';
 import { usePlayer } from '../state/PlayerContext';
-import { MOCK_TRACKS } from '../data/mockData';
+import { useToast } from '../state/ToastContext';
+import { musicService } from '../services/musicService';
 import type { Track } from '../types';
 
 export const HistoryPage: React.FC = () => {
   const { playTrack, currentTrack, status } = usePlayer();
+  const { showToast } = useToast();
+  const [tracks, setTracks] = useState<Track[]>([]);
+
+  useEffect(() => {
+    let isCancelled = false;
+    musicService.getAllTracks().then((all) => {
+      if (!isCancelled) {
+        setTracks(all);
+      }
+    });
+    return () => {
+      isCancelled = true;
+    };
+  }, []);
 
   const historyGroups = [
     {
       dateLabel: 'Tonight • The Witching Hour (03:14 AM)',
-      tracks: [MOCK_TRACKS[0], MOCK_TRACKS[1]],
+      tracks: tracks.slice(0, 3),
     },
     {
       dateLabel: 'Yesterday • Midnight Descent (11:45 PM)',
-      tracks: [MOCK_TRACKS[2], MOCK_TRACKS[3], MOCK_TRACKS[4]],
+      tracks: tracks.slice(3, 7),
     },
     {
       dateLabel: 'September 25 • Crepuscular Dusk (09:12 PM)',
-      tracks: [MOCK_TRACKS[5], MOCK_TRACKS[6]],
+      tracks: tracks.slice(7, 11),
     },
   ];
-
-  const handlePlayTrack = (track: Track) => {
-    playTrack(track, MOCK_TRACKS);
-  };
 
   return (
     <div style={{ maxWidth: 1200, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 36 }}>
@@ -47,18 +58,13 @@ export const HistoryPage: React.FC = () => {
               <span>{group.dateLabel}</span>
             </div>
 
-            <div className="nocturne-tracklist">
-              {group.tracks.map((track, i) => (
-                <TrackRow
-                  key={`${track.id}-${gIdx}-${i}`}
-                  track={track}
-                  index={i}
-                  isActive={currentTrack?.id === track.id}
-                  isPlaying={status === 'playing'}
-                  onPlay={handlePlayTrack}
-                />
-              ))}
-            </div>
+            <TrackList
+              tracks={group.tracks}
+              currentTrackId={currentTrack?.id}
+              isPlaying={status === 'playing'}
+              onTrackPlay={(t, _all, i) => playTrack(t, group.tracks.slice(i + 1))}
+              onLikeToggle={(t, l) => showToast(l ? 'Liked' : 'Unliked', t.title, 'default')}
+            />
           </div>
         ))}
       </div>

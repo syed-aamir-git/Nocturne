@@ -25,6 +25,7 @@ import {
   AlbumCard,
   ArtistCard,
   TrackRow,
+  TrackList,
   PlaylistCard,
   Skeleton,
   EmptyState,
@@ -51,7 +52,7 @@ export const DesignSystemPage: React.FC = () => {
 
   const demoTabs = [
     { id: 'primitives', label: 'Action & Control Primitives', badge: '7' },
-    { id: 'domain', label: 'Audio Domain Primitives', badge: '5' },
+    { id: 'domain', label: 'Audio Domain Primitives', badge: '6' },
     { id: 'feedback', label: 'Feedback & Layout Primitives', badge: '4' },
   ];
 
@@ -361,6 +362,18 @@ export const DesignSystemPage: React.FC = () => {
                 />
               ))}
             </div>
+          </Card>
+
+          {/* 12. TrackList */}
+          <Card>
+            <h3 style={{ marginBottom: 16 }}>12. TrackList Primitive</h3>
+            <TrackList
+              tracks={MOCK_TRACKS.slice(0, 4)}
+              currentTrackId={currentTrack?.id}
+              isPlaying={status === 'playing'}
+              onTrackPlay={(t) => playTrack(t, MOCK_TRACKS)}
+              onLikeToggle={(t, l) => showToast(l ? 'Liked' : 'Unliked', t.title, 'default')}
+            />
           </Card>
         </div>
       )}

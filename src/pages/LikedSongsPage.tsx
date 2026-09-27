@@ -1,19 +1,34 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Heart, Play } from 'lucide-react';
-import { TrackRow } from '../components/primitives/TrackRow';
+import { TrackList } from '../components/primitives/TrackList';
 import { Button } from '../components/primitives/Button';
 import { usePlayer } from '../state/PlayerContext';
 import { useToast } from '../state/ToastContext';
-import { MOCK_TRACKS } from '../data/mockData';
+import { musicService } from '../services/musicService';
 import type { Track } from '../types';
 
 export const LikedSongsPage: React.FC = () => {
   const { playTrack, currentTrack, status } = usePlayer();
   const { showToast } = useToast();
+  const [tracks, setTracks] = useState<Track[]>([]);
 
-  const handlePlayTrack = (track: Track) => {
-    playTrack(track, MOCK_TRACKS);
-    showToast('Immersed', `${track.title} • ${track.artist}`, 'default');
+  useEffect(() => {
+    let isCancelled = false;
+    musicService.getAllTracks().then((all) => {
+      if (!isCancelled) {
+        setTracks(all.slice(0, 12));
+      }
+    });
+    return () => {
+      isCancelled = true;
+    };
+  }, []);
+
+  const handlePlayAll = () => {
+    if (tracks.length > 0) {
+      playTrack(tracks[0], tracks.slice(1));
+      showToast('Playing Preserved Tracks', `${tracks.length} tracks queued`, 'atmosphere');
+    }
   };
 
   return (
@@ -29,6 +44,7 @@ export const LikedSongsPage: React.FC = () => {
           background: 'var(--bg-surface)',
           border: '1px solid var(--border-subtle)',
           boxShadow: 'var(--shadow-md)',
+          flexWrap: 'wrap',
         }}
       >
         <div
@@ -54,7 +70,7 @@ export const LikedSongsPage: React.FC = () => {
           </span>
           <h1 style={{ fontSize: '2.4rem', margin: 0 }}>Liked Songs</h1>
           <p style={{ color: 'var(--text-medium)', fontSize: '13px', margin: 0 }}>
-            {MOCK_TRACKS.length} recordings anchored to your midnight memories
+            {tracks.length} recordings anchored to your midnight memories
           </p>
 
           <div style={{ marginTop: 6 }}>
@@ -62,7 +78,7 @@ export const LikedSongsPage: React.FC = () => {
               variant="primary"
               size="md"
               leftIcon={<Play size={16} fill="currentColor" />}
-              onClick={() => handlePlayTrack(MOCK_TRACKS[0])}
+              onClick={handlePlayAll}
             >
               Play All Preserved
             </Button>
@@ -71,18 +87,13 @@ export const LikedSongsPage: React.FC = () => {
       </div>
 
       {/* Tracklist */}
-      <div className="nocturne-tracklist">
-        {MOCK_TRACKS.map((track, i) => (
-          <TrackRow
-            key={track.id}
-            track={track}
-            index={i}
-            isActive={currentTrack?.id === track.id}
-            isPlaying={status === 'playing'}
-            onPlay={handlePlayTrack}
-          />
-        ))}
-      </div>
+      <TrackList
+        tracks={tracks}
+        currentTrackId={currentTrack?.id}
+        isPlaying={status === 'playing'}
+        onTrackPlay={(t, _all, i) => playTrack(t, tracks.slice(i + 1))}
+        onLikeToggle={(t, l) => showToast(l ? 'Liked' : 'Unliked', t.title, 'default')}
+      />
     </div>
   );
 };

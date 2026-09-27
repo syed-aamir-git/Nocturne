@@ -83,7 +83,7 @@ export const PlayerBar: React.FC = () => {
         <div className="nocturne-player__cover-wrap">
           {!imgError ? (
             <img
-              src={currentTrack.coverUrl}
+              src={currentTrack.artwork || currentTrack.coverUrl}
               alt={currentTrack.title}
               className="nocturne-player__cover"
               onError={() => setImgError(true)}
