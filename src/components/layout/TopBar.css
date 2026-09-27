@@ -63,6 +63,19 @@
   font-style: italic;
 }
 
+.nocturne-topbar__search-shortcut {
+  position: absolute;
+  right: 12px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--border-subtle);
+  font-size: 10px;
+  font-family: var(--font-mono);
+  color: var(--text-low);
+  pointer-events: none;
+}
+
 .nocturne-topbar__right {
   display: flex;
   align-items: center;

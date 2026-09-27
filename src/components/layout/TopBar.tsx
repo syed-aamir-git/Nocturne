@@ -1,9 +1,10 @@
-import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useRef, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Search, Menu, Radio } from 'lucide-react';
 import { useUI } from '../../state/UIContext';
 import { useTheme } from '../../state/ThemeContext';
 import { useToast } from '../../state/ToastContext';
+import { storageService } from '../../services/storageService';
 import { Dropdown } from '../primitives/Dropdown';
 import { Avatar } from '../primitives/Avatar';
 import { IconButton } from '../primitives/IconButton';
@@ -14,11 +15,30 @@ export const TopBar: React.FC = () => {
   const { currentTheme, availableThemes, setThemeId } = useTheme();
   const { showToast } = useToast();
   const navigate = useNavigate();
+  const location = useLocation();
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  // Global search keyboard shortcut Cmd+K or Ctrl+K
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        inputRef.current?.focus();
+        if (location.pathname !== '/search') {
+          navigate('/search');
+        }
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [location.pathname, navigate]);
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (searchQuery.trim()) {
-      navigate(`/search?q=${encodeURIComponent(searchQuery)}`);
+    const trimmed = searchQuery.trim();
+    if (trimmed) {
+      storageService.addSearchHistory(trimmed);
+      navigate(`/search?q=${encodeURIComponent(trimmed)}`);
     }
   };
 
@@ -60,12 +80,27 @@ export const TopBar: React.FC = () => {
         <form className="nocturne-topbar__search-wrap" onSubmit={handleSearchSubmit}>
           <Search size={16} className="nocturne-topbar__search-icon" />
           <input
+            ref={inputRef}
             type="text"
             className="nocturne-topbar__search-input"
             placeholder="Search gothic soundscapes, artists, or late-night drones..."
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onFocus={() => {
+              if (location.pathname !== '/search') {
+                navigate('/search');
+              }
+            }}
+            onChange={(e) => {
+              const val = e.target.value;
+              setSearchQuery(val);
+              if (location.pathname !== '/search') {
+                navigate(`/search?q=${encodeURIComponent(val)}`);
+              } else {
+                navigate(val ? `/search?q=${encodeURIComponent(val)}` : '/search', { replace: true });
+              }
+            }}
           />
+          <span className="nocturne-topbar__search-shortcut">⌘K</span>
         </form>
       </div>
 

@@ -61,31 +61,34 @@ export const SearchPage: React.FC = () => {
   const queryFromUrl = useMemo(() => searchParams.get('q') || '', [searchParams]);
 
   useEffect(() => {
-    if (queryFromUrl && queryFromUrl !== searchQuery) {
+    if (queryFromUrl !== searchQuery) {
       setSearchQuery(queryFromUrl);
     }
-  }, [queryFromUrl, searchQuery, setSearchQuery]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [queryFromUrl]);
 
   // Dynamic live search with 120ms debounce
   useEffect(() => {
     let isCancelled = false;
     const trimmed = searchQuery.trim();
 
-    if (!trimmed) {
-      setResults({ tracks: [], albums: [], artists: [], playlists: [], genres: [] });
-      setIsLoading(false);
-      return;
-    }
-
-    setIsLoading(true);
     const timer = setTimeout(() => {
+      if (!trimmed) {
+        if (!isCancelled) {
+          setResults({ tracks: [], albums: [], artists: [], playlists: [], genres: [] });
+          setIsLoading(false);
+        }
+        return;
+      }
+
+      setIsLoading(true);
       musicService.search(trimmed).then((res) => {
         if (!isCancelled) {
           setResults(res);
           setIsLoading(false);
         }
       });
-    }, 120);
+    }, trimmed ? 120 : 0);
 
     return () => {
       isCancelled = true;
