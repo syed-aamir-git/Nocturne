@@ -178,8 +178,12 @@
   animation: pulseSubtle 2s infinite ease-in-out;
 }
 
-/* Mobile responsive drawer */
+/* Desktop Only utility */
 @media (max-width: 900px) {
+  .desktop-only {
+    display: none !important;
+  }
+
   .nocturne-sidebar {
     position: fixed;
     top: 0;

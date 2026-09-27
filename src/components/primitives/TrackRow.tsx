@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Play, Pause, Heart } from 'lucide-react';
+import { Play, Pause, Heart, Music } from 'lucide-react';
 import type { Track } from '../../types';
 import { formatDuration } from '../../utilities/formatters';
 import { IconButton } from './IconButton';
@@ -27,6 +27,7 @@ export const TrackRow: React.FC<TrackRowProps> = ({
   className = '',
 }) => {
   const [liked, setLiked] = useState(false);
+  const [imgError, setImgError] = useState(false);
 
   const handleRowClick = () => {
     if (isActive && isPlaying) {
@@ -70,13 +71,22 @@ export const TrackRow: React.FC<TrackRowProps> = ({
         )}
       </div>
 
-      {/* Album cover art */}
-      <img
-        src={track.coverUrl}
-        alt={track.title}
-        className="nocturne-track-row__cover"
-        loading="lazy"
-      />
+      {/* Album cover art with error fallback */}
+      <div className="nocturne-track-row__cover-wrap">
+        {!imgError ? (
+          <img
+            src={track.coverUrl}
+            alt={track.title}
+            className="nocturne-track-row__cover"
+            onError={() => setImgError(true)}
+            loading="lazy"
+          />
+        ) : (
+          <div className="nocturne-track-row__cover nocturne-track-row__cover--fallback">
+            <Music size={16} color="var(--accent-secondary)" />
+          </div>
+        )}
+      </div>
 
       {/* Title & Artist */}
       <div className="nocturne-track-row__title-wrap">
@@ -87,8 +97,8 @@ export const TrackRow: React.FC<TrackRowProps> = ({
       {/* Album */}
       <div className="nocturne-track-row__album">{track.album}</div>
 
-      {/* Audio format badge */}
-      <div>
+      {/* Audio format badge column */}
+      <div className="nocturne-track-row__badge-col">
         <span className="nocturne-track-row__badge">
           {track.bitrate?.includes('MQA')
             ? 'MQA'

@@ -2,7 +2,7 @@ import React, { useRef, useState, useCallback } from 'react';
 import './Slider.css';
 
 export interface SliderProps {
-  value: number; // 0 to max
+  value: number; // min to max
   max?: number;
   min?: number;
   step?: number;
@@ -24,13 +24,18 @@ export const Slider: React.FC<SliderProps> = ({
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [isDragging, setIsDragging] = useState(false);
+  const [dragValue, setDragValue] = useState<number | null>(null);
 
-  const percentage = Math.max(0, Math.min(100, ((value - min) / (max - min)) * 100));
+  // When dragging, use the active dragValue; otherwise use the external value prop
+  const activeValue = isDragging && dragValue !== null ? dragValue : value;
+  const safeRange = max > min ? max - min : 1;
+  const percentage = Math.max(0, Math.min(100, ((activeValue - min) / safeRange) * 100));
 
   const calculateValueFromPointer = useCallback(
     (clientX: number): number => {
       if (!containerRef.current) return value;
       const rect = containerRef.current.getBoundingClientRect();
+      if (rect.width <= 0) return value;
       const relativeX = clientX - rect.left;
       const ratio = Math.max(0, Math.min(1, relativeX / rect.width));
       const rawValue = min + ratio * (max - min);
@@ -42,14 +47,20 @@ export const Slider: React.FC<SliderProps> = ({
 
   const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
     setIsDragging(true);
-    e.currentTarget.setPointerCapture(e.pointerId);
+    try {
+      e.currentTarget.setPointerCapture(e.pointerId);
+    } catch {
+      // Ignore if pointer capture fails
+    }
     const newValue = calculateValueFromPointer(e.clientX);
+    setDragValue(newValue);
     onChange(newValue);
   };
 
   const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
     if (!isDragging) return;
     const newValue = calculateValueFromPointer(e.clientX);
+    setDragValue(newValue);
     onChange(newValue);
   };
 
@@ -62,7 +73,14 @@ export const Slider: React.FC<SliderProps> = ({
       // Ignore if pointer capture release fails
     }
     const finalVal = calculateValueFromPointer(e.clientX);
+    setDragValue(null);
     onChangeEnd?.(finalVal);
+  };
+
+  const handlePointerCancel = () => {
+    if (!isDragging) return;
+    setIsDragging(false);
+    setDragValue(null);
   };
 
   // Keyboard accessibility
@@ -91,12 +109,13 @@ export const Slider: React.FC<SliderProps> = ({
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
+      onPointerCancel={handlePointerCancel}
       role="slider"
       tabIndex={0}
       aria-label={ariaLabel}
       aria-valuemin={min}
       aria-valuemax={max}
-      aria-valuenow={value}
+      aria-valuenow={Math.round(activeValue)}
       onKeyDown={handleKeyDown}
     >
       <div className="nocturne-slider-track">

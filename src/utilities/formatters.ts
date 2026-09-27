@@ -2,7 +2,7 @@
  * Formats a duration in seconds into mm:ss or hh:mm:ss format
  */
 export function formatDuration(seconds: number): string {
-  if (isNaN(seconds) || seconds < 0) return '0:00';
+  if (isNaN(seconds) || !isFinite(seconds) || seconds < 0) return '0:00';
   const totalSeconds = Math.floor(seconds);
   const hrs = Math.floor(totalSeconds / 3600);
   const mins = Math.floor((totalSeconds % 3600) / 60);
@@ -21,7 +21,7 @@ export function formatDuration(seconds: number): string {
  * Formats large listener/play numbers to human readable (e.g. 1.2M, 840K)
  */
 export function formatNumber(num: number): string {
-  if (!num) return '0';
+  if (!num || isNaN(num) || !isFinite(num)) return '0';
   if (num >= 1_000_000) {
     return `${(num / 1_000_000).toFixed(1)}M`;
   }

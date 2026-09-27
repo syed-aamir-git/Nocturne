@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Play,
   Pause,
@@ -12,6 +12,7 @@ import {
   Heart,
   ListMusic,
   Maximize2,
+  Music,
 } from 'lucide-react';
 import { usePlayer } from '../../state/PlayerContext';
 import { useToast } from '../../state/ToastContext';
@@ -42,10 +43,17 @@ export const PlayerBar: React.FC = () => {
   } = usePlayer();
 
   const { showToast } = useToast();
+  const [imgError, setImgError] = useState(false);
+  const [displayTime, setDisplayTime] = useState<number | null>(null);
 
   const isPlaying = status === 'playing';
 
-  const handleScrub = (value: number) => {
+  const handleScrubChange = (value: number) => {
+    setDisplayTime(value);
+  };
+
+  const handleScrubEnd = (value: number) => {
+    setDisplayTime(null);
     seek(value);
   };
 
@@ -65,16 +73,34 @@ export const PlayerBar: React.FC = () => {
     );
   }
 
+  const effectiveTime = displayTime !== null ? displayTime : currentTime;
+
   return (
     <div className="nocturne-player-bar" role="region" aria-label="Audio Player">
       {/* Left: Track Information */}
       <div className="nocturne-player__track">
         <div className="nocturne-player__cover-wrap">
-          <img
-            src={currentTrack.coverUrl}
-            alt={currentTrack.title}
-            className="nocturne-player__cover"
-          />
+          {!imgError ? (
+            <img
+              src={currentTrack.coverUrl}
+              alt={currentTrack.title}
+              className="nocturne-player__cover"
+              onError={() => setImgError(true)}
+            />
+          ) : (
+            <div
+              style={{
+                width: '100%',
+                height: '100%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                background: 'var(--bg-surface-elevated)',
+              }}
+            >
+              <Music size={22} color="var(--accent-secondary)" />
+            </div>
+          )}
         </div>
 
         <div className="nocturne-player__meta">
@@ -166,13 +192,14 @@ export const PlayerBar: React.FC = () => {
 
         {/* Scrubber slider */}
         <div className="nocturne-player__scrubber">
-          <span className="nocturne-player__time">{formatDuration(currentTime)}</span>
+          <span className="nocturne-player__time">{formatDuration(effectiveTime)}</span>
           <Slider
-            value={currentTime}
+            value={effectiveTime}
             min={0}
             max={duration || 100}
             step={1}
-            onChange={handleScrub}
+            onChange={handleScrubChange}
+            onChangeEnd={handleScrubEnd}
             aria-label="Track progress"
           />
           <span className="nocturne-player__time">{formatDuration(duration)}</span>

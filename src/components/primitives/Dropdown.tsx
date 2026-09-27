@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useClickOutside } from '../../hooks/useClickOutside';
 import './Dropdown.css';
 
@@ -23,6 +23,21 @@ export const Dropdown: React.FC<DropdownProps> = ({ trigger, items, align = 'rig
 
   useClickOutside(containerRef, () => setIsOpen(false));
 
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isOpen) {
+        setIsOpen(false);
+      }
+    };
+
+    if (isOpen) {
+      window.addEventListener('keydown', handleKeyDown);
+    }
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isOpen]);
+
   return (
     <div className="nocturne-dropdown" ref={containerRef}>
       <div
@@ -37,15 +52,17 @@ export const Dropdown: React.FC<DropdownProps> = ({ trigger, items, align = 'rig
           className={`nocturne-dropdown-menu ${
             align === 'left' ? 'nocturne-dropdown-menu--left' : ''
           }`}
+          role="menu"
         >
           {items.map((item, index) => {
             if (item === 'divider') {
-              return <div key={`div-${index}`} className="nocturne-dropdown-divider" />;
+              return <div key={`div-${index}`} className="nocturne-dropdown-divider" role="separator" />;
             }
             return (
               <button
                 key={item.id}
                 type="button"
+                role="menuitem"
                 className={`nocturne-dropdown-item ${
                   item.active ? 'nocturne-dropdown-item--active' : ''
                 } ${item.danger ? 'nocturne-dropdown-item--danger' : ''}`}

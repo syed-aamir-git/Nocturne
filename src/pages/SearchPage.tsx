@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Search as SearchIcon, Sparkles } from 'lucide-react';
 import { musicService } from '../services/musicService';
@@ -33,31 +33,37 @@ export const SearchPage: React.FC = () => {
     artists: Artist[];
   }>({ tracks: [], albums: [], artists: [] });
 
-  const queryFromUrl = searchParams.get('q') || '';
+  const queryFromUrl = useMemo(() => searchParams.get('q') || '', [searchParams]);
 
   useEffect(() => {
-    if (queryFromUrl && queryFromUrl !== searchQuery) {
+    if (queryFromUrl) {
       setSearchQuery(queryFromUrl);
     }
-  }, [queryFromUrl]);
+  }, [queryFromUrl, setSearchQuery]);
 
   useEffect(() => {
-    let isCancelled = false;
-    if (!searchQuery.trim()) {
+    const trimmed = searchQuery.trim();
+    if (!trimmed) {
       setResults({ tracks: [], albums: [], artists: [] });
+      setIsLoading(false);
       return;
     }
 
+    let isCancelled = false;
     setIsLoading(true);
-    musicService.search(searchQuery).then((res) => {
-      if (!isCancelled) {
-        setResults(res);
-        setIsLoading(false);
-      }
-    });
+
+    const timer = setTimeout(() => {
+      musicService.search(trimmed).then((res) => {
+        if (!isCancelled) {
+          setResults(res);
+          setIsLoading(false);
+        }
+      });
+    }, 150);
 
     return () => {
       isCancelled = true;
+      clearTimeout(timer);
     };
   }, [searchQuery]);
 

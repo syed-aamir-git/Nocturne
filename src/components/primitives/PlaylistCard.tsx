@@ -1,5 +1,5 @@
-import React from 'react';
-import { Play } from 'lucide-react';
+import React, { useState } from 'react';
+import { Play, Music } from 'lucide-react';
 import type { Playlist } from '../../types';
 import { formatNumber } from '../../utilities/formatters';
 import './PlaylistCard.css';
@@ -17,18 +17,36 @@ export const PlaylistCard: React.FC<PlaylistCardProps> = ({
   onClick,
   className = '',
 }) => {
+  const [imgError, setImgError] = useState(false);
+
   return (
     <div
       className={`nocturne-playlist-card ${className}`}
       onClick={() => onClick?.(playlist)}
     >
       <div className="nocturne-playlist-card__cover-wrap">
-        <img
-          src={playlist.coverUrl}
-          alt={playlist.title}
-          className="nocturne-playlist-card__cover"
-          loading="lazy"
-        />
+        {!imgError ? (
+          <img
+            src={playlist.coverUrl}
+            alt={playlist.title}
+            className="nocturne-playlist-card__cover"
+            onError={() => setImgError(true)}
+            loading="lazy"
+          />
+        ) : (
+          <div
+            style={{
+              width: '100%',
+              height: '100%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              background: 'var(--bg-surface-elevated)',
+            }}
+          >
+            <Music size={32} color="var(--accent-primary)" />
+          </div>
+        )}
         {playlist.curatedHour && (
           <span className="nocturne-playlist-card__badge-hour">
             {playlist.curatedHour}

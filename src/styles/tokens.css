@@ -27,6 +27,12 @@
   --shadow-floating: 0 24px 64px -12px rgba(0, 0, 0, 0.9);
 }
 
+@media (max-width: 900px) {
+  :root {
+    --player-height: 80px;
+  }
+}
+
 /* Default Theme: Obsidian Abyss */
 [data-theme="obsidian"], :root {
   --bg-abyss: #06070a;
