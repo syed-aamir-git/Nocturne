@@ -129,3 +129,121 @@
     gap: 12px;
   }
 }
+
+/* Mood Collections Grid */
+.nocturne-mood-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 16px;
+}
+
+.nocturne-mood-card {
+  position: relative;
+  height: 120px;
+  border-radius: var(--radius-md, 8px);
+  overflow: hidden;
+  border: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.08));
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 16px;
+  text-decoration: none;
+  transition: transform var(--transition-fast, 0.15s ease), border-color 0.15s ease, box-shadow 0.15s ease;
+  user-select: none;
+}
+
+.nocturne-mood-card:hover {
+  transform: translateY(-3px);
+  border-color: var(--mood-accent, var(--accent-primary));
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6), 0 0 16px var(--mood-glow, var(--accent-glow));
+}
+
+.nocturne-mood-card--active {
+  border-color: var(--mood-accent, var(--accent-primary));
+  box-shadow: 0 0 0 2px var(--mood-accent, var(--accent-primary)), 0 8px 24px rgba(0, 0, 0, 0.6);
+}
+
+.nocturne-mood-card__bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.35;
+  transition: opacity 0.2s ease, transform 0.3s ease;
+}
+
+.nocturne-mood-card:hover .nocturne-mood-card__bg {
+  opacity: 0.45;
+  transform: scale(1.05);
+}
+
+.nocturne-mood-card__overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(12, 10, 18, 0.95) 20%, rgba(12, 10, 18, 0.4) 100%);
+}
+
+.nocturne-mood-card__content {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.nocturne-mood-card__title {
+  font-family: var(--font-serif);
+  font-size: 1.15rem;
+  color: var(--text-pure, #ffffff);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.nocturne-mood-card__tagline {
+  font-size: 11px;
+  color: var(--text-medium, #c8c8cf);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.nocturne-mood-card__play-btn {
+  position: absolute;
+  right: 14px;
+  bottom: 14px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--mood-accent, var(--accent-primary));
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transform: scale(0.85);
+  transition: all 0.2s ease;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+  z-index: 3;
+}
+
+.nocturne-mood-card:hover .nocturne-mood-card__play-btn {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* Personalized Banner */
+.nocturne-personal-banner {
+  padding: 24px 28px;
+  border-radius: var(--radius-lg, 12px);
+  background: linear-gradient(135deg, rgba(157, 114, 255, 0.08) 0%, rgba(20, 20, 28, 0.95) 100%);
+  border: 1px solid var(--border-glow, rgba(157, 114, 255, 0.25));
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5), 0 0 20px var(--accent-glow, rgba(157, 114, 255, 0.15));
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+

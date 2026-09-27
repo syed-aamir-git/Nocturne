@@ -71,11 +71,54 @@ export const storageService = {
   },
 
   /**
-   * Helper to get full Track objects for a list of track IDs
+   * Search history persistence
    */
-  getTracksByIds(ids: string[]): Track[] {
-    const map = new Map<string, Track>();
-    MOCK_TRACKS.forEach((t) => map.set(t.id, t));
-    return ids.map((id) => map.get(id)).filter((t): t is Track => t !== undefined);
+  getSearchHistory(): string[] {
+    try {
+      const stored = localStorage.getItem('nocturne_search_history_v1');
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed)) return parsed;
+      }
+      return ['Gothic Darkwave', 'Vespera', 'Abyssal Solitude', 'Tape Hiss'];
+    } catch {
+      return ['Gothic Darkwave', 'Vespera', 'Abyssal Solitude', 'Tape Hiss'];
+    }
+  },
+
+  addSearchHistory(query: string): string[] {
+    const trimmed = query.trim();
+    if (!trimmed) return this.getSearchHistory();
+    try {
+      const current = this.getSearchHistory().filter(
+        (item) => item.toLowerCase() !== trimmed.toLowerCase()
+      );
+      const updated = [trimmed, ...current].slice(0, 10);
+      localStorage.setItem('nocturne_search_history_v1', JSON.stringify(updated));
+      return updated;
+    } catch (e) {
+      console.warn('[StorageService] Error saving search history:', e);
+      return [];
+    }
+  },
+
+  removeSearchHistoryItem(query: string): string[] {
+    try {
+      const current = this.getSearchHistory().filter(
+        (item) => item.toLowerCase() !== query.toLowerCase()
+      );
+      localStorage.setItem('nocturne_search_history_v1', JSON.stringify(current));
+      return current;
+    } catch {
+      return [];
+    }
+  },
+
+  clearSearchHistory(): void {
+    try {
+      localStorage.removeItem('nocturne_search_history_v1');
+    } catch (e) {
+      console.warn('[StorageService] Error clearing search history:', e);
+    }
   },
 };

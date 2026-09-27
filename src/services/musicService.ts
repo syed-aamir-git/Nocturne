@@ -9,6 +9,14 @@ export interface MoodCategory {
   genre: string;
 }
 
+export interface SearchResult {
+  tracks: Track[];
+  albums: Album[];
+  artists: Artist[];
+  playlists: Playlist[];
+  genres: string[];
+}
+
 export interface MusicServiceInterface {
   getAllTracks(): Promise<Track[]>;
   getFeaturedTracks(): Promise<Track[]>;
@@ -26,7 +34,7 @@ export interface MusicServiceInterface {
   getTracksByGenre(genre: string): Promise<Track[]>;
   getGenres(): Promise<string[]>;
   getMoods(): Promise<MoodCategory[]>;
-  search(query: string): Promise<{ tracks: Track[]; albums: Album[]; artists: Artist[] }>;
+  search(query: string): Promise<SearchResult>;
 }
 
 /**
@@ -154,10 +162,10 @@ class MusicService implements MusicServiceInterface {
     ]);
   }
 
-  public async search(query: string): Promise<{ tracks: Track[]; albums: Album[]; artists: Artist[] }> {
+  public async search(query: string): Promise<SearchResult> {
     const q = query.toLowerCase().trim();
     if (!q) {
-      return this.simulateDelay({ tracks: [], albums: [], artists: [] });
+      return this.simulateDelay({ tracks: [], albums: [], artists: [], playlists: [], genres: [] });
     }
 
     const tracks = MOCK_TRACKS.filter(
@@ -182,7 +190,20 @@ class MusicService implements MusicServiceInterface {
         ar.genres.some((g) => g.toLowerCase().includes(q))
     );
 
-    return this.simulateDelay({ tracks, albums, artists });
+    const allPlaylists = storageService.getPlaylists();
+    const playlists = allPlaylists.filter(
+      (p) =>
+        p.title.toLowerCase().includes(q) ||
+        p.description?.toLowerCase().includes(q) ||
+        p.creator.toLowerCase().includes(q)
+    );
+
+    const allGenres = Array.from(
+      new Set([...MOCK_TRACKS.map((t) => t.genre), ...MOCK_ALBUMS.map((a) => a.genre)])
+    );
+    const genres = allGenres.filter((g) => g.toLowerCase().includes(q));
+
+    return this.simulateDelay({ tracks, albums, artists, playlists, genres });
   }
 }
 
