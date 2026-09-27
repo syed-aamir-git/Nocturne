@@ -1,0 +1,77 @@
+.nocturne-artist-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 24px 16px;
+  transition: all var(--transition-smooth);
+  cursor: pointer;
+}
+
+.nocturne-artist-card:hover {
+  background: var(--bg-surface-hover);
+  border-color: var(--border-glow);
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lg), 0 0 25px var(--accent-glow);
+}
+
+.nocturne-artist-card__avatar-wrap {
+  position: relative;
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  margin-bottom: 16px;
+  padding: 3px;
+  background: linear-gradient(135deg, var(--border-medium), transparent);
+  transition: all var(--transition-smooth);
+}
+
+.nocturne-artist-card:hover .nocturne-artist-card__avatar-wrap {
+  background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+  box-shadow: 0 0 20px var(--accent-glow);
+}
+
+.nocturne-artist-card__avatar {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  display: block;
+}
+
+.nocturne-artist-card__name {
+  font-family: var(--font-serif);
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-pure);
+  margin-bottom: 4px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.nocturne-artist-card__listeners {
+  font-size: 12px;
+  color: var(--text-medium);
+  font-family: var(--font-mono);
+}
+
+.nocturne-artist-card__genres {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  justify-content: center;
+  margin-top: 8px;
+}
+
+.nocturne-artist-card__genre-tag {
+  font-size: 10.5px;
+  padding: 2px 7px;
+  border-radius: var(--radius-full);
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-low);
+  border: 1px solid var(--border-subtle);
+}

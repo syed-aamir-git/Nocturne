@@ -1,0 +1,81 @@
+.nocturne-toast-container {
+  position: fixed;
+  bottom: calc(var(--player-height) + 20px);
+  right: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  z-index: 2000;
+  pointer-events: none;
+}
+
+.nocturne-toast {
+  pointer-events: auto;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  min-width: 300px;
+  max-width: 420px;
+  padding: 14px 16px;
+  background: var(--bg-surface-elevated);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--border-medium);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg), 0 0 20px rgba(0, 0, 0, 0.7);
+  animation: toastSlideIn 240ms cubic-bezier(0.16, 1, 0.3, 1);
+  color: var(--text-high);
+}
+
+@keyframes toastSlideIn {
+  from { opacity: 0; transform: translateY(12px) scale(0.96); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.nocturne-toast--atmosphere {
+  border-color: var(--border-glow);
+  box-shadow: var(--shadow-lg), 0 0 25px var(--accent-glow);
+}
+
+.nocturne-toast--success {
+  border-color: rgba(34, 197, 94, 0.4);
+}
+
+.nocturne-toast--error {
+  border-color: rgba(239, 68, 68, 0.4);
+}
+
+.nocturne-toast__icon {
+  margin-top: 2px;
+  flex-shrink: 0;
+}
+
+.nocturne-toast__content {
+  flex: 1;
+}
+
+.nocturne-toast__title {
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: 13.5px;
+  color: var(--text-pure);
+}
+
+.nocturne-toast__desc {
+  font-size: 12px;
+  color: var(--text-medium);
+  margin-top: 2px;
+  line-height: 1.4;
+}
+
+.nocturne-toast__close {
+  color: var(--text-low);
+  cursor: pointer;
+  padding: 2px;
+  border-radius: var(--radius-xs);
+  transition: color var(--transition-snappy);
+}
+
+.nocturne-toast__close:hover {
+  color: var(--text-pure);
+}

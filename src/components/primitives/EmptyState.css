@@ -1,0 +1,47 @@
+.nocturne-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 48px 24px;
+  min-height: 280px;
+  border-radius: var(--radius-lg);
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px dashed var(--border-subtle);
+  margin: 16px 0;
+}
+
+.nocturne-empty-state__icon-wrap {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: var(--bg-surface-elevated);
+  border: 1px solid var(--border-medium);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--accent-primary);
+  margin-bottom: 20px;
+  box-shadow: 0 0 24px var(--accent-glow);
+}
+
+.nocturne-empty-state__title {
+  font-family: var(--font-serif);
+  font-size: 1.25rem;
+  color: var(--text-pure);
+  margin-bottom: 8px;
+  letter-spacing: 0.04em;
+}
+
+.nocturne-empty-state__desc {
+  max-width: 440px;
+  font-size: 13px;
+  color: var(--text-medium);
+  line-height: 1.6;
+  margin-bottom: 20px;
+}
+
+.nocturne-empty-state__action {
+  margin-top: 4px;
+}

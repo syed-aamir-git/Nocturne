@@ -1,0 +1,58 @@
+.nocturne-slider-container {
+  display: flex;
+  align-items: center;
+  position: relative;
+  width: 100%;
+  height: 24px;
+  cursor: pointer;
+  user-select: none;
+  touch-action: none;
+}
+
+.nocturne-slider-track {
+  position: relative;
+  width: 100%;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: var(--radius-full);
+  overflow: visible;
+  transition: height var(--transition-snappy);
+}
+
+.nocturne-slider-container:hover .nocturne-slider-track {
+  height: 6px;
+}
+
+.nocturne-slider-fill {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  background: var(--accent-primary);
+  border-radius: var(--radius-full);
+  box-shadow: 0 0 10px var(--accent-glow);
+  transition: background var(--transition-snappy);
+}
+
+.nocturne-slider-container:hover .nocturne-slider-fill {
+  background: var(--accent-secondary);
+  box-shadow: 0 0 14px var(--accent-glow-strong);
+}
+
+.nocturne-slider-thumb {
+  position: absolute;
+  top: 50%;
+  width: 12px;
+  height: 12px;
+  background: #ffffff;
+  border-radius: 50%;
+  transform: translate(-50%, -50%) scale(0);
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.8), 0 0 12px var(--accent-primary);
+  transition: transform var(--transition-snappy);
+  pointer-events: none;
+}
+
+.nocturne-slider-container:hover .nocturne-slider-thumb,
+.nocturne-slider-container--dragging .nocturne-slider-thumb {
+  transform: translate(-50%, -50%) scale(1);
+}

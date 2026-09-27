@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <defs>
+    <radialGradient id="nocturne-glow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#b462f7" stop-opacity="0.9" />
+      <stop offset="60%" stop-color="#7928ca" stop-opacity="0.4" />
+      <stop offset="100%" stop-color="#0a0a12" stop-opacity="0" />
+    </radialGradient>
+    <linearGradient id="crescent-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f5e6ff" />
+      <stop offset="50%" stop-color="#c084fc" />
+      <stop offset="100%" stop-color="#6b21a8" />
+    </linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="16" fill="#090a10" />
+  <circle cx="32" cy="32" r="28" fill="url(#nocturne-glow)" />
+  <!-- Crescent moon -->
+  <path d="M38 14C28 14 18 22 18 34C18 46 28 54 39 52C27 49 24 35 30 25C33 20 36 17 38 14Z" fill="url(#crescent-grad)" />
+  <!-- Sound vibration nodes -->
+  <circle cx="44" cy="24" r="2" fill="#e9d5ff" opacity="0.9" />
+  <circle cx="48" cy="33" r="2.5" fill="#c084fc" />
+  <circle cx="43" cy="42" r="1.8" fill="#a855f7" opacity="0.8" />
+  <!-- Harmonic waveform -->
+  <path d="M22 34C26 31 29 37 34 33C37 30 40 35 43 33" stroke="#e9d5ff" stroke-width="1.5" stroke-linecap="round" opacity="0.75" />
+</svg>

@@ -1,0 +1,55 @@
+.nocturne-avatar {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-full);
+  background: var(--bg-surface-elevated);
+  border: 1px solid var(--border-medium);
+  overflow: hidden;
+  flex-shrink: 0;
+  user-select: none;
+}
+
+.nocturne-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.nocturne-avatar-fallback {
+  font-family: var(--font-serif);
+  font-weight: 700;
+  color: var(--accent-secondary);
+  text-transform: uppercase;
+}
+
+/* Sizes */
+.nocturne-avatar--sm {
+  width: 32px;
+  height: 32px;
+  font-size: 11px;
+}
+
+.nocturne-avatar--md {
+  width: 44px;
+  height: 44px;
+  font-size: 14px;
+}
+
+.nocturne-avatar--lg {
+  width: 64px;
+  height: 64px;
+  font-size: 20px;
+}
+
+.nocturne-avatar--xl {
+  width: 96px;
+  height: 96px;
+  font-size: 32px;
+}
+
+.nocturne-avatar--ring {
+  box-shadow: 0 0 0 2px var(--bg-canvas), 0 0 0 3.5px var(--accent-primary);
+}

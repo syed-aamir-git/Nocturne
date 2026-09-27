@@ -1,0 +1,131 @@
+.nocturne-discover {
+  display: flex;
+  flex-direction: column;
+  gap: 48px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+/* Atmospheric Hero Banner */
+.nocturne-hero {
+  position: relative;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  padding: 48px 40px;
+  background: linear-gradient(135deg, rgba(20, 16, 32, 0.9) 0%, rgba(10, 8, 16, 0.95) 100%);
+  border: 1px solid var(--border-medium);
+  box-shadow: var(--shadow-lg), 0 0 35px var(--accent-glow);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  min-height: 260px;
+}
+
+.nocturne-hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at top right, var(--accent-glow-strong) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.nocturne-hero__badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--border-glow);
+  border-radius: var(--radius-full);
+  font-size: 11px;
+  font-family: var(--font-mono);
+  letter-spacing: 0.06em;
+  color: var(--accent-secondary);
+  width: fit-content;
+  margin-bottom: 14px;
+}
+
+.nocturne-hero__title {
+  font-family: var(--font-serif);
+  font-size: 2.4rem;
+  letter-spacing: 0.04em;
+  color: var(--text-pure);
+  line-height: 1.15;
+  margin-bottom: 12px;
+}
+
+.nocturne-hero__tagline {
+  font-size: 1.05rem;
+  color: var(--text-medium);
+  max-width: 580px;
+  line-height: 1.5;
+  margin-bottom: 24px;
+}
+
+.nocturne-hero__actions {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+/* Sections */
+.nocturne-section__header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.nocturne-section__title {
+  font-family: var(--font-serif);
+  font-size: 1.4rem;
+  letter-spacing: 0.04em;
+  color: var(--text-pure);
+}
+
+.nocturne-section__sub {
+  font-size: 13px;
+  color: var(--text-low);
+  font-style: italic;
+}
+
+/* Responsive Grids */
+.nocturne-grid-albums {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+  gap: 20px;
+}
+
+.nocturne-grid-artists {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 20px;
+}
+
+.nocturne-tracklist {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 8px;
+}
+
+@media (max-width: 768px) {
+  .nocturne-hero {
+    padding: 28px 20px;
+    min-height: 220px;
+  }
+  .nocturne-hero__title {
+    font-size: 1.8rem;
+  }
+  .nocturne-grid-albums {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+  .nocturne-grid-artists {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+}

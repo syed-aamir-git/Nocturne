@@ -1,0 +1,80 @@
+.nocturne-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-full);
+  color: var(--text-medium);
+  transition: all var(--transition-snappy);
+  cursor: pointer;
+  border: 1px solid transparent;
+  flex-shrink: 0;
+  position: relative;
+}
+
+.nocturne-icon-btn:hover {
+  color: var(--text-pure);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.nocturne-icon-btn:active {
+  transform: scale(0.94);
+}
+
+.nocturne-icon-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* Sizes */
+.nocturne-icon-btn--sm {
+  width: 30px;
+  height: 30px;
+}
+
+.nocturne-icon-btn--md {
+  width: 38px;
+  height: 38px;
+}
+
+.nocturne-icon-btn--lg {
+  width: 48px;
+  height: 48px;
+}
+
+.nocturne-icon-btn--xl {
+  width: 58px;
+  height: 58px;
+}
+
+/* Variants */
+.nocturne-icon-btn--ghost {
+  background: transparent;
+}
+
+.nocturne-icon-btn--secondary {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: var(--border-subtle);
+}
+
+.nocturne-icon-btn--secondary:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: var(--border-medium);
+}
+
+.nocturne-icon-btn--primary {
+  background: var(--accent-primary);
+  color: var(--accent-contrast);
+  box-shadow: 0 0 16px var(--accent-glow);
+}
+
+.nocturne-icon-btn--primary:hover {
+  background: var(--accent-secondary);
+  color: var(--accent-contrast);
+  box-shadow: 0 0 24px var(--accent-glow-strong);
+  transform: scale(1.05);
+}
+
+.nocturne-icon-btn--active {
+  color: var(--accent-primary);
+}

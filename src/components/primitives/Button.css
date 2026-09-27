@@ -1,0 +1,105 @@
+.nocturne-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-family: var(--font-sans);
+  font-weight: 500;
+  border-radius: var(--radius-sm);
+  transition: all var(--transition-snappy);
+  cursor: pointer;
+  white-space: nowrap;
+  user-select: none;
+  border: 1px solid transparent;
+  position: relative;
+  overflow: hidden;
+}
+
+.nocturne-button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* Sizes */
+.nocturne-button--sm {
+  height: 32px;
+  padding: 0 12px;
+  font-size: 12px;
+  letter-spacing: 0.02em;
+}
+
+.nocturne-button--md {
+  height: 40px;
+  padding: 0 18px;
+  font-size: 13.5px;
+  letter-spacing: 0.03em;
+}
+
+.nocturne-button--lg {
+  height: 48px;
+  padding: 0 24px;
+  font-size: 15px;
+  letter-spacing: 0.04em;
+}
+
+/* Variants */
+.nocturne-button--primary {
+  background: var(--accent-primary);
+  color: var(--accent-contrast);
+  box-shadow: 0 0 16px var(--accent-glow);
+}
+
+.nocturne-button--primary:hover {
+  background: var(--accent-secondary);
+  box-shadow: 0 0 24px var(--accent-glow-strong);
+  transform: translateY(-1px);
+}
+
+.nocturne-button--primary:active {
+  transform: translateY(1px);
+}
+
+.nocturne-button--secondary {
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text-high);
+  border-color: var(--border-medium);
+  backdrop-filter: blur(8px);
+}
+
+.nocturne-button--secondary:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.22);
+  color: var(--text-pure);
+  transform: translateY(-1px);
+}
+
+.nocturne-button--ghost {
+  background: transparent;
+  color: var(--text-medium);
+}
+
+.nocturne-button--ghost:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-pure);
+}
+
+.nocturne-button--gothic {
+  background: linear-gradient(180deg, rgba(25, 20, 35, 0.9) 0%, rgba(10, 8, 15, 0.95) 100%);
+  color: var(--text-high);
+  border: 1px solid var(--border-glow);
+  font-family: var(--font-serif);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.nocturne-button--gothic:hover {
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 20px var(--accent-glow), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  transform: translateY(-1px);
+}
+
+.nocturne-button--full {
+  width: 100%;
+}
