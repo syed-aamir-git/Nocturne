@@ -1,5 +1,7 @@
 import React, { createContext, useContext, useState } from 'react';
 
+export type RightPanelTab = 'info' | 'lyrics' | 'queue';
+
 interface UIContextType {
   sidebarCollapsed: boolean;
   setSidebarCollapsed: (collapsed: boolean) => void;
@@ -8,6 +10,9 @@ interface UIContextType {
   setMobileMenuOpen: (open: boolean) => void;
   rightPanelOpen: boolean;
   setRightPanelOpen: (open: boolean) => void;
+  rightPanelTab: RightPanelTab;
+  setRightPanelTab: (tab: RightPanelTab) => void;
+  openRightPanel: (tab?: RightPanelTab) => void;
   toggleRightPanel: () => void;
   searchQuery: string;
   setSearchQuery: (query: string) => void;
@@ -22,11 +27,16 @@ export const UIProvider: React.FC<{ children: React.ReactNode }> = ({ children }
   const [sidebarCollapsed, setSidebarCollapsed] = useState<boolean>(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState<boolean>(false);
   const [rightPanelOpen, setRightPanelOpen] = useState<boolean>(false);
+  const [rightPanelTab, setRightPanelTab] = useState<RightPanelTab>('queue');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [activeModal, setActiveModal] = useState<string | null>(null);
 
   const toggleSidebar = () => setSidebarCollapsed((prev) => !prev);
   const toggleRightPanel = () => setRightPanelOpen((prev) => !prev);
+  const openRightPanel = (tab?: RightPanelTab) => {
+    if (tab) setRightPanelTab(tab);
+    setRightPanelOpen(true);
+  };
   const openModal = (id: string) => setActiveModal(id);
   const closeModal = () => setActiveModal(null);
 
@@ -40,6 +50,9 @@ export const UIProvider: React.FC<{ children: React.ReactNode }> = ({ children }
         setMobileMenuOpen,
         rightPanelOpen,
         setRightPanelOpen,
+        rightPanelTab,
+        setRightPanelTab,
+        openRightPanel,
         toggleRightPanel,
         searchQuery,
         setSearchQuery,

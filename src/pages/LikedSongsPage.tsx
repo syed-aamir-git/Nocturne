@@ -1,34 +1,61 @@
-import React, { useState, useEffect } from 'react';
-import { Heart, Play } from 'lucide-react';
+import React, { useState, useMemo } from 'react';
+import { Link } from 'react-router-dom';
+import { Heart, Play, Shuffle, PlusSquare, Sparkles } from 'lucide-react';
 import { TrackList } from '../components/primitives/TrackList';
 import { Button } from '../components/primitives/Button';
+import { EmptyState } from '../components/primitives/EmptyState';
+import { PlaylistModal } from '../components/modals/PlaylistModal';
 import { usePlayer } from '../state/PlayerContext';
+import { useLibrary } from '../state/LibraryContext';
 import { useToast } from '../state/ToastContext';
-import { musicService } from '../services/musicService';
-import type { Track } from '../types';
+import type { Playlist } from '../types';
 
 export const LikedSongsPage: React.FC = () => {
   const { playTrack, currentTrack, status } = usePlayer();
+  const { getLikedTracks, playlists, addTracksToPlaylist } = useLibrary();
   const { showToast } = useToast();
-  const [tracks, setTracks] = useState<Track[]>([]);
 
-  useEffect(() => {
-    let isCancelled = false;
-    musicService.getAllTracks().then((all) => {
-      if (!isCancelled) {
-        setTracks(all.slice(0, 12));
-      }
-    });
-    return () => {
-      isCancelled = true;
-    };
-  }, []);
+  const [isPlaylistModalOpen, setIsPlaylistModalOpen] = useState(false);
+  const [showPlaylistPicker, setShowPlaylistPicker] = useState(false);
+
+  const likedTracks = getLikedTracks();
+
+  const totalDuration = useMemo(() => {
+    return likedTracks.reduce((acc, t) => acc + (t.duration || 0), 0);
+  }, [likedTracks]);
+
+  const formatTotalTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const hrs = Math.floor(mins / 60);
+    const remMins = mins % 60;
+    if (hrs > 0) {
+      return `${hrs} hr ${remMins} min`;
+    }
+    return `${mins} min ${seconds % 60} sec`;
+  };
 
   const handlePlayAll = () => {
-    if (tracks.length > 0) {
-      playTrack(tracks[0], tracks.slice(1));
-      showToast('Playing Preserved Tracks', `${tracks.length} tracks queued`, 'atmosphere');
+    if (likedTracks.length > 0) {
+      playTrack(likedTracks[0], likedTracks, 0);
+      showToast('Playing Preserved Collection', `${likedTracks.length} tracks queued`, 'atmosphere');
     }
+  };
+
+  const handleShuffleAll = () => {
+    if (likedTracks.length === 0) return;
+    const shuffled = [...likedTracks].sort(() => Math.random() - 0.5);
+    playTrack(shuffled[0], shuffled, 0);
+    showToast('Shuffling Liked Songs', 'Randomized midnight sequence', 'atmosphere');
+  };
+
+  const handleAddToExistingPlaylist = (playlistId: string, playlistTitle: string) => {
+    const addedCount = addTracksToPlaylist(playlistId, likedTracks);
+    showToast(
+      'Tracks Preserved in Ritual',
+      `Added ${addedCount} tracks to "${playlistTitle}"`,
+      'atmosphere'
+    );
+    setShowPlaylistPicker(false);
   };
 
   return (
@@ -37,62 +64,209 @@ export const LikedSongsPage: React.FC = () => {
       <div
         style={{
           display: 'flex',
-          gap: 24,
+          gap: 28,
           alignItems: 'flex-end',
-          padding: '28px',
+          padding: '32px',
           borderRadius: 'var(--radius-lg)',
-          background: 'var(--bg-surface)',
-          border: '1px solid var(--border-subtle)',
-          boxShadow: 'var(--shadow-md)',
+          background: 'linear-gradient(135deg, rgba(157, 114, 255, 0.12) 0%, rgba(18, 18, 24, 0.95) 100%)',
+          border: '1px solid var(--border-glow)',
+          boxShadow: 'var(--shadow-lg), 0 0 32px var(--accent-glow)',
           flexWrap: 'wrap',
+          position: 'relative',
         }}
       >
         <div
           style={{
-            width: 130,
-            height: 130,
+            width: 140,
+            height: 140,
             borderRadius: 'var(--radius-md)',
-            background: 'linear-gradient(135deg, rgba(157, 114, 255, 0.25) 0%, rgba(20, 20, 30, 0.9) 100%)',
-            border: '1px solid var(--border-glow)',
+            background: 'linear-gradient(135deg, #7c3aed 0%, #2e1065 100%)',
+            border: '1px solid rgba(255, 255, 255, 0.2)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             flexShrink: 0,
-            boxShadow: '0 0 24px var(--accent-glow)',
+            boxShadow: '0 8px 32px rgba(124, 58, 237, 0.4)',
           }}
         >
-          <Heart size={54} color="var(--accent-primary)" fill="currentColor" />
+          <Heart size={64} color="#ffffff" fill="currentColor" />
         </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-          <span style={{ fontSize: '11px', fontFamily: 'var(--font-mono)', letterSpacing: '0.08em', color: 'var(--accent-secondary)' }}>
-            PRESERVED COLLECTION
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10, flex: 1, minWidth: 260 }}>
+          <span
+            style={{
+              fontSize: '11px',
+              fontFamily: 'var(--font-mono)',
+              letterSpacing: '0.1em',
+              color: 'var(--accent-secondary)',
+            }}
+          >
+            SANCTUM ARCHIVE • FAVORITES
           </span>
-          <h1 style={{ fontSize: '2.4rem', margin: 0 }}>Liked Songs</h1>
-          <p style={{ color: 'var(--text-medium)', fontSize: '13px', margin: 0 }}>
-            {tracks.length} recordings anchored to your midnight memories
+
+          <h1 style={{ fontSize: '2.6rem', margin: 0, letterSpacing: '-0.02em' }}>
+            Liked Songs
+          </h1>
+
+          <p style={{ color: 'var(--text-medium)', fontSize: '13.5px', margin: 0 }}>
+            {likedTracks.length} recordings anchored to your midnight memories • {formatTotalTime(totalDuration)}
           </p>
 
-          <div style={{ marginTop: 6 }}>
-            <Button
-              variant="primary"
-              size="md"
-              leftIcon={<Play size={16} fill="currentColor" />}
-              onClick={handlePlayAll}
-            >
-              Play All Preserved
-            </Button>
-          </div>
+          {likedTracks.length > 0 && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 8, flexWrap: 'wrap' }}>
+              <Button
+                variant="primary"
+                size="md"
+                leftIcon={<Play size={16} fill="currentColor" />}
+                onClick={handlePlayAll}
+              >
+                Play All
+              </Button>
+
+              <Button
+                variant="secondary"
+                size="md"
+                leftIcon={<Shuffle size={15} />}
+                onClick={handleShuffleAll}
+              >
+                Shuffle All
+              </Button>
+
+              {/* Add Liked Songs to Playlist Dropdown/Trigger */}
+              <div style={{ position: 'relative' }}>
+                <Button
+                  variant="ghost"
+                  size="md"
+                  leftIcon={<PlusSquare size={15} />}
+                  onClick={() => setShowPlaylistPicker((prev) => !prev)}
+                >
+                  Add to Playlist
+                </Button>
+
+                {showPlaylistPicker && (
+                  <div
+                    style={{
+                      position: 'absolute',
+                      top: 'calc(100% + 6px)',
+                      left: 0,
+                      minWidth: 220,
+                      maxHeight: 260,
+                      overflowY: 'auto',
+                      background: 'var(--bg-surface-elevated)',
+                      border: '1px solid var(--border-subtle)',
+                      borderRadius: 'var(--radius-md)',
+                      boxShadow: 'var(--shadow-lg)',
+                      padding: 6,
+                      zIndex: 100,
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: 2,
+                    }}
+                  >
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowPlaylistPicker(false);
+                        setIsPlaylistModalOpen(true);
+                      }}
+                      style={{
+                        padding: '8px 10px',
+                        background: 'transparent',
+                        border: 'none',
+                        color: 'var(--accent-secondary)',
+                        fontSize: '12px',
+                        fontWeight: 600,
+                        borderRadius: 4,
+                        textAlign: 'left',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 6,
+                      }}
+                    >
+                      <Sparkles size={13} />
+                      <span>New Playlist from Liked</span>
+                    </button>
+
+                    {playlists.length > 0 && (
+                      <div
+                        style={{
+                          height: 1,
+                          background: 'var(--border-subtle)',
+                          margin: '4px 0',
+                        }}
+                      />
+                    )}
+
+                    {playlists.map((pl) => (
+                      <button
+                        key={pl.id}
+                        type="button"
+                        onClick={() => handleAddToExistingPlaylist(pl.id, pl.title)}
+                        style={{
+                          padding: '7px 10px',
+                          background: 'transparent',
+                          border: 'none',
+                          color: 'var(--text-medium)',
+                          fontSize: '12px',
+                          borderRadius: 4,
+                          textAlign: 'left',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 8,
+                          transition: 'background 0.15s ease',
+                        }}
+                        onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(255, 255, 255, 0.08)')}
+                        onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
+                      >
+                        <span
+                          style={{
+                            whiteSpace: 'nowrap',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                          }}
+                        >
+                          {pl.title}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
-      {/* Tracklist */}
-      <TrackList
-        tracks={tracks}
-        currentTrackId={currentTrack?.id}
-        isPlaying={status === 'playing'}
-        onTrackPlay={(t, _all, i) => playTrack(t, tracks.slice(i + 1))}
-        onLikeToggle={(t, l) => showToast(l ? 'Liked' : 'Unliked', t.title, 'default')}
+      {/* Tracklist or Empty State */}
+      {likedTracks.length === 0 ? (
+        <EmptyState
+          title="No Preserved Midnight Tracks"
+          description="You have not yet anchored any recordings to your liked songs. Listen and press the heart icon on any track to preserve it here."
+          action={
+            <Link to="/discover">
+              <Button variant="primary">Explore Sanctum</Button>
+            </Link>
+          }
+        />
+      ) : (
+        <TrackList
+          tracks={likedTracks}
+          currentTrackId={currentTrack?.id}
+          isPlaying={status === 'playing'}
+          onTrackPlay={(t, _all, i) => playTrack(t, likedTracks, i)}
+        />
+      )}
+
+      {/* Playlist Modal for creating a playlist with liked tracks */}
+      <PlaylistModal
+        isOpen={isPlaylistModalOpen}
+        onClose={() => setIsPlaylistModalOpen(false)}
+        initialTracks={likedTracks}
+        onSuccess={(pl: Playlist) => {
+          showToast('Ritual Established', `Preserved ${likedTracks.length} tracks in "${pl.title}"`, 'atmosphere');
+        }}
       />
     </div>
   );

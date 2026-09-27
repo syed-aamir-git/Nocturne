@@ -26,9 +26,12 @@ export interface PlayerContextType extends PlayerState {
   toggleShuffle: () => void;
   cycleRepeatMode: () => void;
   addToQueue: (track: Track) => void;
+  addTracksToQueue: (tracks: Track[]) => void;
+  playNext: (track: Track) => void;
   playQueueIndex: (index: number) => void;
   removeFromQueue: (index: number) => void;
   clearQueue: () => void;
+  reorderQueue: (startIndex: number, endIndex: number) => void;
 }
 
 const PlayerContext = createContext<PlayerContextType | undefined>(undefined);
@@ -285,6 +288,24 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     setQueue((prev) => [...prev, track]);
   }, []);
 
+  const addTracksToQueue = useCallback((tracks: Track[]) => {
+    setQueue((prev) => [...prev, ...tracks]);
+  }, []);
+
+  const playNext = useCallback(
+    (track: Track) => {
+      const { queue: currQ, queueIndex: currIdx, currentTrack: currTrk } = stateRef.current;
+      if (!currTrk || currQ.length === 0) {
+        playTrack(track, [track], 0);
+        return;
+      }
+      const nextQueue = [...currQ];
+      nextQueue.splice(currIdx + 1, 0, track);
+      setQueue(nextQueue);
+    },
+    [playTrack]
+  );
+
   const playQueueIndex = useCallback(
     (index: number) => {
       const { queue: currQ } = stateRef.current;
@@ -300,6 +321,12 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       const next = prev.filter((_, i) => i !== index);
       return next;
     });
+    setQueueIndex((currIdx) => {
+      if (index < currIdx) {
+        return currIdx - 1;
+      }
+      return currIdx;
+    });
   }, []);
 
   const clearQueue = useCallback(() => {
@@ -308,6 +335,36 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       return currTrk ? [currTrk] : [];
     });
     setQueueIndex(0);
+  }, []);
+
+  const reorderQueue = useCallback((startIndex: number, endIndex: number) => {
+    setQueue((prev) => {
+      if (
+        startIndex < 0 ||
+        startIndex >= prev.length ||
+        endIndex < 0 ||
+        endIndex >= prev.length
+      ) {
+        return prev;
+      }
+      const updated = [...prev];
+      const [moved] = updated.splice(startIndex, 1);
+      updated.splice(endIndex, 0, moved);
+      return updated;
+    });
+
+    setQueueIndex((currIdx) => {
+      if (startIndex === currIdx) {
+        return endIndex;
+      }
+      if (startIndex < currIdx && endIndex >= currIdx) {
+        return currIdx - 1;
+      }
+      if (startIndex > currIdx && endIndex <= currIdx) {
+        return currIdx + 1;
+      }
+      return currIdx;
+    });
   }, []);
 
   // Subscribe to persistent AudioEngine events
@@ -452,9 +509,12 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         toggleShuffle,
         cycleRepeatMode,
         addToQueue,
+        addTracksToQueue,
+        playNext,
         playQueueIndex,
         removeFromQueue,
         clearQueue,
+        reorderQueue,
       }}
     >
       {children}

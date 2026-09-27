@@ -1,92 +1,176 @@
 import React, { useState } from 'react';
-import { X, Activity, Music, AlignLeft, Info, ListMusic, Trash2 } from 'lucide-react';
+import {
+  X,
+  Activity,
+  Music,
+  AlignLeft,
+  Info,
+  ListMusic,
+  Trash2,
+  Play,
+  Pause,
+  CornerDownRight,
+  GripVertical,
+  ChevronUp,
+  ChevronDown,
+  Plus,
+} from 'lucide-react';
 import { useUI } from '../../state/UIContext';
 import { usePlayer } from '../../state/PlayerContext';
+import { useToast } from '../../state/ToastContext';
 import { IconButton } from '../primitives/IconButton';
+import { AddTracksModal } from '../modals/AddTracksModal';
+import { formatDuration } from '../../utilities/formatters';
+import type { Track } from '../../types';
 import './RightPanel.css';
 
 export const RightPanel: React.FC = () => {
-  const { rightPanelOpen, toggleRightPanel } = useUI();
+  const { rightPanelOpen, toggleRightPanel, rightPanelTab, setRightPanelTab } = useUI();
   const {
     currentTrack,
     queue,
     queueIndex,
     currentTime,
-    status,
+    isPlaying,
     playQueueIndex,
     removeFromQueue,
     clearQueue,
+    reorderQueue,
+    playNext,
+    addTracksToQueue,
+    togglePlayPause,
   } = usePlayer();
+  const { showToast } = useToast();
 
   const [imgError, setImgError] = useState(false);
-  const [activeTab, setActiveTab] = useState<'info' | 'lyrics' | 'queue'>('info');
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
   if (!rightPanelOpen) return null;
 
   const coverSrc = currentTrack?.artwork || currentTrack?.coverUrl || '';
+
+  // HTML5 Drag and Drop handlers for queue
+  const handleDragStart = (e: React.DragEvent<HTMLDivElement>, index: number) => {
+    setDraggedIndex(index);
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', String(index));
+  };
+
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>, index: number) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    if (dragOverIndex !== index) {
+      setDragOverIndex(index);
+    }
+  };
+
+  const handleDragLeave = () => {
+    setDragOverIndex(null);
+  };
+
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>, targetIndex: number) => {
+    e.preventDefault();
+    if (draggedIndex !== null && draggedIndex !== targetIndex) {
+      reorderQueue(draggedIndex, targetIndex);
+      showToast('Queue Reordered', 'Updated playback sequence', 'default');
+    }
+    setDraggedIndex(null);
+    setDragOverIndex(null);
+  };
+
+  const handleMoveUp = (index: number) => {
+    if (index > 0) {
+      reorderQueue(index, index - 1);
+    }
+  };
+
+  const handleMoveDown = (index: number) => {
+    if (index < queue.length - 1) {
+      reorderQueue(index, index + 1);
+    }
+  };
+
+  const handleAddTracks = (tracks: Track[]) => {
+    addTracksToQueue(tracks);
+    showToast('Tracks Queued', `Added ${tracks.length} tracks to sequence`, 'atmosphere');
+  };
 
   return (
     <aside className="nocturne-right-panel" aria-label="Now Playing Sanctuary Details">
       <div className="nocturne-right-panel__header">
         <span className="nocturne-right-panel__title">Sanctum Inspector</span>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <div style={{ display: 'flex', gap: 2, background: 'rgba(255, 255, 255, 0.05)', padding: 2, borderRadius: 4 }}>
+          <div
+            style={{
+              display: 'flex',
+              gap: 2,
+              background: 'rgba(255, 255, 255, 0.05)',
+              padding: 2,
+              borderRadius: 4,
+            }}
+          >
             <button
               type="button"
-              onClick={() => setActiveTab('info')}
+              onClick={() => setRightPanelTab('queue')}
               style={{
-                background: activeTab === 'info' ? 'var(--bg-surface-elevated)' : 'transparent',
+                background: rightPanelTab === 'queue' ? 'var(--bg-surface-elevated)' : 'transparent',
                 border: 'none',
-                color: activeTab === 'info' ? 'var(--accent-secondary)' : 'var(--text-low)',
-                padding: '3px 6px',
+                color: rightPanelTab === 'queue' ? 'var(--accent-secondary)' : 'var(--text-low)',
+                padding: '3px 8px',
                 borderRadius: 3,
                 fontSize: '11px',
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
                 gap: 4,
+                fontWeight: rightPanelTab === 'queue' ? 600 : 400,
               }}
             >
-              <Info size={11} />
-              <span>Info</span>
+              <ListMusic size={12} />
+              <span>Queue ({queue.length})</span>
             </button>
             <button
               type="button"
-              onClick={() => setActiveTab('queue')}
+              onClick={() => setRightPanelTab('info')}
               style={{
-                background: activeTab === 'queue' ? 'var(--bg-surface-elevated)' : 'transparent',
+                background: rightPanelTab === 'info' ? 'var(--bg-surface-elevated)' : 'transparent',
                 border: 'none',
-                color: activeTab === 'queue' ? 'var(--accent-secondary)' : 'var(--text-low)',
-                padding: '3px 6px',
+                color: rightPanelTab === 'info' ? 'var(--accent-secondary)' : 'var(--text-low)',
+                padding: '3px 8px',
                 borderRadius: 3,
                 fontSize: '11px',
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
                 gap: 4,
+                fontWeight: rightPanelTab === 'info' ? 600 : 400,
               }}
             >
-              <ListMusic size={11} />
-              <span>Queue ({queue.length})</span>
+              <Info size={12} />
+              <span>Info</span>
             </button>
             {currentTrack && (currentTrack.lyrics || currentTrack.syncedLyrics) && (
               <button
                 type="button"
-                onClick={() => setActiveTab('lyrics')}
+                onClick={() => setRightPanelTab('lyrics')}
                 style={{
-                  background: activeTab === 'lyrics' ? 'var(--bg-surface-elevated)' : 'transparent',
+                  background:
+                    rightPanelTab === 'lyrics' ? 'var(--bg-surface-elevated)' : 'transparent',
                   border: 'none',
-                  color: activeTab === 'lyrics' ? 'var(--accent-secondary)' : 'var(--text-low)',
-                  padding: '3px 6px',
+                  color: rightPanelTab === 'lyrics' ? 'var(--accent-secondary)' : 'var(--text-low)',
+                  padding: '3px 8px',
                   borderRadius: 3,
                   fontSize: '11px',
                   cursor: 'pointer',
                   display: 'flex',
                   alignItems: 'center',
                   gap: 4,
+                  fontWeight: rightPanelTab === 'lyrics' ? 600 : 400,
                 }}
               >
-                <AlignLeft size={11} />
+                <AlignLeft size={12} />
                 <span>Lyrics</span>
               </button>
             )}
@@ -103,9 +187,411 @@ export const RightPanel: React.FC = () => {
       </div>
 
       <div className="nocturne-right-panel__content">
-        {/* Large Cinematic Artwork */}
-        {currentTrack && (
+        {/* ==================== TAB 1: QUEUE ==================== */}
+        {rightPanelTab === 'queue' && (
+          <div className="nocturne-queue-container">
+            {/* Queue Controls Bar */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <span
+                style={{
+                  fontSize: '11px',
+                  fontFamily: 'var(--font-mono)',
+                  color: 'var(--text-low)',
+                  letterSpacing: '0.06em',
+                }}
+              >
+                PLAYBACK SEQUENCE ({queue.length})
+              </span>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                <button
+                  type="button"
+                  onClick={() => setIsAddModalOpen(true)}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 4,
+                    background: 'rgba(255, 255, 255, 0.05)',
+                    border: '1px solid var(--border-subtle)',
+                    color: 'var(--accent-secondary)',
+                    fontSize: '11px',
+                    padding: '3px 8px',
+                    borderRadius: 4,
+                    cursor: 'pointer',
+                  }}
+                  title="Add tracks to sequence"
+                >
+                  <Plus size={12} />
+                  <span>Add Tracks</span>
+                </button>
+
+                {queue.length > 1 && (
+                  <button
+                    type="button"
+                    onClick={clearQueue}
+                    style={{
+                      background: 'transparent',
+                      border: 'none',
+                      color: 'var(--text-low)',
+                      fontSize: '11px',
+                      cursor: 'pointer',
+                      padding: '3px 6px',
+                      borderRadius: 4,
+                    }}
+                    onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--indicator-error)')}
+                    onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--text-low)')}
+                    title="Clear upcoming sequence"
+                  >
+                    Clear
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* Currently Playing Track Highlight */}
+            {currentTrack && (
+              <div>
+                <span
+                  style={{
+                    fontSize: '10px',
+                    fontFamily: 'var(--font-mono)',
+                    color: 'var(--accent-secondary)',
+                    letterSpacing: '0.08em',
+                    display: 'block',
+                    marginBottom: 6,
+                  }}
+                >
+                  NOW RESONATING
+                </span>
+
+                <div className="nocturne-queue-now-playing">
+                  <div className="nocturne-queue-now-playing__badge">
+                    <span>Active Frequency</span>
+                    {isPlaying && (
+                      <div className="nocturne-equalizer">
+                        <span className="nocturne-equalizer__bar" />
+                        <span className="nocturne-equalizer__bar" />
+                        <span className="nocturne-equalizer__bar" />
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="nocturne-queue-now-playing__content">
+                    <img
+                      src={currentTrack.artwork || currentTrack.coverUrl}
+                      alt={currentTrack.title}
+                      className="nocturne-queue-now-playing__art"
+                    />
+
+                    <div className="nocturne-queue-now-playing__info">
+                      <span className="nocturne-queue-now-playing__title">
+                        {currentTrack.title}
+                      </span>
+                      <span className="nocturne-queue-now-playing__artist">
+                        {currentTrack.artist} • {currentTrack.album}
+                      </span>
+                      <span
+                        style={{
+                          fontSize: '10px',
+                          color: 'var(--accent-secondary)',
+                          fontFamily: 'var(--font-mono)',
+                          marginTop: 4,
+                        }}
+                      >
+                        {currentTrack.bitrate || '24-bit / 96kHz FLAC'}
+                      </span>
+                    </div>
+
+                    <IconButton
+                      variant="primary"
+                      size="sm"
+                      onClick={togglePlayPause}
+                      aria-label={isPlaying ? 'Pause' : 'Play'}
+                    >
+                      {isPlaying ? <Pause size={14} fill="currentColor" /> : <Play size={14} fill="currentColor" />}
+                    </IconButton>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Up Next List */}
+            <div>
+              <span
+                style={{
+                  fontSize: '10px',
+                  fontFamily: 'var(--font-mono)',
+                  color: 'var(--text-low)',
+                  letterSpacing: '0.08em',
+                  display: 'block',
+                  marginBottom: 8,
+                }}
+              >
+                UP NEXT IN QUEUE ({Math.max(0, queue.length - 1)})
+              </span>
+
+              {queue.length <= 1 ? (
+                <div
+                  style={{
+                    padding: '24px 16px',
+                    textAlign: 'center',
+                    background: 'rgba(255, 255, 255, 0.01)',
+                    borderRadius: 'var(--radius-sm)',
+                    border: '1px dashed var(--border-subtle)',
+                  }}
+                >
+                  <p style={{ color: 'var(--text-low)', fontSize: '12px', margin: '0 0 10px 0' }}>
+                    No upcoming tracks in sequence.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => setIsAddModalOpen(true)}
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 4,
+                      background: 'var(--bg-surface-elevated)',
+                      border: '1px solid var(--border-subtle)',
+                      color: 'var(--text-pure)',
+                      fontSize: '11.5px',
+                      padding: '4px 10px',
+                      borderRadius: 4,
+                      cursor: 'pointer',
+                    }}
+                  >
+                    <Plus size={12} />
+                    <span>Choose Tracks</span>
+                  </button>
+                </div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                  {queue.map((item, idx) => {
+                    const isCurrent = idx === queueIndex;
+                    const itemCover = item.artwork || item.coverUrl || '';
+                    const isDraggingThis = draggedIndex === idx;
+                    const isDropTargetThis = dragOverIndex === idx;
+
+                    return (
+                      <div
+                        key={`${item.id}-${idx}`}
+                        draggable
+                        onDragStart={(e) => handleDragStart(e, idx)}
+                        onDragOver={(e) => handleDragOver(e, idx)}
+                        onDragLeave={handleDragLeave}
+                        onDrop={(e) => handleDrop(e, idx)}
+                        className={`nocturne-queue-item ${
+                          isDraggingThis ? 'nocturne-queue-item--dragging' : ''
+                        } ${isDropTargetThis ? 'nocturne-queue-item--drop-target' : ''}`}
+                        style={{
+                          background: isCurrent
+                            ? 'rgba(157, 114, 255, 0.08)'
+                            : undefined,
+                          borderColor: isCurrent
+                            ? 'var(--accent-primary)'
+                            : undefined,
+                        }}
+                        onClick={() => playQueueIndex(idx)}
+                      >
+                        {/* Drag Handle */}
+                        <div
+                          className="nocturne-queue-item__handle"
+                          title="Drag to reorder sequence"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <GripVertical size={13} />
+                        </div>
+
+                        {/* Position Indicator */}
+                        <span
+                          style={{
+                            fontSize: '11px',
+                            fontFamily: 'var(--font-mono)',
+                            color: isCurrent ? 'var(--accent-secondary)' : 'var(--text-low)',
+                            width: 16,
+                            textAlign: 'center',
+                          }}
+                        >
+                          {isCurrent && isPlaying ? '▶' : idx + 1}
+                        </span>
+
+                        {/* Thumbnail */}
+                        <img
+                          src={itemCover}
+                          alt={item.title}
+                          className="nocturne-queue-item__thumb"
+                        />
+
+                        {/* Title & Artist */}
+                        <div className="nocturne-queue-item__info">
+                          <span
+                            className="nocturne-queue-item__title"
+                            style={{ color: isCurrent ? 'var(--accent-secondary)' : undefined }}
+                          >
+                            {item.title}
+                          </span>
+                          <span className="nocturne-queue-item__artist">{item.artist}</span>
+                        </div>
+
+                        {/* Duration */}
+                        <span
+                          style={{
+                            fontSize: '11px',
+                            fontFamily: 'var(--font-mono)',
+                            color: 'var(--text-low)',
+                            marginRight: 4,
+                          }}
+                        >
+                          {formatDuration(item.duration)}
+                        </span>
+
+                        {/* Actions */}
+                        <div
+                          className="nocturne-queue-item__actions"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          {/* Move Up */}
+                          {idx > 0 && (
+                            <button
+                              type="button"
+                              className="nocturne-queue-reorder-btn"
+                              onClick={() => handleMoveUp(idx)}
+                              title="Move up"
+                            >
+                              <ChevronUp size={12} />
+                            </button>
+                          )}
+
+                          {/* Move Down */}
+                          {idx < queue.length - 1 && (
+                            <button
+                              type="button"
+                              className="nocturne-queue-reorder-btn"
+                              onClick={() => handleMoveDown(idx)}
+                              title="Move down"
+                            >
+                              <ChevronDown size={12} />
+                            </button>
+                          )}
+
+                          {/* Play Next (if not right next already) */}
+                          {!isCurrent && idx !== queueIndex + 1 && (
+                            <button
+                              type="button"
+                              className="nocturne-queue-reorder-btn"
+                              onClick={() => {
+                                playNext(item);
+                                showToast('Queued Next', item.title, 'atmosphere');
+                              }}
+                              title="Play next in sequence"
+                            >
+                              <CornerDownRight size={12} />
+                            </button>
+                          )}
+
+                          {/* Remove button */}
+                          {queue.length > 1 && (
+                            <button
+                              type="button"
+                              className="nocturne-queue-reorder-btn"
+                              onClick={() => removeFromQueue(idx)}
+                              title="Remove from queue"
+                              style={{ color: 'var(--indicator-error)' }}
+                            >
+                              <Trash2 size={12} />
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            {/* Add Tracks Modal */}
+            <AddTracksModal
+              isOpen={isAddModalOpen}
+              onClose={() => setIsAddModalOpen(false)}
+              onAddTracks={handleAddTracks}
+              title="Add Tracks to Queue"
+            />
+          </div>
+        )}
+
+        {/* ==================== TAB 2: LYRICS ==================== */}
+        {rightPanelTab === 'lyrics' && currentTrack && (
+          <div
+            style={{
+              padding: '16px',
+              borderRadius: 'var(--radius-md)',
+              background: 'rgba(255, 255, 255, 0.02)',
+              border: '1px solid var(--border-subtle)',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 12,
+            }}
+          >
+            <span
+              style={{
+                fontSize: '11px',
+                fontFamily: 'var(--font-mono)',
+                color: 'var(--accent-secondary)',
+                letterSpacing: '0.08em',
+              }}
+            >
+              {currentTrack.syncedLyrics ? 'SYNCED INSCRIPTIONS' : 'LYRICS & POETRY'}
+            </span>
+
+            {currentTrack.syncedLyrics ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                {currentTrack.syncedLyrics.map((line, idx) => {
+                  const isPastOrCurrent = currentTime >= line.time;
+                  const nextLine = currentTrack.syncedLyrics![idx + 1];
+                  const isCurrent =
+                    isPastOrCurrent && (!nextLine || currentTime < nextLine.time);
+
+                  return (
+                    <p
+                      key={idx}
+                      style={{
+                        margin: 0,
+                        fontSize: isCurrent ? '14px' : '13px',
+                        fontWeight: isCurrent ? 600 : 400,
+                        color: isCurrent
+                          ? 'var(--accent-secondary)'
+                          : isPastOrCurrent
+                          ? 'var(--text-high)'
+                          : 'var(--text-low)',
+                        transition: 'all 0.3s ease',
+                        lineHeight: 1.4,
+                      }}
+                    >
+                      {line.text}
+                    </p>
+                  );
+                })}
+              </div>
+            ) : (
+              <pre
+                style={{
+                  fontFamily: 'var(--font-sans)',
+                  fontSize: '13px',
+                  color: 'var(--text-medium)',
+                  whiteSpace: 'pre-wrap',
+                  lineHeight: 1.6,
+                  margin: 0,
+                }}
+              >
+                {currentTrack.lyrics}
+              </pre>
+            )}
+          </div>
+        )}
+
+        {/* ==================== TAB 3: INFO ==================== */}
+        {rightPanelTab === 'info' && currentTrack && (
           <>
+            {/* Large Cinematic Artwork */}
             <div className="nocturne-right-panel__art-wrap">
               {!imgError && coverSrc ? (
                 <img
@@ -115,7 +601,15 @@ export const RightPanel: React.FC = () => {
                   onError={() => setImgError(true)}
                 />
               ) : (
-                <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <div
+                  style={{
+                    width: '100%',
+                    height: '100%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
                   <Music size={48} color="var(--accent-primary)" />
                 </div>
               )}
@@ -127,246 +621,39 @@ export const RightPanel: React.FC = () => {
               <span className="nocturne-right-panel__album-name">{currentTrack.album}</span>
             </div>
 
-            {/* TAB 1: LYRICS */}
-            {activeTab === 'lyrics' && (currentTrack.lyrics || currentTrack.syncedLyrics) && (
-              <div
-                style={{
-                  padding: '16px',
-                  borderRadius: 'var(--radius-md)',
-                  background: 'rgba(255, 255, 255, 0.02)',
-                  border: '1px solid var(--border-subtle)',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: 12,
-                }}
-              >
-                <span
-                  style={{
-                    fontSize: '11px',
-                    fontFamily: 'var(--font-mono)',
-                    color: 'var(--accent-secondary)',
-                    letterSpacing: '0.08em',
-                  }}
-                >
-                  {currentTrack.syncedLyrics ? 'SYNCED INSCRIPTIONS' : 'LYRICS & POETRY'}
-                </span>
-
-                {currentTrack.syncedLyrics ? (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                    {currentTrack.syncedLyrics.map((line, idx) => {
-                      const isPastOrCurrent = currentTime >= line.time;
-                      const nextLine = currentTrack.syncedLyrics![idx + 1];
-                      const isCurrent = isPastOrCurrent && (!nextLine || currentTime < nextLine.time);
-
-                      return (
-                        <p
-                          key={idx}
-                          style={{
-                            margin: 0,
-                            fontSize: isCurrent ? '14px' : '13px',
-                            fontWeight: isCurrent ? 600 : 400,
-                            color: isCurrent
-                              ? 'var(--accent-secondary)'
-                              : isPastOrCurrent
-                              ? 'var(--text-high)'
-                              : 'var(--text-low)',
-                            transition: 'all 0.3s ease',
-                            lineHeight: 1.4,
-                          }}
-                        >
-                          {line.text}
-                        </p>
-                      );
-                    })}
-                  </div>
-                ) : (
-                  <pre
-                    style={{
-                      fontFamily: 'var(--font-sans)',
-                      fontSize: '13px',
-                      color: 'var(--text-medium)',
-                      whiteSpace: 'pre-wrap',
-                      lineHeight: 1.6,
-                      margin: 0,
-                    }}
-                  >
-                    {currentTrack.lyrics}
-                  </pre>
-                )}
+            {/* Audio Signal Matrix */}
+            <div className="nocturne-right-panel__signal">
+              <div className="nocturne-right-panel__signal-header">
+                <span>Signal Precision</span>
+                <Activity size={12} />
               </div>
-            )}
-
-            {/* TAB 2: QUEUE */}
-            {activeTab === 'queue' && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <span style={{ fontSize: '11px', fontFamily: 'var(--font-mono)', color: 'var(--text-low)', letterSpacing: '0.06em' }}>
-                    PLAYBACK SEQUENCE ({queue.length})
+              <div className="nocturne-right-panel__signal-grid">
+                <div className="nocturne-right-panel__signal-item">
+                  <span className="nocturne-right-panel__signal-label">ENCODING</span>
+                  <span className="nocturne-right-panel__signal-val">
+                    {currentTrack.bitrate || '24-bit FLAC'}
                   </span>
-                  {queue.length > 1 && (
-                    <button
-                      type="button"
-                      onClick={clearQueue}
-                      style={{
-                        background: 'transparent',
-                        border: 'none',
-                        color: 'var(--text-low)',
-                        fontSize: '11px',
-                        cursor: 'pointer',
-                        padding: '2px 6px',
-                        borderRadius: 3,
-                      }}
-                      onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--indicator-error, #ff6b6b)')}
-                      onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--text-low)')}
-                    >
-                      Clear Queue
-                    </button>
-                  )}
                 </div>
-
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                  {queue.map((item, idx) => {
-                    const isCurrent = idx === queueIndex || item.id === currentTrack.id;
-                    const itemCover = item.artwork || item.coverUrl || '';
-
-                    return (
-                      <div
-                        key={`${item.id}-${idx}`}
-                        onClick={() => playQueueIndex(idx)}
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: 10,
-                          padding: '8px 10px',
-                          borderRadius: 'var(--radius-sm)',
-                          background: isCurrent ? 'var(--bg-surface-elevated)' : 'rgba(255, 255, 255, 0.02)',
-                          border: `1px solid ${isCurrent ? 'var(--accent-primary)' : 'var(--border-subtle)'}`,
-                          cursor: 'pointer',
-                          transition: 'all var(--transition-snappy)',
-                        }}
-                      >
-                        <span style={{ fontSize: '11px', fontFamily: 'var(--font-mono)', color: isCurrent ? 'var(--accent-secondary)' : 'var(--text-low)', width: 16 }}>
-                          {isCurrent && status === 'playing' ? '▶' : idx + 1}
-                        </span>
-
-                        <div style={{ width: 34, height: 34, borderRadius: 3, overflow: 'hidden', flexShrink: 0 }}>
-                          {itemCover ? (
-                            <img src={itemCover} alt={item.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                          ) : (
-                            <div style={{ width: '100%', height: '100%', background: 'var(--bg-surface)' }} />
-                          )}
-                        </div>
-
-                        <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minWidth: 0 }}>
-                          <span style={{ fontSize: '12px', color: isCurrent ? 'var(--accent-secondary)' : 'var(--text-high)', fontWeight: isCurrent ? 600 : 400, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                            {item.title}
-                          </span>
-                          <span style={{ fontSize: '10.5px', color: 'var(--text-low)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                            {item.artist}
-                          </span>
-                        </div>
-
-                        {queue.length > 1 && !isCurrent && (
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              removeFromQueue(idx);
-                            }}
-                            style={{
-                              background: 'transparent',
-                              border: 'none',
-                              color: 'var(--text-low)',
-                              padding: 4,
-                              cursor: 'pointer',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                            }}
-                            title="Remove from queue"
-                          >
-                            <Trash2 size={12} />
-                          </button>
-                        )}
-                      </div>
-                    );
-                  })}
+                <div className="nocturne-right-panel__signal-item">
+                  <span className="nocturne-right-panel__signal-label">SAMPLE RATE</span>
+                  <span className="nocturne-right-panel__signal-val">96.0 kHz</span>
+                </div>
+                <div className="nocturne-right-panel__signal-item">
+                  <span className="nocturne-right-panel__signal-label">DYNAMIC RANGE</span>
+                  <span className="nocturne-right-panel__signal-val">14.2 LUFS</span>
+                </div>
+                <div className="nocturne-right-panel__signal-item">
+                  <span className="nocturne-right-panel__signal-label">GENRE</span>
+                  <span className="nocturne-right-panel__signal-val">{currentTrack.genre}</span>
                 </div>
               </div>
-            )}
+            </div>
 
-            {/* TAB 3: INFO & SIGNAL MATRIX */}
-            {activeTab === 'info' && (
-              <>
-                {/* Audio Signal Matrix */}
-                <div className="nocturne-right-panel__signal">
-                  <div className="nocturne-right-panel__signal-header">
-                    <span>Signal Precision</span>
-                    <Activity size={12} />
-                  </div>
-                  <div className="nocturne-right-panel__signal-grid">
-                    <div className="nocturne-right-panel__signal-item">
-                      <span className="nocturne-right-panel__signal-label">ENCODING</span>
-                      <span className="nocturne-right-panel__signal-val">{currentTrack.bitrate || '24-bit FLAC'}</span>
-                    </div>
-                    <div className="nocturne-right-panel__signal-item">
-                      <span className="nocturne-right-panel__signal-label">SAMPLE RATE</span>
-                      <span className="nocturne-right-panel__signal-val">96.0 kHz</span>
-                    </div>
-                    <div className="nocturne-right-panel__signal-item">
-                      <span className="nocturne-right-panel__signal-label">DYNAMIC RANGE</span>
-                      <span className="nocturne-right-panel__signal-val">14.2 LUFS</span>
-                    </div>
-                    <div className="nocturne-right-panel__signal-item">
-                      <span className="nocturne-right-panel__signal-label">GENRE</span>
-                      <span className="nocturne-right-panel__signal-val">{currentTrack.genre}</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Liner Notes / Lore */}
-                <div className="nocturne-right-panel__lore">
-                  "Mastered without brickwall limiting to preserve natural room decay and subterranean harmonic resonance. Optimal listening: headphones in darkened chamber."
-                </div>
-
-                {/* Up Next Preview */}
-                {queue.length > 1 && (
-                  <div>
-                    <div className="nocturne-right-panel__queue-title">Up Next in Sequence</div>
-                    {queue
-                      .filter((_, i) => i > queueIndex)
-                      .slice(0, 3)
-                      .map((item, idx) => {
-                        const itemCover = item.artwork || item.coverUrl || '';
-                        return (
-                          <div
-                            key={item.id}
-                            className="nocturne-right-panel__queue-item"
-                            onClick={() => playQueueIndex(queueIndex + 1 + idx)}
-                            style={{ cursor: 'pointer' }}
-                          >
-                            {itemCover && (
-                              <img
-                                src={itemCover}
-                                alt={item.title}
-                                className="nocturne-right-panel__queue-thumb"
-                              />
-                            )}
-                            <div style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-                              <span style={{ fontSize: '12px', color: 'var(--text-pure)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                                {item.title}
-                              </span>
-                              <span style={{ fontSize: '10.5px', color: 'var(--text-low)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                                {item.artist}
-                              </span>
-                            </div>
-                          </div>
-                        );
-                      })}
-                  </div>
-                )}
-              </>
-            )}
+            {/* Liner Notes / Lore */}
+            <div className="nocturne-right-panel__lore">
+              "Mastered without brickwall limiting to preserve natural room decay and subterranean
+              harmonic resonance. Optimal listening: headphones in darkened chamber."
+            </div>
           </>
         )}
       </div>

@@ -1,6 +1,6 @@
 .nocturne-track-row {
   display: grid;
-  grid-template-columns: 36px 44px 1fr 1fr 90px 45px 36px;
+  grid-template-columns: 36px 44px 1fr 1fr 90px 45px 64px;
   align-items: center;
   gap: 14px;
   padding: 8px 12px;
@@ -156,11 +156,19 @@
   text-align: right;
 }
 
+/* Actions */
+.nocturne-track-row__actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 2px;
+}
+
 /* Responsive adjustment */
 @media (max-width: 768px) {
   .nocturne-track-row {
-    grid-template-columns: 44px 1fr 45px 32px;
-    gap: 10px;
+    grid-template-columns: 44px 1fr 45px 56px;
+    gap: 8px;
   }
   .nocturne-track-row__index,
   .nocturne-track-row__album,

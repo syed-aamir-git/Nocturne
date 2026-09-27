@@ -18,6 +18,7 @@ import {
   Sparkles,
 } from 'lucide-react';
 import { useUI } from '../../state/UIContext';
+import { useLibrary } from '../../state/LibraryContext';
 import { IconButton } from '../primitives/IconButton';
 import { Tooltip } from '../primitives/Tooltip';
 import { getNocturnalHourPhase } from '../../utilities/formatters';
@@ -37,6 +38,7 @@ interface NavGroupConfig {
 
 export const Sidebar: React.FC = () => {
   const { sidebarCollapsed, toggleSidebar, mobileMenuOpen, setMobileMenuOpen } = useUI();
+  const { playlists, likedTrackIds } = useLibrary();
   const location = useLocation();
   const [timePhase, setTimePhase] = useState(() => getNocturnalHourPhase());
 
@@ -66,10 +68,20 @@ export const Sidebar: React.FC = () => {
       label: 'Archive',
       items: [
         { to: '/library', label: 'Library', icon: <Library size={18} /> },
-        { to: '/playlists', label: 'Playlists', icon: <ListMusic size={18} />, badge: '6' },
+        {
+          to: '/playlists',
+          label: 'Playlists',
+          icon: <ListMusic size={18} />,
+          badge: playlists.length,
+        },
         { to: '/albums', label: 'Albums', icon: <Disc size={18} /> },
         { to: '/artists', label: 'Artists', icon: <Users size={18} /> },
-        { to: '/liked', label: 'Liked Songs', icon: <Heart size={18} /> },
+        {
+          to: '/liked',
+          label: 'Liked Songs',
+          icon: <Heart size={18} />,
+          badge: likedTrackIds.size > 0 ? likedTrackIds.size : undefined,
+        },
       ],
     },
     {

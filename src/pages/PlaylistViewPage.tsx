@@ -1,49 +1,66 @@
-import React, { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
-import { Play, Clock, ArrowLeft, Heart, Sparkles, Music } from 'lucide-react';
-import { musicService } from '../services/musicService';
-import type { Playlist } from '../types';
+import React, { useState, useMemo } from 'react';
+import { useParams, Link, useNavigate } from 'react-router-dom';
+import {
+  Play,
+  Shuffle,
+  Clock,
+  ArrowLeft,
+  Sparkles,
+  Music,
+  Edit3,
+  Copy,
+  Trash2,
+  Plus,
+} from 'lucide-react';
+import { useLibrary } from '../state/LibraryContext';
 import { usePlayer } from '../state/PlayerContext';
 import { useToast } from '../state/ToastContext';
 import { Button } from '../components/primitives/Button';
 import { IconButton } from '../components/primitives/IconButton';
 import { TrackList } from '../components/primitives/TrackList';
-import { Skeleton } from '../components/primitives/Skeleton';
 import { EmptyState } from '../components/primitives/EmptyState';
+import { Modal } from '../components/primitives/Modal';
+import { PlaylistModal } from '../components/modals/PlaylistModal';
+import { AddTracksModal } from '../components/modals/AddTracksModal';
 import { formatNumber } from '../utilities/formatters';
+import type { Track } from '../types';
 
 export const PlaylistViewPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
-  const [playlist, setPlaylist] = useState<Playlist | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [imgError, setImgError] = useState(false);
-  const [liked, setLiked] = useState(false);
+  const navigate = useNavigate();
+  const {
+    getPlaylistById,
+    duplicatePlaylist,
+    deletePlaylist,
+    addTracksToPlaylist,
+    removeTrackFromPlaylist,
+    reorderPlaylistTracks,
+  } = useLibrary();
   const { currentTrack, status, playTrack } = usePlayer();
   const { showToast } = useToast();
 
-  useEffect(() => {
-    let isCancelled = false;
-    musicService.getPlaylistById(id || '').then((pl) => {
-      if (!isCancelled) {
-        setPlaylist(pl);
-        setLoading(false);
-      }
-    });
-    return () => {
-      isCancelled = true;
-    };
-  }, [id]);
+  const [imgError, setImgError] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
-  if (loading) {
-    return (
-      <div style={{ maxWidth: 1200, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 24 }}>
-        <Skeleton height={220} variant="rounded" />
-        <Skeleton height={40} width="30%" />
-        <Skeleton height={60} variant="rounded" />
-        <Skeleton height={60} variant="rounded" />
-      </div>
-    );
-  }
+  const playlist = getPlaylistById(id || '');
+
+  const tracks = useMemo(() => playlist?.tracks || [], [playlist?.tracks]);
+
+  const totalDurationSeconds = useMemo(() => {
+    return tracks.reduce((acc, t) => acc + (t.duration || 0), 0);
+  }, [tracks]);
+
+  const formattedTotalTime = useMemo(() => {
+    const mins = Math.floor(totalDurationSeconds / 60);
+    const hrs = Math.floor(mins / 60);
+    const remMins = mins % 60;
+    if (hrs > 0) {
+      return `${hrs} hr ${remMins} min`;
+    }
+    return `${mins} min ${totalDurationSeconds % 60} sec`;
+  }, [totalDurationSeconds]);
 
   if (!playlist) {
     return (
@@ -61,12 +78,59 @@ export const PlaylistViewPage: React.FC = () => {
     );
   }
 
-  const tracks = playlist.tracks || [];
   const coverSrc = playlist.artwork || playlist.coverUrl || '';
+
+  const handlePlayAll = () => {
+    if (tracks.length > 0) {
+      playTrack(tracks[0], tracks, 0);
+      showToast('Playing Ritual Sequence', playlist.title, 'atmosphere');
+    }
+  };
+
+  const handleShufflePlay = () => {
+    if (tracks.length === 0) return;
+    const shuffled = [...tracks].sort(() => Math.random() - 0.5);
+    playTrack(shuffled[0], shuffled, 0);
+    showToast('Shuffling Playlist', playlist.title, 'atmosphere');
+  };
+
+  const handleDuplicate = () => {
+    const duplicated = duplicatePlaylist(playlist.id);
+    if (duplicated) {
+      showToast('Ritual Replicated', `Created "${duplicated.title}"`, 'atmosphere');
+      navigate(`/playlist/${duplicated.id}`);
+    }
+  };
+
+  const handleDelete = () => {
+    deletePlaylist(playlist.id);
+    showToast('Ritual Dissolved', `"${playlist.title}" removed from collection`, 'default');
+    setIsDeleteModalOpen(false);
+    navigate('/playlists');
+  };
+
+  const handleAddTracks = (newTracks: Track[]) => {
+    const addedCount = addTracksToPlaylist(playlist.id, newTracks);
+    showToast(
+      'Tracks Added',
+      `Inscribed ${addedCount} tracks to "${playlist.title}"`,
+      'atmosphere'
+    );
+  };
+
+  const handleRemoveTrack = (_track: Track, index: number) => {
+    removeTrackFromPlaylist(playlist.id, index);
+    showToast('Track Removed', 'Removed track from playlist', 'default');
+  };
+
+  const handleReorder = (fromIndex: number, toIndex: number) => {
+    reorderPlaylistTracks(playlist.id, fromIndex, toIndex);
+    showToast('Sequence Reordered', 'Ritual track sequence updated', 'default');
+  };
 
   return (
     <div style={{ maxWidth: 1200, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 32 }}>
-      {/* Back button */}
+      {/* Return link */}
       <Link
         to="/playlists"
         style={{
@@ -82,7 +146,7 @@ export const PlaylistViewPage: React.FC = () => {
         <span>Return to Playlists</span>
       </Link>
 
-      {/* Playlist Hero Header */}
+      {/* Playlist Hero Banner */}
       <div
         style={{
           display: 'flex',
@@ -98,15 +162,17 @@ export const PlaylistViewPage: React.FC = () => {
           flexWrap: 'wrap',
         }}
       >
+        {/* Artwork */}
         <div
           style={{
-            width: 180,
-            height: 180,
+            width: 190,
+            height: 190,
             borderRadius: 'var(--radius-md)',
             overflow: 'hidden',
             flexShrink: 0,
             background: 'var(--bg-surface-elevated)',
             boxShadow: 'var(--shadow-lg), 0 0 20px var(--accent-glow)',
+            position: 'relative',
           }}
         >
           {!imgError && coverSrc ? (
@@ -117,16 +183,32 @@ export const PlaylistViewPage: React.FC = () => {
               onError={() => setImgError(true)}
             />
           ) : (
-            <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <Music size={48} color="var(--accent-primary)" />
+            <div
+              style={{
+                width: '100%',
+                height: '100%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <Music size={54} color="var(--accent-primary)" />
             </div>
           )}
         </div>
 
+        {/* Metadata & Actions */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8, flex: 1, minWidth: 260 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <span style={{ fontSize: '11px', fontFamily: 'var(--font-mono)', letterSpacing: '0.06em', color: 'var(--accent-secondary)' }}>
-              MIDNIGHT PLAYLIST
+            <span
+              style={{
+                fontSize: '11px',
+                fontFamily: 'var(--font-mono)',
+                letterSpacing: '0.06em',
+                color: 'var(--accent-secondary)',
+              }}
+            >
+              NOCTURNE PLAYLIST
             </span>
             {playlist.curatedHour && (
               <span
@@ -148,70 +230,179 @@ export const PlaylistViewPage: React.FC = () => {
             )}
           </div>
 
-          <h1 style={{ fontSize: '2.4rem', margin: 0 }}>{playlist.title}</h1>
-          <p style={{ color: 'var(--text-medium)', fontSize: '13.5px', maxWidth: 640 }}>
-            {playlist.description}
+          <h1 style={{ fontSize: '2.4rem', margin: 0, letterSpacing: '-0.02em' }}>
+            {playlist.title}
+          </h1>
+
+          <p style={{ color: 'var(--text-medium)', fontSize: '13.5px', maxWidth: 640, margin: 0 }}>
+            {playlist.description || 'Nocturnal collection created for solitary listening.'}
           </p>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginTop: 8 }}>
+          <div
+            style={{
+              fontSize: '12px',
+              color: 'var(--text-low)',
+              fontFamily: 'var(--font-mono)',
+              marginTop: 4,
+            }}
+          >
+            Curated by {playlist.creator} • {tracks.length} tracks • {formattedTotalTime}
+            {playlist.followersCount ? ` • ${formatNumber(playlist.followersCount)} listeners` : ''}
+          </div>
+
+          {/* Action Buttons */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 12, flexWrap: 'wrap' }}>
             <Button
               variant="primary"
               size="md"
               leftIcon={<Play size={16} fill="currentColor" />}
-              onClick={() => {
-                if (tracks.length > 0) {
-                  playTrack(tracks[0], tracks, 0);
-                  showToast('Playing Playlist', playlist.title, 'atmosphere');
-                }
-              }}
+              onClick={handlePlayAll}
+              disabled={tracks.length === 0}
             >
               Play Ritual
             </Button>
-            <IconButton
+
+            <Button
               variant="secondary"
               size="md"
-              aria-label={liked ? 'Remove from favorites' : 'Add to favorites'}
-              onClick={() => {
-                const next = !liked;
-                setLiked(next);
-                showToast(next ? 'Saved' : 'Removed', `Playlist ${playlist.title}`, 'default');
-              }}
-              style={liked ? { color: 'var(--accent-primary)' } : undefined}
+              leftIcon={<Shuffle size={15} />}
+              onClick={handleShufflePlay}
+              disabled={tracks.length === 0}
             >
-              <Heart size={18} fill={liked ? 'currentColor' : 'none'} />
+              Shuffle
+            </Button>
+
+            <Button
+              variant="secondary"
+              size="md"
+              leftIcon={<Plus size={15} />}
+              onClick={() => setIsAddModalOpen(true)}
+            >
+              Add Tracks
+            </Button>
+
+            <IconButton
+              variant="ghost"
+              size="md"
+              aria-label="Edit playlist metadata"
+              onClick={() => setIsEditModalOpen(true)}
+              title="Edit playlist"
+            >
+              <Edit3 size={16} />
             </IconButton>
-            <span style={{ fontSize: '12px', color: 'var(--text-low)', fontFamily: 'var(--font-mono)' }}>
-              Curated by {playlist.creator} • {tracks.length} tracks
-              {playlist.followersCount ? ` • ${formatNumber(playlist.followersCount)} listeners` : ''}
-            </span>
+
+            <IconButton
+              variant="ghost"
+              size="md"
+              aria-label="Duplicate playlist"
+              onClick={handleDuplicate}
+              title="Duplicate ritual"
+            >
+              <Copy size={16} />
+            </IconButton>
+
+            <IconButton
+              variant="ghost"
+              size="md"
+              aria-label="Delete playlist"
+              onClick={() => setIsDeleteModalOpen(true)}
+              title="Delete playlist"
+              style={{ color: 'var(--indicator-error)' }}
+            >
+              <Trash2 size={16} />
+            </IconButton>
           </div>
         </div>
       </div>
 
       {/* Tracks in Playlist */}
       <section>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            marginBottom: 16,
+          }}
+        >
           <h2 style={{ fontSize: '1.25rem', margin: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
             <Sparkles size={16} color="var(--accent-primary)" />
-            <span>Ritual Sequence</span>
+            <span>Ritual Sequence ({tracks.length})</span>
           </h2>
           <span style={{ fontSize: '12px', color: 'var(--text-low)', fontFamily: 'var(--font-mono)' }}>
-            Studio Master Quality
+            Drag handle to reorder sequence
           </span>
         </div>
 
-        <TrackList
-          tracks={tracks}
-          currentTrackId={currentTrack?.id}
-          isPlaying={status === 'playing'}
-          onTrackPlay={(track, _all, index) => {
-            playTrack(track, tracks, index);
-          }}
-          onLikeToggle={(t, l) => {
-            showToast(l ? 'Liked' : 'Unliked', t.title, 'default');
-          }}
-        />
+        {tracks.length === 0 ? (
+          <EmptyState
+            title="Ritual Sequence is Silent"
+            description="There are currently no recordings in this playlist chamber. Add tracks to begin sequencing your nocturnal ritual."
+            action={
+              <Button variant="primary" onClick={() => setIsAddModalOpen(true)}>
+                Add Tracks
+              </Button>
+            }
+          />
+        ) : (
+          <TrackList
+            tracks={tracks}
+            currentTrackId={currentTrack?.id}
+            isPlaying={status === 'playing'}
+            onTrackPlay={(track, _all, index) => {
+              playTrack(track, tracks, index);
+            }}
+            reorderable={true}
+            onReorder={handleReorder}
+            onRemoveTrack={handleRemoveTrack}
+            removeLabel="Remove from Ritual"
+          />
+        )}
       </section>
+
+      {/* Edit Playlist Modal */}
+      <PlaylistModal
+        isOpen={isEditModalOpen}
+        onClose={() => setIsEditModalOpen(false)}
+        playlistToEdit={playlist}
+      />
+
+      {/* Add Tracks Modal */}
+      <AddTracksModal
+        isOpen={isAddModalOpen}
+        onClose={() => setIsAddModalOpen(false)}
+        existingTrackIds={tracks.map((t) => t.id)}
+        onAddTracks={handleAddTracks}
+        title={`Add Tracks to ${playlist.title}`}
+      />
+
+      {/* Delete Confirmation Modal */}
+      <Modal
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        title="Dissolve Ritual Chamber"
+        maxWidth="440px"
+        footer={
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
+            <Button variant="secondary" size="md" onClick={() => setIsDeleteModalOpen(false)}>
+              Cancel
+            </Button>
+            <Button
+              variant="primary"
+              size="md"
+              style={{ background: 'var(--indicator-error)', borderColor: 'var(--indicator-error)' }}
+              onClick={handleDelete}
+            >
+              Delete Playlist
+            </Button>
+          </div>
+        }
+      >
+        <p style={{ color: 'var(--text-medium)', fontSize: '13.5px', lineHeight: 1.6, margin: 0 }}>
+          Are you certain you wish to dissolve <strong>"{playlist.title}"</strong>? All track
+          associations within this ritual will be lost forever.
+        </p>
+      </Modal>
     </div>
   );
 };

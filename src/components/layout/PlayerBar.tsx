@@ -18,6 +18,7 @@ import {
   AlertCircle,
 } from 'lucide-react';
 import { usePlayer } from '../../state/PlayerContext';
+import { useLibrary } from '../../state/LibraryContext';
 import { useUI } from '../../state/UIContext';
 import { useToast } from '../../state/ToastContext';
 import { formatDuration } from '../../utilities/formatters';
@@ -49,7 +50,8 @@ export const PlayerBar: React.FC = () => {
     cycleRepeatMode,
   } = usePlayer();
 
-  const { rightPanelOpen, toggleRightPanel, setRightPanelOpen } = useUI();
+  const { rightPanelOpen, toggleRightPanel, openRightPanel } = useUI();
+  const { isLiked, toggleLike } = useLibrary();
   const { showToast } = useToast();
   const [imgError, setImgError] = useState(false);
   const [displayTime, setDisplayTime] = useState<number | null>(null);
@@ -68,7 +70,7 @@ export const PlayerBar: React.FC = () => {
   };
 
   const handleQueueClick = () => {
-    setRightPanelOpen(true);
+    openRightPanel('queue');
   };
 
   if (!currentTrack) {
@@ -152,16 +154,28 @@ export const PlayerBar: React.FC = () => {
           </div>
         </div>
 
-        <Tooltip content="Preserve in Midnight Collection" position="top">
+        <Tooltip
+          content={isLiked(currentTrack.id) ? 'Remove from Liked Songs' : 'Save to Liked Songs'}
+          position="top"
+        >
           <IconButton
             variant="ghost"
             size="sm"
-            aria-label="Add to favorites"
-            onClick={() =>
-              showToast('Preserved', `Added "${currentTrack.title}" to Midnight Sanctuary`, 'atmosphere')
-            }
+            aria-label={isLiked(currentTrack.id) ? 'Remove from favorites' : 'Add to favorites'}
+            style={isLiked(currentTrack.id) ? { color: 'var(--accent-primary)' } : undefined}
+            onClick={() => {
+              const next = toggleLike(currentTrack);
+              showToast(
+                next ? 'Anchored to Liked Songs' : 'Removed from Liked Songs',
+                currentTrack.title,
+                'default'
+              );
+            }}
           >
-            <Heart size={15} />
+            <Heart
+              size={15}
+              fill={isLiked(currentTrack.id) ? 'var(--accent-primary)' : 'none'}
+            />
           </IconButton>
         </Tooltip>
       </div>
