@@ -97,7 +97,7 @@ export const LibraryPage: React.FC = () => {
                   playlist={pl}
                   onPlay={(p) => {
                     if (p.tracks && p.tracks.length > 0) {
-                      playTrack(p.tracks[0], p.tracks.slice(1));
+                      playTrack(p.tracks[0], p.tracks, 0);
                       showToast('Playing Playlist', p.title, 'atmosphere');
                     }
                   }}
@@ -114,7 +114,7 @@ export const LibraryPage: React.FC = () => {
                   album={alb}
                   onPlay={(a) => {
                     if (a.tracks && a.tracks.length > 0) {
-                      playTrack(a.tracks[0], a.tracks.slice(1));
+                      playTrack(a.tracks[0], a.tracks, 0);
                       showToast('Playing Album', alb.title, 'atmosphere');
                     }
                   }}
@@ -139,7 +139,7 @@ export const LibraryPage: React.FC = () => {
               tracks={tracks}
               currentTrackId={currentTrack?.id}
               isPlaying={status === 'playing'}
-              onTrackPlay={(t, _all, i) => playTrack(t, tracks.slice(i + 1))}
+              onTrackPlay={(t, _all, i) => playTrack(t, tracks, i)}
               onLikeToggle={(t, l) => showToast(l ? 'Liked' : 'Unliked', t.title, 'default')}
             />
           )}

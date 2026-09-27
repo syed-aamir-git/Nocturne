@@ -48,7 +48,7 @@ export const DiscoverPage: React.FC = () => {
 
   const handlePlayAlbum = (album: Album) => {
     if (album.tracks && album.tracks.length > 0) {
-      playTrack(album.tracks[0], album.tracks.slice(1));
+      playTrack(album.tracks[0], album.tracks, 0);
       showToast('Album Loaded', `Playing "${album.title}" by ${album.artist}`, 'atmosphere');
     } else {
       showToast('Album Selected', album.title, 'default');
@@ -57,7 +57,7 @@ export const DiscoverPage: React.FC = () => {
 
   const handlePlayPlaylist = (playlist: Playlist) => {
     if (playlist.tracks && playlist.tracks.length > 0) {
-      playTrack(playlist.tracks[0], playlist.tracks.slice(1));
+      playTrack(playlist.tracks[0], playlist.tracks, 0);
       showToast('Curated Stream Initiated', playlist.title, 'atmosphere');
     }
   };
@@ -177,7 +177,7 @@ export const DiscoverPage: React.FC = () => {
           currentTrackId={currentTrack?.id}
           isPlaying={status === 'playing'}
           onTrackPlay={(track, _all, index) => {
-            playTrack(track, filteredTracks.slice(index + 1));
+            playTrack(track, filteredTracks, index);
           }}
           onLikeToggle={(t, l) => showToast(l ? 'Liked' : 'Unliked', t.title, 'default')}
         />

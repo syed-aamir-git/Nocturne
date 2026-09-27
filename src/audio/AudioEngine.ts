@@ -1,81 +1,193 @@
 import type { AudioEngineInterface, AudioEventListener } from './types';
 
+/**
+ * NocturneAudioEngine
+ * Centralized, production-grade audio manager controlling ONE persistent HTMLAudioElement instance.
+ * Preserves playback uninterrupted across all page and route transitions.
+ */
 export class NocturneAudioEngine implements AudioEngineInterface {
   private audio: HTMLAudioElement;
   private listeners: Set<AudioEventListener> = new Set();
+  private currentSrc: string = '';
+  private isBuffering: boolean = false;
 
   constructor() {
     this.audio = new Audio();
-    this.audio.preload = 'metadata';
+    this.audio.preload = 'auto';
+    this.audio.volume = 0.8;
     this.setupListeners();
   }
 
-  private setupListeners() {
+  private setupListeners(): void {
     this.audio.addEventListener('play', () => {
-      this.listeners.forEach((l) => l.onPlay?.());
+      this.isBuffering = false;
+      this.notifyListeners((l) => l.onPlay?.());
     });
 
     this.audio.addEventListener('pause', () => {
-      this.listeners.forEach((l) => l.onPause?.());
+      this.notifyListeners((l) => l.onPause?.());
     });
 
     this.audio.addEventListener('timeupdate', () => {
-      this.listeners.forEach((l) =>
-        l.onTimeUpdate?.(this.audio.currentTime, this.audio.duration || 0)
-      );
+      const curr = this.audio.currentTime || 0;
+      const dur = this.audio.duration && !isNaN(this.audio.duration) ? this.audio.duration : 0;
+      this.notifyListeners((l) => l.onTimeUpdate?.(curr, dur));
+    });
+
+    this.audio.addEventListener('durationchange', () => {
+      const curr = this.audio.currentTime || 0;
+      const dur = this.audio.duration && !isNaN(this.audio.duration) ? this.audio.duration : 0;
+      this.notifyListeners((l) => l.onTimeUpdate?.(curr, dur));
     });
 
     this.audio.addEventListener('ended', () => {
-      this.listeners.forEach((l) => l.onEnded?.());
+      this.notifyListeners((l) => l.onEnded?.());
     });
 
     this.audio.addEventListener('waiting', () => {
-      this.listeners.forEach((l) => l.onLoading?.(true));
+      this.isBuffering = true;
+      this.notifyListeners((l) => l.onLoading?.(true));
+    });
+
+    this.audio.addEventListener('canplay', () => {
+      this.isBuffering = false;
+      this.notifyListeners((l) => {
+        l.onLoading?.(false);
+        l.onCanPlay?.();
+      });
     });
 
     this.audio.addEventListener('playing', () => {
-      this.listeners.forEach((l) => l.onLoading?.(false));
+      this.isBuffering = false;
+      this.notifyListeners((l) => {
+        l.onLoading?.(false);
+        l.onPlay?.();
+      });
+    });
+
+    this.audio.addEventListener('volumechange', () => {
+      this.notifyListeners((l) => l.onVolumeChange?.(this.audio.volume, this.audio.muted));
     });
 
     this.audio.addEventListener('error', () => {
-      const err = new Error(this.audio.error?.message || 'Audio playback error');
-      this.listeners.forEach((l) => l.onError?.(err));
+      this.isBuffering = false;
+      let errorMsg = 'Unknown audio streaming error';
+      if (this.audio.error) {
+        switch (this.audio.error.code) {
+          case MediaError.MEDIA_ERR_ABORTED:
+            errorMsg = 'Audio playback was aborted by user or network';
+            break;
+          case MediaError.MEDIA_ERR_NETWORK:
+            errorMsg = 'Network error disrupted audio stream transmission';
+            break;
+          case MediaError.MEDIA_ERR_DECODE:
+            errorMsg = 'Audio stream corruption or unsupported audio codec';
+            break;
+          case MediaError.MEDIA_ERR_SRC_NOT_SUPPORTED:
+            errorMsg = 'Audio source could not be resolved or is currently offline';
+            break;
+        }
+      }
+      const err = new Error(errorMsg);
+      this.notifyListeners((l) => {
+        l.onLoading?.(false);
+        l.onError?.(err);
+      });
+    });
+  }
+
+  private notifyListeners(callback: (listener: AudioEventListener) => void): void {
+    this.listeners.forEach((listener) => {
+      try {
+        callback(listener);
+      } catch (err) {
+        console.error('[NocturneAudioEngine] Listener callback error:', err);
+      }
     });
   }
 
   public async loadTrack(src: string, autoPlay: boolean = false): Promise<void> {
-    this.audio.src = src;
-    this.audio.load();
+    if (!src) {
+      console.warn('[NocturneAudioEngine] Empty audio source passed to loadTrack');
+      return;
+    }
 
-    if (autoPlay) {
-      await this.play();
+    if (this.currentSrc === src && this.isPlaying()) {
+      if (autoPlay) {
+        return;
+      }
+    }
+
+    this.currentSrc = src;
+    this.isBuffering = true;
+    this.notifyListeners((l) => l.onLoading?.(true));
+
+    try {
+      this.audio.src = src;
+      this.audio.load();
+
+      if (autoPlay) {
+        await this.play();
+      }
+    } catch (err) {
+      this.isBuffering = false;
+      this.notifyListeners((l) => {
+        l.onLoading?.(false);
+        l.onError?.(err instanceof Error ? err : new Error(String(err)));
+      });
     }
   }
 
   public async play(): Promise<void> {
+    if (!this.audio.src) {
+      return;
+    }
+
     try {
       await this.audio.play();
-    } catch (err) {
-      console.warn('[NocturneAudioEngine] Playback interrupted or requires user interaction:', err);
+    } catch (err: unknown) {
+      const error = err as Error;
+      if (error.name === 'NotAllowedError') {
+        console.info('[NocturneAudioEngine] Autoplay requires user interaction first.');
+      } else if (error.name === 'AbortError') {
+        console.info('[NocturneAudioEngine] Play request was interrupted by a new load request.');
+      } else {
+        console.warn('[NocturneAudioEngine] Play error:', error.message);
+        this.notifyListeners((l) => l.onError?.(error));
+      }
     }
   }
 
   public pause(): void {
-    this.audio.pause();
+    try {
+      this.audio.pause();
+    } catch (err) {
+      console.warn('[NocturneAudioEngine] Pause error:', err);
+    }
   }
 
   public seek(timeInSeconds: number): void {
     if (isFinite(timeInSeconds)) {
-      this.audio.currentTime = Math.max(0, Math.min(timeInSeconds, this.audio.duration || 0));
+      const target = Math.max(0, Math.min(timeInSeconds, this.audio.duration || timeInSeconds));
+      this.audio.currentTime = target;
     }
   }
 
   public setVolume(volume: number): void {
-    this.audio.volume = Math.max(0, Math.min(1, volume));
+    const clamped = Math.max(0, Math.min(1, volume));
+    this.audio.volume = clamped;
   }
 
   public setMuted(muted: boolean): void {
     this.audio.muted = muted;
+  }
+
+  public isMuted(): boolean {
+    return this.audio.muted;
+  }
+
+  public getVolume(): number {
+    return this.audio.volume;
   }
 
   public getCurrentTime(): number {
@@ -83,7 +195,15 @@ export class NocturneAudioEngine implements AudioEngineInterface {
   }
 
   public getDuration(): number {
-    return this.audio.duration || 0;
+    return this.audio.duration && !isNaN(this.audio.duration) ? this.audio.duration : 0;
+  }
+
+  public isPlaying(): boolean {
+    return !this.audio.paused && !this.audio.ended && this.audio.readyState > 2;
+  }
+
+  public isBufferingState(): boolean {
+    return this.isBuffering;
   }
 
   public subscribe(listener: AudioEventListener): () => void {
@@ -94,10 +214,12 @@ export class NocturneAudioEngine implements AudioEngineInterface {
   }
 
   public cleanup(): void {
-    this.audio.pause();
+    this.pause();
     this.audio.src = '';
+    this.currentSrc = '';
     this.listeners.clear();
   }
 }
 
+// Global persistent Audio Engine Singleton instance
 export const audioEngine = new NocturneAudioEngine();

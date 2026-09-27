@@ -27,7 +27,7 @@ export const PlaylistsPage: React.FC = () => {
 
   const handlePlayPlaylist = (p: Playlist) => {
     if (p.tracks && p.tracks.length > 0) {
-      playTrack(p.tracks[0], p.tracks.slice(1));
+      playTrack(p.tracks[0], p.tracks, 0);
       showToast('Streaming Playlist', p.title, 'atmosphere');
     }
   };

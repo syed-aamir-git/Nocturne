@@ -77,7 +77,7 @@ export const AlbumDetailPage: React.FC = () => {
 
   const handlePlayAlbum = () => {
     if (tracks.length > 0) {
-      playTrack(tracks[0], tracks.slice(1));
+      playTrack(tracks[0], tracks, 0);
       showToast('Album Loaded', `Playing "${album.title}" by ${album.artist}`, 'atmosphere');
     }
   };
@@ -258,7 +258,7 @@ export const AlbumDetailPage: React.FC = () => {
           isPlaying={status === 'playing'}
           showAlbum={false}
           onTrackPlay={(track, _all, index) => {
-            playTrack(track, tracks.slice(index + 1));
+            playTrack(track, tracks, index);
           }}
           onLikeToggle={(t, l) => {
             showToast(l ? 'Liked' : 'Unliked', t.title, 'default');

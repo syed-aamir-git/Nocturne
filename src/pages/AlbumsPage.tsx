@@ -43,7 +43,7 @@ export const AlbumsPage: React.FC = () => {
 
   const handlePlay = (album: Album) => {
     if (album.tracks && album.tracks.length > 0) {
-      playTrack(album.tracks[0], album.tracks.slice(1));
+      playTrack(album.tracks[0], album.tracks, 0);
       showToast('Playing Album', album.title, 'atmosphere');
     }
   };

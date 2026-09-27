@@ -81,19 +81,25 @@ export interface Playlist {
   tracksCount?: number;
 }
 
-export type PlaybackStatus = 'idle' | 'playing' | 'paused' | 'loading';
+export type PlaybackStatus = 'idle' | 'playing' | 'paused' | 'loading' | 'error';
 
 export interface PlayerState {
   currentTrack: Track | null;
+  isPlaying: boolean;
   status: PlaybackStatus;
   currentTime: number;
   duration: number;
   volume: number;
-  isMuted: boolean;
-  isShuffle: boolean;
-  repeatMode: 'off' | 'all' | 'one';
+  muted: boolean;
+  isMuted: boolean; // alias for backwards compatibility
   queue: Track[];
+  queueIndex: number;
+  shuffle: boolean;
+  isShuffle: boolean; // alias for backwards compatibility
+  repeatMode: 'off' | 'all' | 'one';
   history: Track[];
+  isLoading: boolean;
+  error?: string | null;
 }
 
 export interface ToastMessage {

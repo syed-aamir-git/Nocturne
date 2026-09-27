@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import {
   Play,
   Pause,
@@ -11,7 +12,10 @@ import {
   VolumeX,
   Heart,
   PanelRight,
+  ListMusic,
   Music,
+  Loader2,
+  AlertCircle,
 } from 'lucide-react';
 import { usePlayer } from '../../state/PlayerContext';
 import { useUI } from '../../state/UIContext';
@@ -25,13 +29,16 @@ import './PlayerBar.css';
 export const PlayerBar: React.FC = () => {
   const {
     currentTrack,
-    status,
+    isPlaying,
+    isLoading,
+    error,
     currentTime,
     duration,
     volume,
-    isMuted,
-    isShuffle,
+    muted,
+    shuffle,
     repeatMode,
+    queue,
     togglePlayPause,
     nextTrack,
     previousTrack,
@@ -42,12 +49,10 @@ export const PlayerBar: React.FC = () => {
     cycleRepeatMode,
   } = usePlayer();
 
-  const { rightPanelOpen, toggleRightPanel } = useUI();
+  const { rightPanelOpen, toggleRightPanel, setRightPanelOpen } = useUI();
   const { showToast } = useToast();
   const [imgError, setImgError] = useState(false);
   const [displayTime, setDisplayTime] = useState<number | null>(null);
-
-  const isPlaying = status === 'playing';
 
   const handleScrubChange = (value: number) => {
     setDisplayTime(value);
@@ -60,6 +65,10 @@ export const PlayerBar: React.FC = () => {
 
   const handleVolumeChange = (val: number) => {
     setVolume(val / 100);
+  };
+
+  const handleQueueClick = () => {
+    setRightPanelOpen(true);
   };
 
   if (!currentTrack) {
@@ -75,15 +84,16 @@ export const PlayerBar: React.FC = () => {
   }
 
   const effectiveTime = displayTime !== null ? displayTime : currentTime;
+  const coverSrc = currentTrack.artwork || currentTrack.coverUrl || '';
 
   return (
     <div className="nocturne-player-bar" role="region" aria-label="Audio Player">
       {/* Left: Track Information */}
       <div className="nocturne-player__track">
         <div className="nocturne-player__cover-wrap">
-          {!imgError ? (
+          {!imgError && coverSrc ? (
             <img
-              src={currentTrack.artwork || currentTrack.coverUrl}
+              src={coverSrc}
               alt={currentTrack.title}
               className="nocturne-player__cover"
               onError={() => setImgError(true)}
@@ -105,15 +115,41 @@ export const PlayerBar: React.FC = () => {
         </div>
 
         <div className="nocturne-player__meta">
-          <span className="nocturne-player__title" title={currentTrack.title}>
+          <Link
+            to={`/album/${currentTrack.albumId}`}
+            className="nocturne-player__title"
+            title={currentTrack.title}
+            style={{ textDecoration: 'none' }}
+          >
             {currentTrack.title}
-          </span>
-          <span className="nocturne-player__artist" title={currentTrack.artist}>
+          </Link>
+          <Link
+            to={`/artist/${currentTrack.artistId}`}
+            className="nocturne-player__artist"
+            title={currentTrack.artist}
+            style={{ textDecoration: 'none' }}
+          >
             {currentTrack.artist}
-          </span>
-          <span className="nocturne-player__badge">
-            {currentTrack.bitrate || '24-bit / 96kHz FLAC'}
-          </span>
+          </Link>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <span className="nocturne-player__badge">
+              {currentTrack.bitrate || '24-bit / 96kHz FLAC'}
+            </span>
+            {error && (
+              <span
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 3,
+                  fontSize: '9.5px',
+                  color: 'var(--indicator-error, #ff6b6b)',
+                }}
+                title={error}
+              >
+                <AlertCircle size={10} /> Stream Warning
+              </span>
+            )}
+          </div>
         </div>
 
         <Tooltip content="Preserve in Midnight Collection" position="top">
@@ -121,7 +157,9 @@ export const PlayerBar: React.FC = () => {
             variant="ghost"
             size="sm"
             aria-label="Add to favorites"
-            onClick={() => showToast('Preserved', `Added "${currentTrack.title}" to Midnight Sanctuary`, 'atmosphere')}
+            onClick={() =>
+              showToast('Preserved', `Added "${currentTrack.title}" to Midnight Sanctuary`, 'atmosphere')
+            }
           >
             <Heart size={15} />
           </IconButton>
@@ -131,11 +169,11 @@ export const PlayerBar: React.FC = () => {
       {/* Center: Controls & Scrubber */}
       <div className="nocturne-player__center">
         <div className="nocturne-player__controls">
-          <Tooltip content={isShuffle ? 'Shuffle Active' : 'Shuffle Inactive'} position="top">
+          <Tooltip content={shuffle ? 'Shuffle Active' : 'Shuffle Inactive (Press S)'} position="top">
             <IconButton
               variant="ghost"
               size="sm"
-              active={isShuffle}
+              active={shuffle}
               onClick={toggleShuffle}
               aria-label="Toggle shuffle"
             >
@@ -156,11 +194,14 @@ export const PlayerBar: React.FC = () => {
 
           <button
             type="button"
-            className="nocturne-player__play-btn"
+            className={`nocturne-player__play-btn ${isLoading ? 'nocturne-player__play-btn--loading' : ''}`}
             onClick={togglePlayPause}
-            aria-label={isPlaying ? 'Pause' : 'Play'}
+            aria-label={isPlaying ? 'Pause (Space)' : 'Play (Space)'}
+            title={isPlaying ? 'Pause (Space)' : 'Play (Space)'}
           >
-            {isPlaying ? (
+            {isLoading ? (
+              <Loader2 size={18} className="animate-spin" />
+            ) : isPlaying ? (
               <Pause size={18} fill="currentColor" />
             ) : (
               <Play size={18} fill="currentColor" style={{ marginLeft: 2 }} />
@@ -178,7 +219,7 @@ export const PlayerBar: React.FC = () => {
             </IconButton>
           </Tooltip>
 
-          <Tooltip content={`Repeat: ${repeatMode}`} position="top">
+          <Tooltip content={`Repeat: ${repeatMode} (Press R)`} position="top">
             <IconButton
               variant="ghost"
               size="sm"
@@ -201,25 +242,40 @@ export const PlayerBar: React.FC = () => {
             step={1}
             onChange={handleScrubChange}
             onChangeEnd={handleScrubEnd}
-            aria-label="Track progress"
+            aria-label="Track progress (Arrow keys to seek)"
           />
           <span className="nocturne-player__time">{formatDuration(duration)}</span>
         </div>
       </div>
 
-      {/* Right: Volume & Details Panel */}
+      {/* Right: Volume, Queue, & Details Panel */}
       <div className="nocturne-player__right">
-        <div className="nocturne-player__volume">
+        {/* Queue Button */}
+        <Tooltip content={`Playback Queue (${queue.length} tracks)`} position="top">
           <IconButton
             variant="ghost"
             size="sm"
-            onClick={toggleMute}
-            aria-label={isMuted ? 'Unmute' : 'Mute'}
+            onClick={handleQueueClick}
+            aria-label="Open playback queue"
           >
-            {isMuted || volume === 0 ? <VolumeX size={15} /> : <Volume2 size={15} />}
+            <ListMusic size={16} />
           </IconButton>
+        </Tooltip>
+
+        {/* Volume controls */}
+        <div className="nocturne-player__volume">
+          <Tooltip content={muted ? 'Unmute (Press M)' : 'Mute (Press M)'} position="top">
+            <IconButton
+              variant="ghost"
+              size="sm"
+              onClick={toggleMute}
+              aria-label={muted ? 'Unmute' : 'Mute'}
+            >
+              {muted || volume === 0 ? <VolumeX size={15} /> : <Volume2 size={15} />}
+            </IconButton>
+          </Tooltip>
           <Slider
-            value={isMuted ? 0 : Math.round(volume * 100)}
+            value={muted ? 0 : Math.round(volume * 100)}
             min={0}
             max={100}
             step={1}
@@ -228,6 +284,7 @@ export const PlayerBar: React.FC = () => {
           />
         </div>
 
+        {/* Inspector Panel Toggle */}
         <Tooltip content="Now Playing Sanctum Details" position="top">
           <IconButton
             variant="ghost"

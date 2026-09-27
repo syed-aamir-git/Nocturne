@@ -5,6 +5,8 @@ export interface AudioEventListener {
   onEnded?: () => void;
   onError?: (err: Error) => void;
   onLoading?: (isLoading: boolean) => void;
+  onCanPlay?: () => void;
+  onVolumeChange?: (volume: number, muted: boolean) => void;
 }
 
 export interface AudioEngineInterface {
@@ -14,8 +16,11 @@ export interface AudioEngineInterface {
   seek(timeInSeconds: number): void;
   setVolume(volume: number): void; // 0.0 - 1.0
   setMuted(muted: boolean): void;
+  isMuted(): boolean;
+  getVolume(): number;
   getCurrentTime(): number;
   getDuration(): number;
+  isPlaying(): boolean;
   subscribe(listener: AudioEventListener): () => void;
   cleanup(): void;
 }

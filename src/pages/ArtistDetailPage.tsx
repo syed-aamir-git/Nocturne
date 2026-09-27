@@ -77,7 +77,7 @@ export const ArtistDetailPage: React.FC = () => {
 
   const handlePlayArtist = () => {
     if (tracks.length > 0) {
-      playTrack(tracks[0], tracks.slice(1));
+      playTrack(tracks[0], tracks, 0);
       showToast('Playing Artist', artist.name, 'atmosphere');
     }
   };
@@ -309,7 +309,7 @@ export const ArtistDetailPage: React.FC = () => {
           currentTrackId={currentTrack?.id}
           isPlaying={status === 'playing'}
           onTrackPlay={(t, _all, i) => {
-            playTrack(t, tracks.slice(i + 1));
+            playTrack(t, tracks, i);
           }}
           onLikeToggle={(t, l) => {
             showToast(l ? 'Liked' : 'Unliked', t.title, 'default');

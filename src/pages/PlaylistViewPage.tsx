@@ -160,7 +160,7 @@ export const PlaylistViewPage: React.FC = () => {
               leftIcon={<Play size={16} fill="currentColor" />}
               onClick={() => {
                 if (tracks.length > 0) {
-                  playTrack(tracks[0], tracks.slice(1));
+                  playTrack(tracks[0], tracks, 0);
                   showToast('Playing Playlist', playlist.title, 'atmosphere');
                 }
               }}
@@ -205,7 +205,7 @@ export const PlaylistViewPage: React.FC = () => {
           currentTrackId={currentTrack?.id}
           isPlaying={status === 'playing'}
           onTrackPlay={(track, _all, index) => {
-            playTrack(track, tracks.slice(index + 1));
+            playTrack(track, tracks, index);
           }}
           onLikeToggle={(t, l) => {
             showToast(l ? 'Liked' : 'Unliked', t.title, 'default');

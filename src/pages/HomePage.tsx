@@ -62,14 +62,14 @@ export const HomePage: React.FC = () => {
 
   const handlePlayAlbum = (album: Album) => {
     if (album.tracks && album.tracks.length > 0) {
-      playTrack(album.tracks[0], album.tracks.slice(1));
+      playTrack(album.tracks[0], album.tracks, 0);
       showToast('Album Loaded', `Playing "${album.title}" by ${album.artist}`, 'atmosphere');
     }
   };
 
   const handlePlayPlaylist = (playlist: Playlist) => {
     if (playlist.tracks && playlist.tracks.length > 0) {
-      playTrack(playlist.tracks[0], playlist.tracks.slice(1));
+      playTrack(playlist.tracks[0], playlist.tracks, 0);
       showToast('Sanctuary Mix Active', playlist.title, 'atmosphere');
     }
   };
@@ -203,7 +203,7 @@ export const HomePage: React.FC = () => {
             tracks={tracks.slice(0, 5)}
             currentTrackId={currentTrack?.id}
             isPlaying={status === 'playing'}
-            onTrackPlay={(t, _all, i) => playTrack(t, tracks.slice(i + 1))}
+            onTrackPlay={(t, _all, i) => playTrack(t, tracks, i)}
             onLikeToggle={(t, l) => showToast(l ? 'Liked' : 'Unliked', t.title, 'default')}
           />
         </section>

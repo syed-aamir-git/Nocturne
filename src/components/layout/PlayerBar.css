@@ -110,6 +110,22 @@
   transform: scale(1.04);
 }
 
+.nocturne-player__play-btn--loading {
+  animation: nocturne-pulse-glow 1.2s ease-in-out infinite alternate;
+}
+
+@keyframes nocturne-pulse-glow {
+  0% {
+    opacity: 0.7;
+    transform: scale(0.96);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1.04);
+    box-shadow: 0 0 22px var(--accent-glow-strong);
+  }
+}
+
 .nocturne-player__scrubber {
   display: flex;
   align-items: center;
