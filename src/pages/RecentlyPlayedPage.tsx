@@ -43,7 +43,7 @@ export const RecentlyPlayedPage: React.FC = () => {
         tracks={tracks}
         currentTrackId={currentTrack?.id}
         isPlaying={status === 'playing'}
-        onTrackPlay={(t, _all, i) => playTrack(t, tracks.slice(i + 1))}
+        onTrackPlay={(t, _all, i) => playTrack(t, tracks, i)}
         onLikeToggle={(t, l) => showToast(l ? 'Liked' : 'Unliked', t.title, 'default')}
       />
     </div>

@@ -62,7 +62,7 @@ export const HistoryPage: React.FC = () => {
               tracks={group.tracks}
               currentTrackId={currentTrack?.id}
               isPlaying={status === 'playing'}
-              onTrackPlay={(t, _all, i) => playTrack(t, group.tracks.slice(i + 1))}
+              onTrackPlay={(t, _all, i) => playTrack(t, group.tracks, i)}
               onLikeToggle={(t, l) => showToast(l ? 'Liked' : 'Unliked', t.title, 'default')}
             />
           </div>

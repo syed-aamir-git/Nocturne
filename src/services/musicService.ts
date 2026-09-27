@@ -1,5 +1,6 @@
 import type { Album, Artist, Playlist, Track } from '../types';
-import { MOCK_ALBUMS, MOCK_ARTISTS, MOCK_PLAYLISTS, MOCK_TRACKS } from '../data/mockData';
+import { MOCK_ALBUMS, MOCK_ARTISTS, MOCK_TRACKS } from '../data/mockData';
+import { storageService } from './storageService';
 
 export interface MoodCategory {
   id: string;
@@ -59,15 +60,16 @@ class MusicService implements MusicServiceInterface {
   }
 
   public async getAllPlaylists(): Promise<Playlist[]> {
-    return this.simulateDelay([...MOCK_PLAYLISTS]);
+    return this.simulateDelay(storageService.getPlaylists());
   }
 
   public async getFeaturedPlaylists(): Promise<Playlist[]> {
-    return this.simulateDelay([...MOCK_PLAYLISTS]);
+    return this.simulateDelay(storageService.getPlaylists());
   }
 
   public async getPlaylistById(id: string): Promise<Playlist | null> {
-    const playlist = MOCK_PLAYLISTS.find((p) => p.id === id) || null;
+    const playlists = storageService.getPlaylists();
+    const playlist = playlists.find((p) => p.id === id) || null;
     return this.simulateDelay(playlist);
   }
 

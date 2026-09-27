@@ -337,7 +337,7 @@ export const ArtistDetailPage: React.FC = () => {
                 album={alb}
                 onPlay={(a) => {
                   if (a.tracks && a.tracks.length > 0) {
-                    playTrack(a.tracks[0], a.tracks.slice(1));
+                    playTrack(a.tracks[0], a.tracks, 0);
                     showToast('Album Loaded', a.title, 'atmosphere');
                   }
                 }}

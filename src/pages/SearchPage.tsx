@@ -164,7 +164,7 @@ export const SearchPage: React.FC = () => {
                 tracks={results.tracks}
                 currentTrackId={currentTrack?.id}
                 isPlaying={status === 'playing'}
-                onTrackPlay={(t, _all, i) => playTrack(t, results.tracks.slice(i + 1))}
+                onTrackPlay={(t, _all, i) => playTrack(t, results.tracks, i)}
               />
             </section>
           )}

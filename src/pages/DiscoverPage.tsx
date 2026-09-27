@@ -92,7 +92,7 @@ export const DiscoverPage: React.FC = () => {
             leftIcon={<Play size={18} fill="currentColor" />}
             onClick={() => {
               if (tracks.length > 0) {
-                playTrack(tracks[0], tracks.slice(1));
+                playTrack(tracks[0], tracks, 0);
                 showToast('Sanctuary Unlocked', 'Beginning midnight listening ritual', 'atmosphere');
               }
             }}
