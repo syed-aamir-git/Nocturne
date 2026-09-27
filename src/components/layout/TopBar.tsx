@@ -1,22 +1,26 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Search, Menu, Radio } from 'lucide-react';
+import { Search, Menu, Radio, Download, LogIn, LogOut, Settings as SettingsIcon } from 'lucide-react';
 import { useUI } from '../../state/UIContext';
 import { useTheme } from '../../state/ThemeContext';
 import { useToast } from '../../state/ToastContext';
+import { useSpotify } from '../../state/SpotifyContext';
 import { storageService } from '../../services/storageService';
 import { Dropdown } from '../primitives/Dropdown';
 import { Avatar } from '../primitives/Avatar';
 import { IconButton } from '../primitives/IconButton';
+import { AuthModal } from '../modals/AuthModal';
 import './TopBar.css';
 
 export const TopBar: React.FC = () => {
   const { mobileMenuOpen, setMobileMenuOpen, searchQuery, setSearchQuery } = useUI();
   const { currentTheme, availableThemes, setThemeId } = useTheme();
   const { showToast } = useToast();
+  const { isConnected, userProfile, disconnect } = useSpotify();
   const navigate = useNavigate();
   const location = useLocation();
   const inputRef = useRef<HTMLInputElement>(null);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
   // Global search keyboard shortcut Cmd+K or Ctrl+K
   useEffect(() => {
@@ -126,12 +130,78 @@ export const TopBar: React.FC = () => {
           align="right"
         />
 
-        {/* User profile avatar */}
-        <Avatar
-          name="Nocturne Wanderer"
-          src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&q=80"
-          size="sm"
-          ring
+        {/* User profile avatar with account actions */}
+        <Dropdown
+          trigger={
+            <button
+              type="button"
+              style={{ background: 'transparent', border: 'none', padding: 0, cursor: 'pointer' }}
+              title={isConnected ? `Connected as ${userProfile?.name}` : 'Sign in / Connect Spotify'}
+            >
+              <Avatar
+                name={userProfile?.name || 'Nocturne Wanderer'}
+                src={userProfile?.avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&q=80'}
+                size="sm"
+                ring
+              />
+            </button>
+          }
+          items={
+            isConnected
+              ? [
+                  {
+                    id: 'status',
+                    label: `Spotify: ${userProfile?.name || 'Linked'}`,
+                    icon: <Radio size={14} color="var(--indicator-success)" />,
+                    onClick: () => navigate('/settings'),
+                  },
+                  {
+                    id: 'import',
+                    label: 'Import Music from Spotify',
+                    icon: <Download size={14} />,
+                    onClick: () => navigate('/import'),
+                  },
+                  {
+                    id: 'settings',
+                    label: 'Connected Services',
+                    icon: <SettingsIcon size={14} />,
+                    onClick: () => navigate('/settings'),
+                  },
+                  {
+                    id: 'disconnect',
+                    label: 'Disconnect Spotify',
+                    icon: <LogOut size={14} />,
+                    onClick: disconnect,
+                  },
+                ]
+              : [
+                  {
+                    id: 'auth',
+                    label: 'Continue with Spotify',
+                    icon: <LogIn size={14} color="#1db954" />,
+                    onClick: () => setIsAuthModalOpen(true),
+                  },
+                  {
+                    id: 'import',
+                    label: 'Import Playlists',
+                    icon: <Download size={14} />,
+                    onClick: () => navigate('/import'),
+                  },
+                  {
+                    id: 'settings',
+                    label: 'Preferences',
+                    icon: <SettingsIcon size={14} />,
+                    onClick: () => navigate('/settings'),
+                  },
+                ]
+          }
+          align="right"
+        />
+
+        {/* Global Authentication Modal */}
+        <AuthModal
+          isOpen={isAuthModalOpen}
+          onClose={() => setIsAuthModalOpen(false)}
         />
       </div>
     </header>

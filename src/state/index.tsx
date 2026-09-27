@@ -4,6 +4,7 @@ import { PlayerProvider } from './PlayerContext';
 import { LibraryProvider } from './LibraryContext';
 import { ToastProvider } from './ToastContext';
 import { UIProvider } from './UIContext';
+import { SpotifyProvider } from './SpotifyContext';
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   return (
@@ -11,7 +12,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       <UIProvider>
         <PlayerProvider>
           <LibraryProvider>
-            <ToastProvider>{children}</ToastProvider>
+            <ToastProvider>
+              <SpotifyProvider>{children}</SpotifyProvider>
+            </ToastProvider>
           </LibraryProvider>
         </PlayerProvider>
       </UIProvider>
@@ -24,3 +27,4 @@ export * from './PlayerContext';
 export * from './LibraryContext';
 export * from './ToastContext';
 export * from './UIContext';
+export * from './SpotifyContext';

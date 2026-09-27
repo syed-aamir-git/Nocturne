@@ -52,6 +52,14 @@ export const TrackRow: React.FC<TrackRowProps> = ({
   const liked = isLiked(track.id);
 
   const handleRowClick = () => {
+    if (track.isUnavailable) {
+      showToast(
+        'Track Unavailable',
+        `"${track.title}" by ${track.artist} is not available in Nocturne's audio library.`,
+        'warning'
+      );
+      return;
+    }
     if (isActive && isPlaying) {
       onPause?.();
     } else {
@@ -159,8 +167,10 @@ export const TrackRow: React.FC<TrackRowProps> = ({
 
         {/* Title & Artist */}
         <div className="nocturne-track-row__title-wrap">
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            <span className="nocturne-track-row__title">{track.title}</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+            <span className="nocturne-track-row__title" style={{ opacity: track.isUnavailable ? 0.65 : 1 }}>
+              {track.title}
+            </span>
             {track.explicit && (
               <span
                 style={{
@@ -177,13 +187,63 @@ export const TrackRow: React.FC<TrackRowProps> = ({
                 E
               </span>
             )}
+            {track.matchStatus === 'matched' && (
+              <span
+                style={{
+                  fontSize: '10px',
+                  fontFamily: 'var(--font-mono)',
+                  padding: '1px 5px',
+                  borderRadius: '3px',
+                  background: 'rgba(52, 211, 153, 0.12)',
+                  color: '#34d399',
+                  border: '1px solid rgba(52, 211, 153, 0.25)',
+                }}
+                title="Matched with Nocturne audio library"
+              >
+                ✓ Matched
+              </span>
+            )}
+            {track.matchStatus === 'possible' && (
+              <span
+                style={{
+                  fontSize: '10px',
+                  fontFamily: 'var(--font-mono)',
+                  padding: '1px 5px',
+                  borderRadius: '3px',
+                  background: 'rgba(245, 158, 11, 0.12)',
+                  color: '#fbbf24',
+                  border: '1px solid rgba(245, 158, 11, 0.25)',
+                }}
+                title="Possible match candidate in Nocturne library"
+              >
+                ? Possible Match
+              </span>
+            )}
+            {track.isUnavailable && (
+              <span
+                style={{
+                  fontSize: '10px',
+                  fontFamily: 'var(--font-mono)',
+                  padding: '1px 6px',
+                  borderRadius: '3px',
+                  background: 'rgba(239, 68, 68, 0.12)',
+                  color: '#f87171',
+                  border: '1px solid rgba(239, 68, 68, 0.3)',
+                }}
+                title="Track unavailable in Nocturne"
+              >
+                ⚠ Track unavailable in Nocturne
+              </span>
+            )}
             {(track.lyrics || track.syncedLyrics) && (
               <span title="Lyrics available" style={{ display: 'inline-flex', alignItems: 'center' }}>
                 <AlignLeft size={11} color="var(--text-low)" />
               </span>
             )}
           </div>
-          <span className="nocturne-track-row__artist">{track.artist}</span>
+          <span className="nocturne-track-row__artist" style={{ opacity: track.isUnavailable ? 0.65 : 1 }}>
+            {track.artist}
+          </span>
         </div>
 
         {/* Album */}

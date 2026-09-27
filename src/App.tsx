@@ -17,6 +17,8 @@ import { RecentlyPlayedPage } from './pages/RecentlyPlayedPage';
 import { HistoryPage } from './pages/HistoryPage';
 import { StatisticsPage } from './pages/StatisticsPage';
 import { SettingsPage } from './pages/SettingsPage';
+import { ImportMusicPage } from './pages/ImportMusicPage';
+import { CallbackPage } from './pages/CallbackPage';
 import { DesignSystemPage } from './pages/DesignSystemPage';
 import './styles/index.css';
 
@@ -30,6 +32,8 @@ export const App: React.FC = () => {
             <Route path="discover" element={<DiscoverPage />} />
             <Route path="search" element={<SearchPage />} />
             <Route path="library" element={<LibraryPage />} />
+            <Route path="import" element={<ImportMusicPage />} />
+            <Route path="callback" element={<CallbackPage />} />
             <Route path="playlists" element={<PlaylistsPage />} />
             <Route path="playlist/:id" element={<PlaylistViewPage />} />
             <Route path="albums" element={<AlbumsPage />} />

@@ -14,6 +14,8 @@ export interface SyncedLyricLine {
   text: string;
 }
 
+export type TrackMatchStatus = 'matched' | 'unmatched' | 'possible';
+
 export interface Track {
   id: string;
   title: string;
@@ -34,6 +36,10 @@ export interface Track {
   playCount: number;
   bitrate?: string; // e.g. "24-bit / 96kHz FLAC"
   vibe?: string; // e.g. "Gothic Darkwave", "Midnight Ambient"
+  isUnavailable?: boolean; // True if Spotify imported track is not available in Nocturne library
+  originalSpotifyUri?: string;
+  originalSpotifyId?: string;
+  matchStatus?: TrackMatchStatus;
 }
 
 export interface Album {
@@ -67,6 +73,19 @@ export interface Artist {
   verified?: boolean;
 }
 
+export type PlaylistSource = 'nocturne' | 'spotify_import' | 'apple_import' | 'youtube_import';
+
+export interface PlaylistSourceMetadata {
+  provider: 'spotify' | 'apple' | 'youtube' | 'nocturne';
+  originalPlaylistId: string;
+  importedAt: string;
+  totalSpotifyTracks?: number;
+  matchedTracksCount?: number;
+  unmatchedTracksCount?: number;
+  possibleMatchCount?: number;
+  lastSyncedAt?: string;
+}
+
 export interface Playlist {
   id: string;
   title: string;
@@ -79,6 +98,8 @@ export interface Playlist {
   curatedHour?: string; // e.g., "02:00 - 05:00 AM"
   followersCount?: number;
   tracksCount?: number;
+  source?: PlaylistSource;
+  sourceMetadata?: PlaylistSourceMetadata;
 }
 
 export type PlaybackStatus = 'idle' | 'playing' | 'paused' | 'loading' | 'error';

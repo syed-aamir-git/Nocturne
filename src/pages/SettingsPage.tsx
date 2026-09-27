@@ -1,18 +1,44 @@
 import React, { useState } from 'react';
-import { Settings as SettingsIcon, Radio, Sparkles, Volume2, HardDrive, Trash2 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import {
+  Settings as SettingsIcon,
+  Radio,
+  Sparkles,
+  Volume2,
+  HardDrive,
+  Trash2,
+  CheckCircle,
+  XCircle,
+  Download,
+} from 'lucide-react';
 import { Card } from '../components/primitives/Card';
 import { Button } from '../components/primitives/Button';
 import { Slider } from '../components/primitives/Slider';
 import { useTheme } from '../state/ThemeContext';
 import { useToast } from '../state/ToastContext';
+import { useSpotify } from '../state/SpotifyContext';
 
 export const SettingsPage: React.FC = () => {
   const { currentTheme, availableThemes, setThemeId } = useTheme();
   const { showToast } = useToast();
+  const navigate = useNavigate();
+  const {
+    isConnected,
+    isConnecting,
+    userProfile,
+    isDemoMode,
+    connect,
+    connectDemo,
+    disconnect,
+    clientId,
+    setCustomClientId,
+  } = useSpotify();
 
   const [streamQuality, setStreamQuality] = useState('flac-96');
   const [crossfade, setCrossfade] = useState(4);
   const [normalizeAudio, setNormalizeAudio] = useState(true);
+  const [showConfig, setShowConfig] = useState(false);
+  const [tempId, setTempId] = useState(clientId);
 
   const qualityOptions = [
     {
@@ -40,11 +66,193 @@ export const SettingsPage: React.FC = () => {
           <h1 style={{ fontSize: '2rem', margin: 0 }}>Preferences</h1>
         </div>
         <p style={{ color: 'var(--text-medium)', fontSize: '13.5px' }}>
-          Calibrate audio fidelity, acoustic buffers, and the nocturnal atmosphere
+          Calibrate audio fidelity, acoustic buffers, connected services, and the nocturnal atmosphere
         </p>
       </div>
 
-      {/* 1. Audio Fidelity */}
+      {/* 1. Connected Services */}
+      <Card variant="flat" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: 18 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <Radio size={18} color="var(--accent-primary)" />
+            <h3 style={{ fontSize: '1.2rem', margin: 0 }}>Connected Services</h3>
+          </div>
+          <span style={{ fontSize: '11.5px', fontFamily: 'var(--font-mono)', color: 'var(--text-low)' }}>
+            OAUTH 2.0 PKCE
+          </span>
+        </div>
+
+        {/* Spotify Service Item */}
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            flexWrap: 'wrap',
+            gap: 16,
+            padding: '16px',
+            borderRadius: 'var(--radius-sm)',
+            background: 'var(--bg-surface-elevated)',
+            border: '1px solid var(--border-subtle)',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+            <div
+              style={{
+                width: 44,
+                height: 44,
+                borderRadius: '50%',
+                background: isConnected ? 'rgba(52, 211, 153, 0.15)' : 'rgba(255, 255, 255, 0.04)',
+                border: `1px solid ${isConnected ? 'rgba(52, 211, 153, 0.3)' : 'var(--border-subtle)'}`,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <Radio size={22} color={isConnected ? 'var(--indicator-success)' : 'var(--text-medium)'} />
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <span style={{ fontWeight: 600, fontSize: '15px', color: 'var(--text-pure)' }}>
+                  Spotify
+                </span>
+                <span
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 4,
+                    padding: '2px 8px',
+                    borderRadius: '9999px',
+                    fontSize: '11px',
+                    fontFamily: 'var(--font-mono)',
+                    background: isConnected ? 'rgba(52, 211, 153, 0.12)' : 'rgba(255, 255, 255, 0.05)',
+                    color: isConnected ? 'var(--indicator-success)' : 'var(--text-low)',
+                    border: `1px solid ${isConnected ? 'rgba(52, 211, 153, 0.3)' : 'var(--border-subtle)'}`,
+                  }}
+                >
+                  {isConnected ? (
+                    <>
+                      <CheckCircle size={10} />
+                      Connected
+                    </>
+                  ) : (
+                    <>
+                      <XCircle size={10} />
+                      Not Connected
+                    </>
+                  )}
+                </span>
+              </div>
+
+              {isConnected ? (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: '12.5px', color: 'var(--text-medium)' }}>
+                  <span style={{ color: 'var(--text-pure)', fontWeight: 500 }}>
+                    Connected to Spotify
+                  </span>
+                  <span>•</span>
+                  <span>{userProfile?.name || 'Account Linked'}</span>
+                  {isDemoMode && <span>(Sandbox Mode)</span>}
+                </div>
+              ) : (
+                <span style={{ fontSize: '12px', color: 'var(--text-low)' }}>
+                  Link your account to import playlists and sync library references
+                </span>
+              )}
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            {isConnected ? (
+              <>
+                <Button
+                  variant="primary"
+                  size="sm"
+                  leftIcon={<Download size={14} />}
+                  onClick={() => navigate('/import')}
+                >
+                  Import Music
+                </Button>
+                <Button variant="ghost" size="sm" onClick={disconnect}>
+                  Disconnect Spotify
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button
+                  variant="primary"
+                  size="sm"
+                  leftIcon={<Radio size={14} />}
+                  onClick={connect}
+                  disabled={isConnecting}
+                >
+                  {isConnecting ? 'Connecting...' : 'Connect Spotify'}
+                </Button>
+                <Button variant="secondary" size="sm" onClick={connectDemo}>
+                  Demo Mode
+                </Button>
+                <Button variant="ghost" size="sm" onClick={() => setShowConfig(!showConfig)}>
+                  Config
+                </Button>
+              </>
+            )}
+          </div>
+        </div>
+
+        {/* Client ID Configuration Drawer */}
+        {showConfig && !isConnected && (
+          <div
+            style={{
+              padding: 14,
+              borderRadius: 'var(--radius-sm)',
+              background: 'rgba(0, 0, 0, 0.35)',
+              border: '1px solid var(--border-subtle)',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 8,
+            }}
+          >
+            <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-pure)' }}>
+              Spotify OAuth Client ID
+            </span>
+            <span style={{ fontSize: '11px', color: 'var(--text-medium)' }}>
+              Configure in <code>.env</code> as <code>VITE_SPOTIFY_CLIENT_ID</code> or enter below (Callback:{' '}
+              <code>{window.location.origin}/callback</code>):
+            </span>
+            <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
+              <input
+                type="text"
+                value={tempId}
+                onChange={(e) => setTempId(e.target.value)}
+                placeholder="Paste Spotify Client ID..."
+                style={{
+                  flex: 1,
+                  padding: '6px 10px',
+                  borderRadius: 'var(--radius-sm)',
+                  background: 'rgba(255, 255, 255, 0.05)',
+                  border: '1px solid var(--border-subtle)',
+                  color: 'var(--text-pure)',
+                  fontSize: '12px',
+                  fontFamily: 'var(--font-mono)',
+                }}
+              />
+              <Button
+                variant="primary"
+                size="sm"
+                onClick={() => {
+                  setCustomClientId(tempId);
+                  showToast('Client ID Saved', 'Credentials updated in session.', 'default');
+                  setShowConfig(false);
+                }}
+              >
+                Save
+              </Button>
+            </div>
+          </div>
+        )}
+      </Card>
+
+      {/* 2. Audio Fidelity */}
       <Card variant="flat" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: 18 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <Radio size={18} color="var(--accent-primary)" />
@@ -102,7 +310,7 @@ export const SettingsPage: React.FC = () => {
         </div>
       </Card>
 
-      {/* 2. Nocturnal Theme Palette */}
+      {/* 3. Nocturnal Theme Palette */}
       <Card variant="flat" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: 18 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <Sparkles size={18} color="var(--accent-primary)" />
@@ -142,7 +350,7 @@ export const SettingsPage: React.FC = () => {
         </div>
       </Card>
 
-      {/* 3. Audio Dynamics & Crossfade */}
+      {/* 4. Audio Dynamics & Crossfade */}
       <Card variant="flat" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: 20 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <Volume2 size={18} color="var(--accent-primary)" />
@@ -184,7 +392,7 @@ export const SettingsPage: React.FC = () => {
         </div>
       </Card>
 
-      {/* 4. Cache & Memory */}
+      {/* 5. Cache & Memory */}
       <Card variant="flat" style={{ padding: '24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
           <HardDrive size={22} color="var(--text-medium)" />

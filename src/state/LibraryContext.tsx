@@ -15,6 +15,9 @@ export interface CreatePlaylistInput {
   description?: string;
   artwork?: string;
   initialTracks?: Track[];
+  source?: Playlist['source'];
+  sourceMetadata?: Playlist['sourceMetadata'];
+  creator?: string;
 }
 
 export interface LibraryContextType {
@@ -126,11 +129,13 @@ export const LibraryProvider: React.FC<{ children: React.ReactNode }> = ({ child
         input.initialTracks?.[0]?.artwork ||
         'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=600&q=80',
       tracks: input.initialTracks ? [...input.initialTracks] : [],
-      creator: 'You',
+      creator: input.creator || 'You',
       createdAt: new Date().toISOString().split('T')[0],
-      curatedHour: 'Midnight Sanctuary',
+      curatedHour: input.source === 'spotify_import' ? 'Spotify Import' : 'Midnight Sanctuary',
       tracksCount: input.initialTracks?.length || 0,
       followersCount: 1,
+      source: input.source || 'nocturne',
+      sourceMetadata: input.sourceMetadata,
     };
 
     setPlaylists((prev) => [newPlaylist, ...prev]);

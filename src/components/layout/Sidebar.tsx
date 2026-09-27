@@ -16,6 +16,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Sparkles,
+  Download,
 } from 'lucide-react';
 import { useUI } from '../../state/UIContext';
 import { useLibrary } from '../../state/LibraryContext';
@@ -82,6 +83,7 @@ export const Sidebar: React.FC = () => {
           icon: <Heart size={18} />,
           badge: likedTrackIds.size > 0 ? likedTrackIds.size : undefined,
         },
+        { to: '/import', label: 'Import Music', icon: <Download size={18} /> },
       ],
     },
     {

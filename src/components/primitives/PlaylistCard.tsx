@@ -78,11 +78,22 @@ export const PlaylistCard: React.FC<PlaylistCardProps> = ({
             <Music size={32} color="var(--accent-primary)" />
           </div>
         )}
-        {playlist.curatedHour && (
+        {playlist.source === 'spotify_import' ? (
+          <span
+            className="nocturne-playlist-card__badge-hour"
+            style={{
+              background: 'rgba(16, 185, 129, 0.15)',
+              borderColor: 'rgba(16, 185, 129, 0.4)',
+              color: '#34d399',
+            }}
+          >
+            Spotify Imported
+          </span>
+        ) : playlist.curatedHour ? (
           <span className="nocturne-playlist-card__badge-hour">
             {playlist.curatedHour}
           </span>
-        )}
+        ) : null}
         <button
           type="button"
           className="nocturne-playlist-card__play-btn"

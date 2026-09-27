@@ -11,7 +11,11 @@ import {
   Copy,
   Trash2,
   Plus,
+  RefreshCw,
 } from 'lucide-react';
+import { spotifyApi } from '../services/spotify/spotifyApi';
+import { matchPlaylistTracks, convertToNocturneTrack } from '../services/importer/trackMatcher';
+import { MOCK_TRACKS } from '../data/mockData';
 import { useLibrary } from '../state/LibraryContext';
 import { usePlayer } from '../state/PlayerContext';
 import { useToast } from '../state/ToastContext';
@@ -35,6 +39,7 @@ export const PlaylistViewPage: React.FC = () => {
     addTracksToPlaylist,
     removeTrackFromPlaylist,
     reorderPlaylistTracks,
+    updatePlaylist,
   } = useLibrary();
   const { currentTrack, status, playTrack } = usePlayer();
   const { showToast } = useToast();
@@ -43,6 +48,7 @@ export const PlaylistViewPage: React.FC = () => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isSyncing, setIsSyncing] = useState(false);
 
   const playlist = getPlaylistById(id || '');
 
@@ -208,9 +214,26 @@ export const PlaylistViewPage: React.FC = () => {
                 color: 'var(--accent-secondary)',
               }}
             >
-              NOCTURNE PLAYLIST
+              {playlist.source === 'spotify_import' ? 'SPOTIFY IMPORT' : 'NOCTURNE PLAYLIST'}
             </span>
-            {playlist.curatedHour && (
+            {playlist.source === 'spotify_import' ? (
+              <span
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 5,
+                  padding: '2px 8px',
+                  borderRadius: 'var(--radius-full)',
+                  background: 'rgba(16, 185, 129, 0.15)',
+                  border: '1px solid rgba(16, 185, 129, 0.4)',
+                  fontSize: '11px',
+                  fontFamily: 'var(--font-mono)',
+                  color: '#34d399',
+                }}
+              >
+                <span>Spotify Imported</span>
+              </span>
+            ) : playlist.curatedHour ? (
               <span
                 style={{
                   display: 'inline-flex',
@@ -227,7 +250,7 @@ export const PlaylistViewPage: React.FC = () => {
                 <Clock size={11} />
                 <span>{playlist.curatedHour}</span>
               </span>
-            )}
+            ) : null}
           </div>
 
           <h1 style={{ fontSize: '2.4rem', margin: 0, letterSpacing: '-0.02em' }}>
@@ -280,6 +303,65 @@ export const PlaylistViewPage: React.FC = () => {
             >
               Add Tracks
             </Button>
+
+            {playlist.source === 'spotify_import' && playlist.sourceMetadata?.originalPlaylistId && (
+              <Button
+                variant="secondary"
+                size="md"
+                leftIcon={<RefreshCw size={14} className={isSyncing ? 'spin' : ''} />}
+                onClick={async () => {
+                  setIsSyncing(true);
+                  try {
+                    const extTracks = await spotifyApi.getPlaylistTracks(playlist.sourceMetadata!.originalPlaylistId);
+                    const preview = matchPlaylistTracks(
+                      {
+                        id: playlist.sourceMetadata!.originalPlaylistId,
+                        provider: 'spotify',
+                        title: playlist.title,
+                        description: playlist.description,
+                        artwork: playlist.artwork,
+                        trackCount: extTracks.length,
+                        owner: playlist.creator,
+                        isPublic: true,
+                      },
+                      extTracks,
+                      MOCK_TRACKS
+                    );
+
+                    const refreshedTracks = preview.matches.map((m, idx) =>
+                      convertToNocturneTrack(m, playlist.title, idx)
+                    );
+
+                    updatePlaylist(playlist.id, {
+                      tracks: refreshedTracks,
+                      tracksCount: refreshedTracks.length,
+                      sourceMetadata: {
+                        ...playlist.sourceMetadata!,
+                        lastSyncedAt: new Date().toISOString(),
+                        totalSpotifyTracks: preview.totalTracks,
+                        matchedTracksCount: preview.matchedCount,
+                        unmatchedTracksCount: preview.unmatchedCount,
+                        possibleMatchCount: preview.possibleCount,
+                      },
+                    });
+
+                    showToast(
+                      'Playlist Synchronized',
+                      `Updated with latest Spotify tracklist (${preview.matchedCount}/${preview.totalTracks} available).`,
+                      'atmosphere'
+                    );
+                  } catch (err: any) {
+                    showToast('Sync Warning', err.message || 'Could not synchronize with Spotify', 'warning');
+                  } finally {
+                    setIsSyncing(false);
+                  }
+                }}
+                disabled={isSyncing}
+                title="Sync playlist with Spotify"
+              >
+                {isSyncing ? 'Syncing...' : 'Sync with Spotify'}
+              </Button>
+            )}
 
             <IconButton
               variant="ghost"
