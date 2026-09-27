@@ -20,8 +20,8 @@
 
 .nocturne-layout__center-split {
   flex: 1;
+  min-height: 0;
   display: flex;
-  height: calc(100% - var(--topbar-height));
   overflow: hidden;
   position: relative;
 }

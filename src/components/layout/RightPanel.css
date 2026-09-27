@@ -178,3 +178,9 @@
     z-index: 150;
   }
 }
+
+@media (max-width: 900px) {
+  .nocturne-right-panel {
+    bottom: calc(var(--player-height) + var(--bottom-nav-height));
+  }
+}

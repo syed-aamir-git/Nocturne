@@ -1,4 +1,5 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Play,
   Moon,
@@ -20,7 +21,7 @@ import {
   MOCK_PLAYLISTS,
   MOCK_TRACKS,
 } from '../data/mockData';
-import { getNocturnalHourPhase } from '../../src/utilities/formatters';
+import { getNocturnalHourPhase } from '../utilities/formatters';
 import type { Album, Playlist, Track } from '../types';
 import './HomePage.css';
 
@@ -32,6 +33,7 @@ interface MoodCollectionItem {
 }
 
 export const HomePage: React.FC = () => {
+  const navigate = useNavigate();
   const { playTrack, currentTrack, status } = usePlayer();
   const { showToast } = useToast();
   const timePhase = getNocturnalHourPhase();
@@ -214,6 +216,7 @@ export const HomePage: React.FC = () => {
             <PlaylistCard
               key={pl.id}
               playlist={pl}
+              onClick={(p) => navigate(`/playlist/${p.id}`)}
               onPlay={handlePlayPlaylist}
             />
           ))}
@@ -258,7 +261,10 @@ export const HomePage: React.FC = () => {
             <ArtistCard
               key={artist.id}
               artist={artist}
-              onClick={(a) => showToast('Artist Profile', a.name, 'default')}
+              onClick={(a) => {
+                navigate('/artists');
+                showToast('Artist Inquest', a.name, 'default');
+              }}
             />
           ))}
         </div>
@@ -278,6 +284,7 @@ export const HomePage: React.FC = () => {
             <AlbumCard
               key={album.id}
               album={album}
+              onClick={handlePlayAlbum}
               onPlay={handlePlayAlbum}
             />
           ))}

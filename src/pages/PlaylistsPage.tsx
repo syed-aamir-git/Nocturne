@@ -1,4 +1,5 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Plus } from 'lucide-react';
 import { PlaylistCard } from '../components/primitives/PlaylistCard';
 import { Button } from '../components/primitives/Button';
@@ -6,6 +7,7 @@ import { useToast } from '../state/ToastContext';
 import { MOCK_PLAYLISTS } from '../data/mockData';
 
 export const PlaylistsPage: React.FC = () => {
+  const navigate = useNavigate();
   const { showToast } = useToast();
 
   return (
@@ -32,6 +34,7 @@ export const PlaylistsPage: React.FC = () => {
           <PlaylistCard
             key={playlist.id}
             playlist={playlist}
+            onClick={(p) => navigate(`/playlist/${p.id}`)}
             onPlay={(p) => showToast('Streaming Playlist', p.title, 'atmosphere')}
           />
         ))}
