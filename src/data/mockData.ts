@@ -1,14 +1,14 @@
 import type { Artist, Album, Playlist, Track } from '../types';
 
-// Royalty-free / public-domain audio sources for seamless playback
+// High-fidelity same-origin nocturnal audio sources for bit-perfect Web Audio DSP playback
 const DEMO_AUDIO = [
-  'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3',
-  'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3',
-  'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3',
-  'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3',
-  'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3',
-  'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-10.mp3',
-  'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-16.mp3',
+  '/audio/nocturne-darkwave-1.wav',
+  '/audio/nocturne-ambient-2.wav',
+  '/audio/nocturne-melancholy-3.wav',
+  '/audio/nocturne-nightdrive-4.wav',
+  '/audio/nocturne-gothic-5.wav',
+  '/audio/nocturne-dreamy-6.wav',
+  '/audio/nocturne-focus-7.wav',
 ];
 
 export const MOCK_TRACKS: Track[] = [

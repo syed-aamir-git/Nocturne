@@ -28,27 +28,39 @@ export const AudioVisualizer: React.FC<AudioVisualizerProps> = ({
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    // High DPI scaling
+    // High DPI scaling and dynamic responsive dimensions
     const dpr = window.devicePixelRatio || 1;
-    const rect = canvas.getBoundingClientRect();
-    const width = rect.width || 400;
-    canvas.width = width * dpr;
-    canvas.height = height * dpr;
-    ctx.scale(dpr, dpr);
+    let currentWidth = canvas.getBoundingClientRect().width || 400;
+
+    const updateDimensions = () => {
+      if (!canvas) return;
+      const rect = canvas.getBoundingClientRect();
+      currentWidth = rect.width || 400;
+      canvas.width = currentWidth * dpr;
+      canvas.height = height * dpr;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    };
+
+    updateDimensions();
+
+    const resizeObserver = new ResizeObserver(() => {
+      updateDimensions();
+    });
+    resizeObserver.observe(canvas);
 
     const freqData = new Uint8Array(64);
     const peaks = new Float32Array(barsCount).fill(0);
     let simPhase = 0;
 
     const render = () => {
-      ctx.clearRect(0, 0, width, height);
+      ctx.clearRect(0, 0, currentWidth, height);
 
       const hasRealAudio = audioEngine.getFrequencyData(freqData);
       const active = isPlaying && status === 'playing';
 
       simPhase += 0.08;
 
-      const barWidth = Math.max(2, (width - (barsCount - 1) * 3) / barsCount);
+      const barWidth = Math.max(2, (currentWidth - (barsCount - 1) * 3) / barsCount);
       const gap = 3;
 
       for (let i = 0; i < barsCount; i++) {
@@ -115,6 +127,7 @@ export const AudioVisualizer: React.FC<AudioVisualizerProps> = ({
       if (animationFrameRef.current) {
         cancelAnimationFrame(animationFrameRef.current);
       }
+      resizeObserver.disconnect();
     };
   }, [barsCount, height, isPlaying, status, gains, equalizerEnabled]);
 

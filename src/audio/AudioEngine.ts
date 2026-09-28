@@ -429,7 +429,7 @@ export class NocturneAudioEngine implements AudioEngineInterface {
   }
 
   public isPlaying(): boolean {
-    return !this.audio.paused && !this.audio.ended && this.audio.readyState > 2;
+    return !this.audio.paused && !this.audio.ended;
   }
 
   public isBufferingState(): boolean {

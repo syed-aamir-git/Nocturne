@@ -232,11 +232,20 @@ export const EqualizerModal: React.FC = () => {
               const currentGain = gains[idx] ?? 0;
               return (
                 <div key={band.frequency} className="nocturne-eq-band-col">
-                  <span className="nocturne-eq-band__gain-badge">
+                  <span
+                    className="nocturne-eq-band__gain-badge"
+                    onDoubleClick={() => setBandGain(idx, 0)}
+                    title="Double-click to reset to 0.0 dB"
+                    style={{ cursor: 'pointer' }}
+                  >
                     {currentGain > 0 ? `+${currentGain.toFixed(1)}` : currentGain.toFixed(1)} dB
                   </span>
 
-                  <div className="nocturne-eq-band__slider-track">
+                  <div
+                    className="nocturne-eq-band__slider-track"
+                    onDoubleClick={() => setBandGain(idx, 0)}
+                    title="Double-click to reset to 0.0 dB"
+                  >
                     <div className="nocturne-eq-band__center-mark" />
                     <input
                       type="range"
