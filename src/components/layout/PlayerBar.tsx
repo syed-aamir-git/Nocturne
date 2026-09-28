@@ -18,6 +18,7 @@ import {
   AlertCircle,
   Mic2,
   Sliders,
+  Maximize2,
 } from 'lucide-react';
 import { usePlayer } from '../../state/PlayerContext';
 import { useLibrary } from '../../state/LibraryContext';
@@ -54,12 +55,32 @@ export const PlayerBar: React.FC = () => {
     isCrossfading,
   } = usePlayer();
 
-  const { rightPanelOpen, toggleRightPanel, openRightPanel, isLyricsOpen, toggleLyrics } = useUI();
+  const {
+    rightPanelOpen,
+    toggleRightPanel,
+    openRightPanel,
+    isLyricsOpen,
+    toggleLyrics,
+    openNowPlaying,
+  } = useUI();
   const { isEqualizerOpen, toggleEqualizer } = useAudioSettings();
   const { isLiked, toggleLike } = useLibrary();
   const { showToast } = useToast();
   const [imgError, setImgError] = useState(false);
   const [displayTime, setDisplayTime] = useState<number | null>(null);
+
+  const handlePlayerBarClick = (e: React.MouseEvent) => {
+    const target = e.target as HTMLElement;
+    if (
+      target.closest('button') ||
+      target.closest('a') ||
+      target.closest('input') ||
+      target.closest('.nocturne-slider')
+    ) {
+      return;
+    }
+    openNowPlaying('artwork');
+  };
 
   const handleScrubChange = (value: number) => {
     setDisplayTime(value);
@@ -94,10 +115,20 @@ export const PlayerBar: React.FC = () => {
   const coverSrc = currentTrack.artwork || currentTrack.coverUrl || '';
 
   return (
-    <div className="nocturne-player-bar" role="region" aria-label="Audio Player">
+    <div
+      className="nocturne-player-bar"
+      role="region"
+      aria-label="Audio Player"
+      onClick={handlePlayerBarClick}
+    >
       {/* Left: Track Information */}
       <div className="nocturne-player__track">
-        <div className="nocturne-player__cover-wrap">
+        <div
+          className="nocturne-player__cover-wrap"
+          onClick={() => openNowPlaying('artwork')}
+          style={{ cursor: 'pointer' }}
+          title="Open Now Playing"
+        >
           {!imgError && coverSrc ? (
             <img
               src={coverSrc}
@@ -364,6 +395,18 @@ export const PlayerBar: React.FC = () => {
             aria-label="Toggle details panel"
           >
             <PanelRight size={16} />
+          </IconButton>
+        </Tooltip>
+
+        {/* Full-Screen Now Playing Centerpiece */}
+        <Tooltip content="Open Full-Screen Now Playing (Press N)" position="top">
+          <IconButton
+            variant="ghost"
+            size="sm"
+            onClick={() => openNowPlaying('artwork')}
+            aria-label="Open Full-Screen Now Playing"
+          >
+            <Maximize2 size={16} />
           </IconButton>
         </Tooltip>
       </div>

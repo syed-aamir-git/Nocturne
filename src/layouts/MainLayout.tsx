@@ -8,6 +8,7 @@ import { MobileNav } from '../components/layout/MobileNav';
 import { ToastContainer } from '../components/primitives/Toast';
 import { LyricsModal } from '../components/lyrics/LyricsModal';
 import { EqualizerModal } from '../components/audio/EqualizerModal';
+import { NowPlayingModal } from '../components/nowplaying/NowPlayingModal';
 import { useUI } from '../state/UIContext';
 import { useAudioSettings } from '../state/AudioSettingsContext';
 import { useToast } from '../state/ToastContext';
@@ -16,7 +17,7 @@ import { usePlayer } from '../state/PlayerContext';
 import './MainLayout.css';
 
 export const MainLayout: React.FC = () => {
-  const { mobileMenuOpen, setMobileMenuOpen, toggleLyrics } = useUI();
+  const { mobileMenuOpen, setMobileMenuOpen, toggleLyrics, toggleNowPlaying } = useUI();
   const { toggleEqualizer } = useAudioSettings();
   const { toasts, removeToast } = useToast();
   const { backgroundMode } = useTheme();
@@ -41,12 +42,15 @@ export const MainLayout: React.FC = () => {
       } else if ((e.key === 'e' || e.key === 'E') && !e.metaKey && !e.ctrlKey && !e.altKey) {
         e.preventDefault();
         toggleEqualizer();
+      } else if ((e.key === 'n' || e.key === 'N') && !e.metaKey && !e.ctrlKey && !e.altKey) {
+        e.preventDefault();
+        toggleNowPlaying();
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [toggleLyrics, toggleEqualizer]);
+  }, [toggleLyrics, toggleEqualizer, toggleNowPlaying]);
 
   return (
     <div className="nocturne-layout">
@@ -107,6 +111,9 @@ export const MainLayout: React.FC = () => {
 
       {/* 7-Band Equalizer & Audio Processing Console */}
       <EqualizerModal />
+
+      {/* Full-Screen Immersive Now Playing Centerpiece */}
+      <NowPlayingModal />
 
       {/* Global Notifications & Toasts */}
       <ToastContainer toasts={toasts} onDismiss={removeToast} />

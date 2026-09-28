@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState } from 'react';
 
 export type RightPanelTab = 'info' | 'lyrics' | 'queue' | 'credits';
 export type LyricsTab = 'lyrics' | 'info' | 'credits';
+export type NowPlayingTab = 'artwork' | 'lyrics' | 'queue' | 'info' | 'credits';
 
 interface UIContextType {
   sidebarCollapsed: boolean;
@@ -22,6 +23,13 @@ interface UIContextType {
   openLyrics: (tab?: LyricsTab) => void;
   closeLyrics: () => void;
   toggleLyrics: () => void;
+  isNowPlayingOpen: boolean;
+  setIsNowPlayingOpen: (open: boolean) => void;
+  nowPlayingTab: NowPlayingTab;
+  setNowPlayingTab: (tab: NowPlayingTab) => void;
+  openNowPlaying: (tab?: NowPlayingTab) => void;
+  closeNowPlaying: () => void;
+  toggleNowPlaying: () => void;
   searchQuery: string;
   setSearchQuery: (query: string) => void;
   activeModal: string | null;
@@ -38,6 +46,8 @@ export const UIProvider: React.FC<{ children: React.ReactNode }> = ({ children }
   const [rightPanelTab, setRightPanelTab] = useState<RightPanelTab>('queue');
   const [isLyricsOpen, setIsLyricsOpen] = useState<boolean>(false);
   const [lyricsTab, setLyricsTab] = useState<LyricsTab>('lyrics');
+  const [isNowPlayingOpen, setIsNowPlayingOpen] = useState<boolean>(false);
+  const [nowPlayingTab, setNowPlayingTab] = useState<NowPlayingTab>('artwork');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [activeModal, setActiveModal] = useState<string | null>(null);
 
@@ -53,6 +63,12 @@ export const UIProvider: React.FC<{ children: React.ReactNode }> = ({ children }
   };
   const closeLyrics = () => setIsLyricsOpen(false);
   const toggleLyrics = () => setIsLyricsOpen((prev) => !prev);
+  const openNowPlaying = (tab?: NowPlayingTab) => {
+    if (tab) setNowPlayingTab(tab);
+    setIsNowPlayingOpen(true);
+  };
+  const closeNowPlaying = () => setIsNowPlayingOpen(false);
+  const toggleNowPlaying = () => setIsNowPlayingOpen((prev) => !prev);
   const openModal = (id: string) => setActiveModal(id);
   const closeModal = () => setActiveModal(null);
 
@@ -77,6 +93,13 @@ export const UIProvider: React.FC<{ children: React.ReactNode }> = ({ children }
         openLyrics,
         closeLyrics,
         toggleLyrics,
+        isNowPlayingOpen,
+        setIsNowPlayingOpen,
+        nowPlayingTab,
+        setNowPlayingTab,
+        openNowPlaying,
+        closeNowPlaying,
+        toggleNowPlaying,
         searchQuery,
         setSearchQuery,
         activeModal,
