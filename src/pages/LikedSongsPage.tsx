@@ -9,6 +9,7 @@ import { usePlayer } from '../state/PlayerContext';
 import { useLibrary } from '../state/LibraryContext';
 import { useToast } from '../state/ToastContext';
 import type { Playlist } from '../types';
+import './LikedSongsPage.css';
 
 export const LikedSongsPage: React.FC = () => {
   const { playTrack, currentTrack, status } = usePlayer();
@@ -59,40 +60,14 @@ export const LikedSongsPage: React.FC = () => {
   };
 
   return (
-    <div style={{ maxWidth: 1200, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 32 }}>
+    <div className="nocturne-liked-page">
       {/* Header Banner */}
-      <div
-        style={{
-          display: 'flex',
-          gap: 28,
-          alignItems: 'flex-end',
-          padding: '32px',
-          borderRadius: 'var(--radius-lg)',
-          background: 'linear-gradient(135deg, rgba(157, 114, 255, 0.12) 0%, rgba(18, 18, 24, 0.95) 100%)',
-          border: '1px solid var(--border-glow)',
-          boxShadow: 'var(--shadow-lg), 0 0 32px var(--accent-glow)',
-          flexWrap: 'wrap',
-          position: 'relative',
-        }}
-      >
-        <div
-          style={{
-            width: 140,
-            height: 140,
-            borderRadius: 'var(--radius-md)',
-            background: 'linear-gradient(135deg, #7c3aed 0%, #2e1065 100%)',
-            border: '1px solid rgba(255, 255, 255, 0.2)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            flexShrink: 0,
-            boxShadow: '0 8px 32px rgba(124, 58, 237, 0.4)',
-          }}
-        >
+      <div className="nocturne-liked-hero">
+        <div className="nocturne-liked-icon-wrap">
           <Heart size={64} color="#ffffff" fill="currentColor" />
         </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 10, flex: 1, minWidth: 260 }}>
+        <div className="nocturne-liked-meta">
           <span
             style={{
               fontSize: '11px',
@@ -104,7 +79,7 @@ export const LikedSongsPage: React.FC = () => {
             SANCTUM ARCHIVE • FAVORITES
           </span>
 
-          <h1 style={{ fontSize: '2.6rem', margin: 0, letterSpacing: '-0.02em' }}>
+          <h1 className="nocturne-liked-title">
             Liked Songs
           </h1>
 
@@ -113,7 +88,7 @@ export const LikedSongsPage: React.FC = () => {
           </p>
 
           {likedTracks.length > 0 && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 8, flexWrap: 'wrap' }}>
+            <div className="nocturne-liked-actions">
               <Button
                 variant="primary"
                 size="md"

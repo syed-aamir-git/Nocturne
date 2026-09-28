@@ -208,3 +208,10 @@
     gap: 6px;
   }
 }
+
+@media (max-width: 440px) {
+  .nocturne-track-row__actions button[aria-label="Add to sequence queue"] {
+    display: none !important;
+  }
+}
+

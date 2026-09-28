@@ -1,0 +1,105 @@
+/* ==========================================================================
+   Nocturne Liked Songs Page - Responsive Styles
+   ========================================================================== */
+
+.nocturne-liked-page {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  animation: likedFadeIn var(--transition-flow);
+}
+
+@keyframes likedFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.nocturne-liked-hero {
+  display: flex;
+  gap: 28px;
+  align-items: flex-end;
+  padding: 32px;
+  border-radius: var(--radius-lg);
+  background: linear-gradient(135deg, rgba(157, 114, 255, 0.12) 0%, rgba(18, 18, 24, 0.95) 100%);
+  border: 1px solid var(--border-glow);
+  box-shadow: var(--shadow-lg), 0 0 32px var(--accent-glow);
+  position: relative;
+}
+
+.nocturne-liked-icon-wrap {
+  width: 140px;
+  height: 140px;
+  border-radius: var(--radius-md);
+  background: linear-gradient(135deg, #7c3aed 0%, #2e1065 100%);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 8px 32px rgba(124, 58, 237, 0.4);
+}
+
+.nocturne-liked-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  flex: 1;
+  min-width: 0;
+}
+
+.nocturne-liked-title {
+  font-size: clamp(1.7rem, 4.5vw, 2.6rem);
+  margin: 0;
+  letter-spacing: -0.02em;
+  font-weight: 700;
+  color: var(--text-pure);
+}
+
+.nocturne-liked-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 8px;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 768px) {
+  .nocturne-liked-page {
+    gap: 20px;
+  }
+
+  .nocturne-liked-hero {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 24px 16px;
+    gap: 18px;
+  }
+
+  .nocturne-liked-icon-wrap {
+    width: 100px;
+    height: 100px;
+  }
+
+  .nocturne-liked-icon-wrap svg {
+    width: 48px;
+    height: 48px;
+  }
+
+  .nocturne-liked-meta {
+    align-items: center;
+    width: 100%;
+  }
+
+  .nocturne-liked-actions {
+    justify-content: center;
+  }
+}

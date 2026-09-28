@@ -278,6 +278,8 @@
   .nocturne-player__track {
     gap: 10px;
     min-width: 0;
+    flex: 1;
+    overflow: hidden;
   }
 
   .nocturne-player__cover-wrap {
@@ -286,14 +288,28 @@
     border-radius: var(--radius-xs);
   }
 
+  .nocturne-player__meta {
+    min-width: 0;
+    flex: 1;
+    overflow: hidden;
+  }
+
   .nocturne-player__title {
     font-size: 13px;
-    max-width: 190px;
+    width: 100%;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   .nocturne-player__artist {
     font-size: 11px;
-    max-width: 190px;
+    width: 100%;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   .nocturne-player__badge {
@@ -311,6 +327,7 @@
   .nocturne-player__center {
     width: auto;
     margin: 0;
+    flex-shrink: 0;
   }
 
   .nocturne-player__controls {
@@ -328,3 +345,10 @@
     box-shadow: 0 0 10px var(--accent-glow);
   }
 }
+
+@media (max-width: 480px) {
+  .nocturne-player__btn-prev {
+    display: none !important;
+  }
+}
+

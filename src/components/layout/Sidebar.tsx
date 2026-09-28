@@ -44,8 +44,17 @@ export const Sidebar: React.FC = () => {
   const { playlists, likedTrackIds } = useLibrary();
   const location = useLocation();
   const [timePhase, setTimePhase] = useState(() => getNocturnalHourPhase());
+  const [isMobile, setIsMobile] = useState(() => typeof window !== 'undefined' && window.innerWidth <= 640);
 
-  const isEffectiveCollapsed = sidebarMode === 'compact' || sidebarCollapsed;
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth <= 640);
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  const isEffectiveCollapsed = !isMobile && (sidebarMode === 'compact' || sidebarCollapsed);
 
   const handleToggleSidebar = () => {
     if (sidebarMode === 'compact') {

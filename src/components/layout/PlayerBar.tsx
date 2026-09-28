@@ -228,7 +228,8 @@ export const PlayerBar: React.FC = () => {
             size="sm"
             aria-label={isLiked(currentTrack.id) ? 'Remove from favorites' : 'Add to favorites'}
             style={isLiked(currentTrack.id) ? { color: 'var(--accent-primary)' } : undefined}
-            onClick={() => {
+            onClick={(e) => {
+              e.stopPropagation();
               const next = toggleLike(currentTrack);
               showToast(
                 next ? 'Anchored to Liked Songs' : 'Removed from Liked Songs',
@@ -253,7 +254,10 @@ export const PlayerBar: React.FC = () => {
               variant="ghost"
               size="sm"
               active={shuffle}
-              onClick={toggleShuffle}
+              onClick={(e) => {
+                e.stopPropagation();
+                toggleShuffle();
+              }}
               aria-label="Toggle shuffle"
               className="nocturne-player__btn-shuffle"
             >
@@ -265,7 +269,10 @@ export const PlayerBar: React.FC = () => {
             <IconButton
               variant="ghost"
               size="sm"
-              onClick={previousTrack}
+              onClick={(e) => {
+                e.stopPropagation();
+                previousTrack();
+              }}
               aria-label="Previous track"
               className="nocturne-player__btn-prev"
             >
@@ -276,7 +283,10 @@ export const PlayerBar: React.FC = () => {
           <button
             type="button"
             className={`nocturne-player__play-btn ${isLoading ? 'nocturne-player__play-btn--loading' : ''}`}
-            onClick={togglePlayPause}
+            onClick={(e) => {
+              e.stopPropagation();
+              togglePlayPause();
+            }}
             aria-label={isPlaying ? 'Pause (Space)' : 'Play (Space)'}
             title={isPlaying ? 'Pause (Space)' : 'Play (Space)'}
           >
@@ -293,7 +303,10 @@ export const PlayerBar: React.FC = () => {
             <IconButton
               variant="ghost"
               size="sm"
-              onClick={nextTrack}
+              onClick={(e) => {
+                e.stopPropagation();
+                nextTrack();
+              }}
               aria-label="Next track"
               className="nocturne-player__btn-next"
             >
@@ -306,7 +319,10 @@ export const PlayerBar: React.FC = () => {
               variant="ghost"
               size="sm"
               active={repeatMode !== 'off'}
-              onClick={cycleRepeatMode}
+              onClick={(e) => {
+                e.stopPropagation();
+                cycleRepeatMode();
+              }}
               aria-label="Cycle repeat mode"
               className="nocturne-player__btn-repeat"
             >
