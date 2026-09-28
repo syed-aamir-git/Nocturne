@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Music, Sparkles } from 'lucide-react';
 import { Modal } from '../primitives/Modal';
 import { Button } from '../primitives/Button';
@@ -24,7 +24,7 @@ export interface PlaylistModalProps {
   onSuccess?: (playlist: Playlist) => void;
 }
 
-export const PlaylistModal: React.FC<PlaylistModalProps> = ({
+const PlaylistModalContent: React.FC<PlaylistModalProps> = ({
   isOpen,
   onClose,
   playlistToEdit,
@@ -36,25 +36,18 @@ export const PlaylistModal: React.FC<PlaylistModalProps> = ({
 
   const isEditing = Boolean(playlistToEdit);
 
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
-  const [artwork, setArtwork] = useState(NOCTURNE_ARTWORK_PRESETS[0]);
+  const [title, setTitle] = useState(() => {
+    if (playlistToEdit) return playlistToEdit.title;
+    return initialTracks.length > 0 ? `Sanctuary with ${initialTracks[0].title}` : '';
+  });
+  const [description, setDescription] = useState(() => {
+    return playlistToEdit?.description || '';
+  });
+  const [artwork, setArtwork] = useState(() => {
+    if (playlistToEdit) return playlistToEdit.artwork || playlistToEdit.coverUrl || NOCTURNE_ARTWORK_PRESETS[0];
+    return initialTracks[0]?.artwork || NOCTURNE_ARTWORK_PRESETS[0];
+  });
   const [imgError, setImgError] = useState(false);
-
-  useEffect(() => {
-    if (isOpen) {
-      if (playlistToEdit) {
-        setTitle(playlistToEdit.title);
-        setDescription(playlistToEdit.description || '');
-        setArtwork(playlistToEdit.artwork || playlistToEdit.coverUrl || NOCTURNE_ARTWORK_PRESETS[0]);
-      } else {
-        setTitle(initialTracks.length > 0 ? `Sanctuary with ${initialTracks[0].title}` : '');
-        setDescription('');
-        setArtwork(initialTracks[0]?.artwork || NOCTURNE_ARTWORK_PRESETS[0]);
-      }
-      setImgError(false);
-    }
-  }, [isOpen, playlistToEdit, initialTracks]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -68,25 +61,21 @@ export const PlaylistModal: React.FC<PlaylistModalProps> = ({
       updatePlaylist(playlistToEdit.id, {
         title: cleanTitle,
         description: description.trim(),
-        artwork,
-        coverUrl: artwork,
+        artwork: artwork.trim() || NOCTURNE_ARTWORK_PRESETS[0],
       });
-      showToast('Ritual Re-inscribed', `Updated "${cleanTitle}"`, 'atmosphere');
-      onSuccess?.({
-        ...playlistToEdit,
-        title: cleanTitle,
-        description: description.trim(),
-        artwork,
-        coverUrl: artwork,
-      });
+      showToast('Playlist Re-inscribed', `"${cleanTitle}" has been updated`, 'success');
     } else {
       const created = createPlaylist({
         title: cleanTitle,
         description: description.trim(),
-        artwork,
         initialTracks,
+        artwork: artwork.trim() || NOCTURNE_ARTWORK_PRESETS[0],
       });
-      showToast('New Ritual Established', `Created "${cleanTitle}"`, 'atmosphere');
+      showToast(
+        'Ritual Created',
+        `"${cleanTitle}" established with ${initialTracks.length} hymns`,
+        'success'
+      );
       onSuccess?.(created);
     }
 
@@ -206,5 +195,16 @@ export const PlaylistModal: React.FC<PlaylistModalProps> = ({
         </div>
       </form>
     </Modal>
+  );
+};
+
+export const PlaylistModal: React.FC<PlaylistModalProps> = (props) => {
+  if (!props.isOpen) return null;
+
+  return (
+    <PlaylistModalContent
+      key={props.playlistToEdit?.id || 'new-playlist'}
+      {...props}
+    />
   );
 };

@@ -20,6 +20,7 @@ export class NocturneAudioEngine implements AudioEngineInterface {
   private isCrossfadingState: boolean = false;
   private crossfadeTimeoutId: ReturnType<typeof setTimeout> | null = null;
   private fallbackCrossfadeInterval: ReturnType<typeof setInterval> | null = null;
+  private pendingCrossfadeOnComplete: (() => void) | null = null;
   private operationId: number = 0;
 
   private listeners: Set<AudioEventListener> = new Set();
@@ -116,8 +117,14 @@ export class NocturneAudioEngine implements AudioEngineInterface {
     });
 
     audio.addEventListener('ended', () => {
-      if (this.activeIndex === index && !this.isCrossfadingState) {
-        this.notifyListeners((l) => l.onEnded?.());
+      if (this.activeIndex === index) {
+        if (this.isCrossfadingState) {
+          // Outgoing track finished before crossfade timeout: finalize immediately
+          const incomingIndex = 1 - this.activeIndex;
+          this.finalizeCrossfade(incomingIndex, this.pendingCrossfadeOnComplete || undefined);
+        } else {
+          this.notifyListeners((l) => l.onEnded?.());
+        }
       }
     });
 
@@ -174,6 +181,10 @@ export class NocturneAudioEngine implements AudioEngineInterface {
           l.onLoading?.(false);
           l.onError?.(err);
         });
+      } else if (this.isCrossfadingState) {
+        // Incoming channel encountered an error while crossfading: abort crossfade gracefully
+        console.warn('[NocturneAudioEngine] Incoming channel stream error during crossfade; cancelling crossfade.');
+        this.cancelCrossfade();
       }
     });
   }
@@ -519,6 +530,7 @@ export class NocturneAudioEngine implements AudioEngineInterface {
     }
 
     this.isCrossfadingState = true;
+    this.pendingCrossfadeOnComplete = onComplete || null;
     const currentChannel = this.channels[this.activeIndex];
     const incomingIndex = 1 - this.activeIndex;
     const incomingChannel = this.channels[incomingIndex];
@@ -594,6 +606,18 @@ export class NocturneAudioEngine implements AudioEngineInterface {
   }
 
   private finalizeCrossfade(incomingIndex: number, onComplete?: () => void): void {
+    if (this.crossfadeTimeoutId) {
+      clearTimeout(this.crossfadeTimeoutId);
+      this.crossfadeTimeoutId = null;
+    }
+    if (this.fallbackCrossfadeInterval) {
+      clearInterval(this.fallbackCrossfadeInterval);
+      this.fallbackCrossfadeInterval = null;
+    }
+
+    const callback = onComplete || this.pendingCrossfadeOnComplete;
+    this.pendingCrossfadeOnComplete = null;
+
     const outgoingIndex = this.activeIndex;
     const outgoingChannel = this.channels[outgoingIndex];
     const incomingChannel = this.channels[incomingIndex];
@@ -615,11 +639,9 @@ export class NocturneAudioEngine implements AudioEngineInterface {
 
     this.activeIndex = incomingIndex;
     this.isCrossfadingState = false;
-    this.crossfadeTimeoutId = null;
-    this.fallbackCrossfadeInterval = null;
 
     this.notifyListeners((l) => l.onCrossfadeEnd?.());
-    onComplete?.();
+    callback?.();
   }
 
   public cancelCrossfade(): void {
@@ -632,6 +654,7 @@ export class NocturneAudioEngine implements AudioEngineInterface {
       clearInterval(this.fallbackCrossfadeInterval);
       this.fallbackCrossfadeInterval = null;
     }
+    this.pendingCrossfadeOnComplete = null;
 
     const currentChannel = this.channels[this.activeIndex];
     const secondaryChannel = this.channels[1 - this.activeIndex];
@@ -657,7 +680,11 @@ export class NocturneAudioEngine implements AudioEngineInterface {
       secondaryChannel.audio.volume = 0;
     } catch {}
 
+    const wasCrossfading = this.isCrossfadingState;
     this.isCrossfadingState = false;
+    if (wasCrossfading) {
+      this.notifyListeners((l) => l.onCrossfadeEnd?.());
+    }
   }
 
   public isCrossfading(): boolean {

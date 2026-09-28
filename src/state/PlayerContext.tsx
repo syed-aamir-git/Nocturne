@@ -247,7 +247,7 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   }, [currentTrack, currentTime, duration, volume, muted, shuffle, repeatMode]);
 
   // Calculates the next track in queue with shuffle, repeat, and autoplay support
-  const getNextPlayableTrack = useCallback((): { track: Track; index: number } | null => {
+  const getNextPlayableTrack = useCallback((): { track: Track; index: number; isAutoplay?: boolean } | null => {
     const { queue: currQ, queueIndex: currIdx, shuffle: isShuff, repeatMode: repMode, autoplay: isAuto } =
       stateRef.current;
     if (currQ.length === 0) return null;
@@ -281,10 +281,7 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     if (isAuto) {
       const autoTrack = pickAutoplayTrack(currQ);
       if (autoTrack) {
-        const newQueue = [...currQ, autoTrack];
-        const newIdx = currQ.length;
-        setQueue(newQueue);
-        return { track: autoTrack, index: newIdx };
+        return { track: autoTrack, index: currQ.length, isAutoplay: true };
       }
     }
 
@@ -296,6 +293,7 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     (track: Track, newQueue?: Track[], startIndex?: number) => {
       setPlaybackError(null);
       setIsLoading(true);
+      crossfadeTriggeredTrackId.current = null;
 
       if (stateRef.current.currentTrack && stateRef.current.currentTrack.id !== track.id) {
         setHistory((prev) => [...prev, stateRef.current.currentTrack!]);
@@ -360,7 +358,12 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const nextTrack = useCallback(() => {
     const nextItem = getNextPlayableTrack();
     if (nextItem) {
-      playTrack(nextItem.track, undefined, nextItem.index);
+      if (nextItem.isAutoplay) {
+        const updatedQ = [...stateRef.current.queue, nextItem.track];
+        playTrack(nextItem.track, updatedQ, updatedQ.length - 1);
+      } else {
+        playTrack(nextItem.track, undefined, nextItem.index);
+      }
     } else {
       audioEngine.pause();
       setStatus('idle');
@@ -415,15 +418,29 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
   // Play / Pause toggles
   const play = useCallback(() => {
-    const { currentTrack: currTrk, queue: currQ, queueIndex: currIdx, status: currStatus } = stateRef.current;
-    if (currStatus === 'idle' && currTrk) {
-      playTrack(currTrk, currQ, currIdx);
-      return;
-    }
+    const { currentTrack: currTrk, currentTime: currTime, status: currStatus } = stateRef.current;
+    if (!currTrk) return;
     setStatus('playing');
     setPlaybackError(null);
-    audioEngine.play();
-  }, [playTrack]);
+
+    if (currTrk.audioUrl) {
+      if (currStatus === 'idle' && currTime > 0) {
+        audioEngine.loadTrack(currTrk.audioUrl, true, currTime).catch((err) => {
+          console.warn('[PlayerContext] Audio playback could not be resumed:', err);
+          setIsLoading(false);
+          setStatus('paused');
+        });
+      } else {
+        audioEngine.play().catch(() => {
+          audioEngine.loadTrack(currTrk.audioUrl, true, currTime).catch((err) => {
+            console.warn('[PlayerContext] Playback error:', err);
+            setIsLoading(false);
+            setStatus('paused');
+          });
+        });
+      }
+    }
+  }, []);
 
   const pause = useCallback(() => {
     setStatus('paused');
@@ -431,16 +448,12 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   }, []);
 
   const togglePlayPause = useCallback(() => {
-    const { status: currStatus, currentTrack: currTrk, queue: currQ, queueIndex: currIdx } = stateRef.current;
+    const { status: currStatus, currentTrack: currTrk, queue: currQ } = stateRef.current;
 
     if (currStatus === 'playing') {
       pause();
     } else if (currTrk) {
-      if (currStatus === 'idle') {
-        playTrack(currTrk, currQ, currIdx);
-      } else {
-        play();
-      }
+      play();
     } else if (currQ.length > 0) {
       playTrack(currQ[0], currQ, 0);
     }
@@ -608,6 +621,10 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
             crossfadeTriggeredTrackId.current = currentTrk.id;
             setIsCrossfading(true);
 
+            if (upcoming.isAutoplay) {
+              setQueue((prev) => [...prev, upcoming.track]);
+            }
+
             audioEngine.startCrossfade(upcoming.track.audioUrl, xfadeSec, () => {
               setCurrentTrack(upcoming.track);
               setQueueIndex(upcoming.index);
@@ -636,6 +653,7 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       },
       onCrossfadeEnd: () => {
         setIsCrossfading(false);
+        crossfadeTriggeredTrackId.current = null;
       },
       onError: (err) => {
         console.warn('[PlayerContext] Audio playback warning:', err.message);
