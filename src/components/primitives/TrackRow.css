@@ -1,6 +1,6 @@
 .nocturne-track-row {
   display: grid;
-  grid-template-columns: 36px 44px 1fr 1fr 90px 45px 64px;
+  grid-template-columns: 36px 44px 1fr 1fr 90px 45px 96px;
   align-items: center;
   gap: 14px;
   padding: var(--track-row-padding, 8px 12px);
@@ -10,6 +10,10 @@
   user-select: none;
   font-size: 13.5px;
   color: var(--text-medium);
+}
+
+.nocturne-track-row--no-album {
+  grid-template-columns: 36px 44px 1fr 90px 45px 96px;
 }
 
 .nocturne-track-row:hover {

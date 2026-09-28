@@ -63,6 +63,48 @@ export const storageService = {
     }
   },
 
+  getFollowedArtistIds(): string[] {
+    try {
+      const stored = localStorage.getItem('nocturne_followed_artist_ids_v1');
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed)) return parsed;
+      }
+      return ['art-1', 'art-2'];
+    } catch {
+      return ['art-1', 'art-2'];
+    }
+  },
+
+  saveFollowedArtistIds(ids: string[]): void {
+    try {
+      localStorage.setItem('nocturne_followed_artist_ids_v1', JSON.stringify(ids));
+    } catch (e) {
+      console.warn('[StorageService] Error saving followed artists:', e);
+    }
+  },
+
+  getSavedAlbumIds(): string[] {
+    try {
+      const stored = localStorage.getItem('nocturne_saved_album_ids_v1');
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed)) return parsed;
+      }
+      return ['alb-1', 'alb-2'];
+    } catch {
+      return ['alb-1', 'alb-2'];
+    }
+  },
+
+  saveSavedAlbumIds(ids: string[]): void {
+    try {
+      localStorage.setItem('nocturne_saved_album_ids_v1', JSON.stringify(ids));
+    } catch (e) {
+      console.warn('[StorageService] Error saving saved albums:', e);
+    }
+  },
+
   /**
    * Helper to look up track details by ID from MOCK_TRACKS
    */

@@ -1,9 +1,24 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { Play, ArrowLeft, CheckCircle2, User, Disc, Radio } from 'lucide-react';
+import {
+  Play,
+  Pause,
+  Shuffle,
+  ArrowLeft,
+  CheckCircle2,
+  User,
+  Disc,
+  Radio,
+  Share2,
+  Bookmark,
+  BookmarkCheck,
+  Sparkles,
+  Users,
+} from 'lucide-react';
 import { musicService } from '../services/musicService';
 import type { Artist, Track, Album } from '../types';
 import { usePlayer } from '../state/PlayerContext';
+import { useLibrary } from '../state/LibraryContext';
 import { useToast } from '../state/ToastContext';
 import { Button } from '../components/primitives/Button';
 import { IconButton } from '../components/primitives/IconButton';
@@ -11,18 +26,27 @@ import { TrackList } from '../components/primitives/TrackList';
 import { AlbumCard } from '../components/primitives/AlbumCard';
 import { Skeleton } from '../components/primitives/Skeleton';
 import { EmptyState } from '../components/primitives/EmptyState';
+import { Tooltip } from '../components/primitives/Tooltip';
 import { formatNumber } from '../utilities/formatters';
+import './ArtistDetailPage.css';
 
 export const ArtistDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const [artist, setArtist] = useState<Artist | null>(null);
   const [tracks, setTracks] = useState<Track[]>([]);
   const [albums, setAlbums] = useState<Album[]>([]);
+  const [similarArtists, setSimilarArtists] = useState<Artist[]>([]);
   const [loading, setLoading] = useState(true);
-  const [following, setFollowing] = useState(false);
-  const [imgError, setImgError] = useState(false);
-  const { currentTrack, status, playTrack } = usePlayer();
+  const [imgErrorArtistId, setImgErrorArtistId] = useState<string | null>(null);
+  const [releaseFilter, setReleaseFilter] = useState<'all' | 'albums' | 'eps' | 'singles'>('all');
+  const [showAllPopular, setShowAllPopular] = useState(false);
+
+  const { currentTrack, isPlaying, playTrack } = usePlayer();
+  const { isArtistFollowed, toggleFollowArtist } = useLibrary();
   const { showToast } = useToast();
+
+  const isFollowed = artist ? isArtistFollowed(artist.id) : false;
+  const imgError = Boolean(artist && imgErrorArtistId === artist.id);
 
   useEffect(() => {
     let isCancelled = false;
@@ -31,11 +55,15 @@ export const ArtistDetailPage: React.FC = () => {
       musicService.getArtistById(id || ''),
       musicService.getTracksByArtist(id || ''),
       musicService.getAllAlbums(),
-    ]).then(([art, trks, allAlbs]) => {
+      musicService.getSimilarArtists(id || ''),
+    ]).then(([art, trks, allAlbs, similar]) => {
       if (!isCancelled) {
         setArtist(art);
-        setTracks(trks);
+        // Sort tracks by playCount for popular songs
+        const sortedTrks = [...trks].sort((a, b) => (b.playCount || 0) - (a.playCount || 0));
+        setTracks(sortedTrks);
         setAlbums(allAlbs.filter((a) => a.artistId === id));
+        setSimilarArtists(similar);
         setLoading(false);
       }
     });
@@ -45,12 +73,38 @@ export const ArtistDetailPage: React.FC = () => {
     };
   }, [id]);
 
+  // Segregate discography into Albums, EPs, and Singles
+  const categorizedAlbums = useMemo(() => {
+    const fullAlbums: Album[] = [];
+    const eps: Album[] = [];
+    const singles: Album[] = [];
+
+    albums.forEach((alb) => {
+      if (alb.type === 'single' || alb.isSingle || (alb.tracksCount && alb.tracksCount === 1) || alb.tracks.length === 1) {
+        singles.push(alb);
+      } else if (alb.type === 'ep' || (alb.tracksCount && alb.tracksCount <= 3) || alb.tracks.length <= 3 || alb.title.toLowerCase().includes('ep')) {
+        eps.push(alb);
+      } else {
+        fullAlbums.push(alb);
+      }
+    });
+
+    return { fullAlbums, eps, singles };
+  }, [albums]);
+
+  const filteredReleases = useMemo(() => {
+    if (releaseFilter === 'albums') return categorizedAlbums.fullAlbums;
+    if (releaseFilter === 'eps') return categorizedAlbums.eps;
+    if (releaseFilter === 'singles') return categorizedAlbums.singles;
+    return albums;
+  }, [releaseFilter, categorizedAlbums, albums]);
+
   if (loading) {
     return (
-      <div style={{ maxWidth: 1200, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 24 }}>
-        <Skeleton height={260} variant="rounded" />
-        <Skeleton height={40} width="30%" />
-        <Skeleton height={60} variant="rounded" />
+      <div className="nocturne-artist-page">
+        <Skeleton height={320} variant="rounded" />
+        <Skeleton height={40} width="35%" />
+        <Skeleton height={200} variant="rounded" />
       </div>
     );
   }
@@ -60,7 +114,7 @@ export const ArtistDetailPage: React.FC = () => {
       <div style={{ maxWidth: 800, margin: '40px auto' }}>
         <EmptyState
           title="Artist Unknown to the Sanctum"
-          description="The artist you seek has retreated into anonymity or the ether."
+          description="The creator you seek has retreated into anonymity or the ether."
           action={
             <Link to="/artists">
               <Button variant="primary">Browse All Artists</Button>
@@ -74,7 +128,11 @@ export const ArtistDetailPage: React.FC = () => {
   const avatarSrc = artist.image || artist.avatarUrl || '';
   const bannerSrc = artist.bannerUrl || avatarSrc;
   const bio = artist.biography || artist.bio || '';
+  const isCurrentlyPlayingArtist = Boolean(
+    isPlaying && currentTrack && tracks.some((t) => t.id === currentTrack.id)
+  );
 
+  // Actions
   const handlePlayArtist = () => {
     if (tracks.length > 0) {
       playTrack(tracks[0], tracks, 0);
@@ -82,256 +140,255 @@ export const ArtistDetailPage: React.FC = () => {
     }
   };
 
+  const handleShuffleArtist = () => {
+    if (tracks.length > 0) {
+      const shuffled = [...tracks].sort(() => Math.random() - 0.5);
+      playTrack(shuffled[0], shuffled, 0);
+      showToast('Shuffling Artist', `Shuffled ${shuffled.length} hymns by ${artist.name}`, 'atmosphere');
+    }
+  };
+
+  const handleToggleFollow = () => {
+    const next = toggleFollowArtist(artist.id);
+    showToast(
+      next ? 'Preserved in Sanctum' : 'Removed from Sanctum',
+      next ? `Now following ${artist.name}` : `Unfollowed ${artist.name}`,
+      'default'
+    );
+  };
+
+  const handleShare = () => {
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(window.location.href);
+      showToast('Sanctuary Link Copied', `Link to ${artist.name} copied to clipboard`, 'default');
+    }
+  };
+
+  const displayedTracks = showAllPopular ? tracks : tracks.slice(0, 5);
+
   return (
-    <div style={{ maxWidth: 1200, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 36 }}>
+    <div className="nocturne-artist-page">
       {/* Return link */}
-      <Link
-        to="/artists"
-        style={{
-          display: 'inline-flex',
-          alignItems: 'center',
-          gap: 8,
-          color: 'var(--text-medium)',
-          fontSize: '13px',
-          textDecoration: 'none',
-        }}
-      >
+      <Link to="/artists" className="nocturne-artist-page__back-link">
         <ArrowLeft size={16} />
         <span>Return to Artists</span>
       </Link>
 
-      {/* Artist Hero Banner */}
-      <div
-        style={{
-          position: 'relative',
-          borderRadius: 'var(--radius-lg)',
-          overflow: 'hidden',
-          background: 'var(--bg-surface)',
-          border: '1px solid var(--border-subtle)',
-          boxShadow: 'var(--shadow-md)',
-          minHeight: 280,
-          display: 'flex',
-          alignItems: 'flex-end',
-          padding: '32px',
-        }}
-      >
-        {/* Backdrop image */}
+      {/* Hero Banner Centerpiece */}
+      <header className="nocturne-artist-page__hero">
         {bannerSrc && (
           <div
-            style={{
-              position: 'absolute',
-              inset: 0,
-              backgroundImage: `url(${bannerSrc})`,
-              backgroundSize: 'cover',
-              backgroundPosition: 'center 30%',
-              opacity: 0.28,
-              filter: 'blur(3px)',
-              pointerEvents: 'none',
-            }}
+            className="nocturne-artist-page__hero-backdrop"
+            style={{ backgroundImage: `url(${bannerSrc})` }}
           />
         )}
-        <div
-          style={{
-            position: 'absolute',
-            inset: 0,
-            background: 'linear-gradient(to top, var(--bg-surface) 10%, rgba(10, 10, 12, 0.75) 70%, transparent 100%)',
-            pointerEvents: 'none',
-          }}
-        />
+        <div className="nocturne-artist-page__hero-overlay" />
 
-        {/* Content */}
-        <div
-          style={{
-            position: 'relative',
-            zIndex: 1,
-            display: 'flex',
-            alignItems: 'flex-end',
-            gap: 24,
-            flexWrap: 'wrap',
-            width: '100%',
-          }}
-        >
+        <div className="nocturne-artist-page__hero-content">
           {/* Avatar */}
-          <div
-            style={{
-              width: 140,
-              height: 140,
-              borderRadius: '50%',
-              overflow: 'hidden',
-              flexShrink: 0,
-              background: 'var(--bg-surface-elevated)',
-              boxShadow: 'var(--shadow-lg), 0 0 20px var(--accent-glow)',
-              border: '2px solid rgba(255, 255, 255, 0.12)',
-            }}
-          >
+          <div className="nocturne-artist-page__avatar-wrap">
             {!imgError && avatarSrc ? (
               <img
                 src={avatarSrc}
                 alt={artist.name}
-                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                onError={() => setImgError(true)}
+                className="nocturne-artist-page__avatar"
+                onError={() => artist && setImgErrorArtistId(artist.id)}
               />
             ) : (
-              <div
-                style={{
-                  width: '100%',
-                  height: '100%',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
-                <User size={48} color="var(--accent-secondary)" />
+              <div className="nocturne-artist-page__avatar-fallback">
+                <User size={56} />
               </div>
             )}
           </div>
 
-          {/* Details */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8, flex: 1, minWidth: 260 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <span
-                style={{
-                  fontSize: '11px',
-                  fontFamily: 'var(--font-mono)',
-                  letterSpacing: '0.08em',
-                  color: 'var(--accent-secondary)',
-                  fontWeight: 600,
-                }}
-              >
-                FEATURED ARTIST
-              </span>
+          {/* Metadata */}
+          <div className="nocturne-artist-page__meta">
+            <div className="nocturne-artist-page__eyebrow-row">
+              <span className="nocturne-artist-page__eyebrow">FEATURED ARTIST</span>
               {artist.verified && (
-                <span
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: 4,
-                    fontSize: '11px',
-                    color: 'var(--accent-primary)',
-                  }}
-                >
+                <span className="nocturne-artist-page__verified-pill">
                   <CheckCircle2 size={13} fill="currentColor" /> Verified Sanctuary
                 </span>
               )}
             </div>
 
-            <h1 style={{ fontSize: '2.6rem', margin: 0, lineHeight: 1.1 }}>{artist.name}</h1>
+            <h1 className="nocturne-artist-page__name">{artist.name}</h1>
 
             {artist.monthlyListeners !== undefined && (
-              <span style={{ fontSize: '13px', color: 'var(--text-medium)', fontFamily: 'var(--font-mono)' }}>
+              <span className="nocturne-artist-page__listener-stat">
                 {formatNumber(artist.monthlyListeners)} monthly listeners in silence
               </span>
             )}
 
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 4 }}>
+            <div className="nocturne-artist-page__genre-pills">
               {artist.genres.map((g) => (
-                <span
-                  key={g}
-                  style={{
-                    padding: '2px 8px',
-                    borderRadius: 'var(--radius-full)',
-                    background: 'rgba(255, 255, 255, 0.08)',
-                    fontSize: '11px',
-                    color: 'var(--text-medium)',
-                  }}
-                >
+                <span key={g} className="nocturne-artist-page__genre-pill">
                   {g}
                 </span>
               ))}
             </div>
 
-            {/* Actions */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginTop: 12 }}>
+            {/* Actions Toolbar */}
+            <div className="nocturne-artist-page__actions">
               <Button
                 variant="primary"
                 size="md"
-                leftIcon={<Play size={16} fill="currentColor" />}
+                className="nocturne-artist-page__play-btn"
+                leftIcon={isCurrentlyPlayingArtist ? <Pause size={17} fill="currentColor" /> : <Play size={17} fill="currentColor" />}
                 onClick={handlePlayArtist}
               >
-                Play Artist
+                {isCurrentlyPlayingArtist ? 'Pause' : 'Play Artist'}
               </Button>
+
               <Button
-                variant={following ? 'secondary' : 'gothic'}
+                variant="secondary"
                 size="md"
-                onClick={() => {
-                  const next = !following;
-                  setFollowing(next);
-                  showToast(
-                    next ? 'Followed' : 'Unfollowed',
-                    next ? `Now receiving updates from ${artist.name}` : `Unfollowed ${artist.name}`,
-                    'default'
-                  );
-                }}
+                leftIcon={<Shuffle size={16} />}
+                onClick={handleShuffleArtist}
               >
-                {following ? 'Preserved in Library' : 'Follow'}
+                Shuffle
               </Button>
-              <IconButton
-                variant="ghost"
+
+              <Button
+                variant={isFollowed ? 'secondary' : 'gothic'}
                 size="md"
-                aria-label="Start artist radio"
-                onClick={() => showToast('Artist Radio', `Generated radio for ${artist.name}`, 'atmosphere')}
+                leftIcon={isFollowed ? <BookmarkCheck size={16} /> : <Bookmark size={16} />}
+                onClick={handleToggleFollow}
               >
-                <Radio size={18} />
-              </IconButton>
+                {isFollowed ? 'Preserved in Library' : 'Follow'}
+              </Button>
+
+              <Tooltip content="Artist Radio" position="top">
+                <IconButton
+                  variant="ghost"
+                  size="md"
+                  aria-label="Start artist radio"
+                  onClick={() => showToast('Artist Radio', `Generated ambient radio for ${artist.name}`, 'atmosphere')}
+                >
+                  <Radio size={18} />
+                </IconButton>
+              </Tooltip>
+
+              <Tooltip content="Share Artist" position="top">
+                <IconButton
+                  variant="ghost"
+                  size="md"
+                  aria-label="Share artist"
+                  onClick={handleShare}
+                >
+                  <Share2 size={18} />
+                </IconButton>
+              </Tooltip>
             </div>
           </div>
         </div>
-      </div>
+      </header>
 
-      {/* Biography */}
+      {/* Biography & Lore */}
       {bio && (
-        <section
-          style={{
-            padding: '24px',
-            borderRadius: 'var(--radius-md)',
-            background: 'var(--bg-surface)',
-            border: '1px solid var(--border-subtle)',
-          }}
-        >
-          <h2 style={{ fontSize: '1.15rem', marginBottom: 10, color: 'var(--text-high)' }}>Biography</h2>
-          <p style={{ color: 'var(--text-medium)', fontSize: '14px', lineHeight: 1.6, margin: 0 }}>
-            {bio}
-          </p>
+        <section className="nocturne-artist-page__bio-card">
+          <div className="nocturne-artist-page__bio-header">
+            <h2 className="nocturne-artist-page__bio-title">Sanctuary Inscriptions</h2>
+            <span style={{ fontSize: '11px', fontFamily: 'var(--font-mono)', color: 'var(--text-low)' }}>
+              CHRONICLES OF {artist.name.toUpperCase()}
+            </span>
+          </div>
+          <p className="nocturne-artist-page__bio-text">{bio}</p>
         </section>
       )}
 
-      {/* Popular Tracks */}
-      <section>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-          <h2 style={{ fontSize: '1.25rem', margin: 0 }}>Essential Recordings</h2>
-          <span style={{ fontSize: '12px', color: 'var(--text-low)', fontFamily: 'var(--font-mono)' }}>
-            {tracks.length} {tracks.length === 1 ? 'track' : 'tracks'}
-          </span>
-        </div>
-
-        <TrackList
-          tracks={tracks}
-          currentTrackId={currentTrack?.id}
-          isPlaying={status === 'playing'}
-          onTrackPlay={(t, _all, i) => {
-            playTrack(t, tracks, i);
-          }}
-          onLikeToggle={(t, l) => {
-            showToast(l ? 'Liked' : 'Unliked', t.title, 'default');
-          }}
-        />
-      </section>
-
-      {/* Discography */}
-      {albums.length > 0 && (
+      {/* Popular Songs / Essential Recordings */}
+      {tracks.length > 0 && (
         <section>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-            <h2 style={{ fontSize: '1.25rem', margin: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
-              <Disc size={18} color="var(--accent-primary)" />
-              <span>Discography</span>
+          <div className="nocturne-artist-page__section-header">
+            <h2 className="nocturne-artist-page__section-title">
+              <Sparkles size={20} color="var(--accent-primary)" />
+              <span>Essential Recordings</span>
             </h2>
-            <span style={{ fontSize: '12px', color: 'var(--text-low)', fontFamily: 'var(--font-mono)' }}>
-              {albums.length} {albums.length === 1 ? 'release' : 'releases'}
-            </span>
+            {tracks.length > 5 && (
+              <button
+                type="button"
+                onClick={() => setShowAllPopular(!showAllPopular)}
+                style={{
+                  background: 'transparent',
+                  border: 'none',
+                  color: 'var(--accent-secondary)',
+                  fontSize: '12px',
+                  fontFamily: 'var(--font-mono)',
+                  cursor: 'pointer',
+                  padding: '4px 8px',
+                }}
+              >
+                {showAllPopular ? 'Show Less' : `Show All (${tracks.length})`}
+              </button>
+            )}
           </div>
 
-          <div className="nocturne-home__grid-cinematic">
-            {albums.map((alb) => (
+          <TrackList
+            tracks={displayedTracks}
+            currentTrackId={currentTrack?.id}
+            isPlaying={isPlaying}
+            onTrackPlay={(t, _all, i) => {
+              playTrack(t, tracks, i);
+            }}
+            onLikeToggle={(t, l) => {
+              showToast(l ? 'Liked' : 'Unliked', t.title, 'default');
+            }}
+          />
+        </section>
+      )}
+
+      {/* Discography: Albums, EPs, Singles */}
+      <section>
+        <div className="nocturne-artist-page__discography-header">
+          <h2 className="nocturne-artist-page__section-title">
+            <Disc size={20} color="var(--accent-primary)" />
+            <span>Discography</span>
+          </h2>
+
+          <div className="nocturne-artist-page__filter-tabs">
+            <button
+              type="button"
+              className={`nocturne-artist-page__filter-btn ${
+                releaseFilter === 'all' ? 'nocturne-artist-page__filter-btn--active' : ''
+              }`}
+              onClick={() => setReleaseFilter('all')}
+            >
+              All ({albums.length})
+            </button>
+            <button
+              type="button"
+              className={`nocturne-artist-page__filter-btn ${
+                releaseFilter === 'albums' ? 'nocturne-artist-page__filter-btn--active' : ''
+              }`}
+              onClick={() => setReleaseFilter('albums')}
+            >
+              Albums ({categorizedAlbums.fullAlbums.length})
+            </button>
+            <button
+              type="button"
+              className={`nocturne-artist-page__filter-btn ${
+                releaseFilter === 'eps' ? 'nocturne-artist-page__filter-btn--active' : ''
+              }`}
+              onClick={() => setReleaseFilter('eps')}
+            >
+              EPs ({categorizedAlbums.eps.length})
+            </button>
+            <button
+              type="button"
+              className={`nocturne-artist-page__filter-btn ${
+                releaseFilter === 'singles' ? 'nocturne-artist-page__filter-btn--active' : ''
+              }`}
+              onClick={() => setReleaseFilter('singles')}
+            >
+              Singles ({categorizedAlbums.singles.length})
+            </button>
+          </div>
+        </div>
+
+        {filteredReleases.length > 0 ? (
+          <div className="nocturne-artist-page__release-grid">
+            {filteredReleases.map((alb) => (
               <AlbumCard
                 key={alb.id}
                 album={alb}
@@ -344,8 +401,80 @@ export const ArtistDetailPage: React.FC = () => {
               />
             ))}
           </div>
+        ) : (
+          <div style={{ padding: '36px', textAlign: 'center', color: 'var(--text-low)' }}>
+            <p style={{ margin: 0, fontStyle: 'italic' }}>
+              No releases in this category yet.
+            </p>
+          </div>
+        )}
+      </section>
+
+      {/* Similar Artists / Kindred Spirits */}
+      {similarArtists.length > 0 && (
+        <section>
+          <div className="nocturne-artist-page__section-header">
+            <h2 className="nocturne-artist-page__section-title">
+              <Users size={20} color="var(--accent-secondary)" />
+              <span>Kindred Spirits</span>
+            </h2>
+            <span className="nocturne-artist-page__section-badge">
+              ATMOSPHERIC RESONANCES
+            </span>
+          </div>
+
+          <div className="nocturne-artist-page__similar-grid">
+            {similarArtists.map((sim) => {
+              const simAvatar = sim.image || sim.avatarUrl || '';
+              return (
+                <Link
+                  key={sim.id}
+                  to={`/artist/${sim.id}`}
+                  className="nocturne-artist-page__similar-card"
+                >
+                  <div className="nocturne-artist-page__similar-avatar-wrap">
+                    {simAvatar ? (
+                      <img
+                        src={simAvatar}
+                        alt={sim.name}
+                        className="nocturne-artist-page__similar-avatar"
+                      />
+                    ) : (
+                      <div className="nocturne-artist-page__avatar-fallback">
+                        <User size={36} />
+                      </div>
+                    )}
+                  </div>
+                  <span className="nocturne-artist-page__similar-name" title={sim.name}>
+                    {sim.name}
+                  </span>
+                  <span className="nocturne-artist-page__similar-genre">
+                    {sim.genres[0] || 'Gothic Atmosphere'}
+                  </span>
+                  {sim.monthlyListeners !== undefined && (
+                    <span className="nocturne-artist-page__similar-listeners">
+                      {formatNumber(sim.monthlyListeners)} listeners
+                    </span>
+                  )}
+                  <div className="nocturne-artist-page__similar-actions">
+                    <span
+                      style={{
+                        fontSize: '11px',
+                        fontFamily: 'var(--font-mono)',
+                        color: 'var(--accent-secondary)',
+                      }}
+                    >
+                      Enter Sanctum →
+                    </span>
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
         </section>
       )}
     </div>
   );
 };
+
+export default ArtistDetailPage;

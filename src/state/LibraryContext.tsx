@@ -22,11 +22,17 @@ export interface CreatePlaylistInput {
 
 export interface LibraryContextType {
   likedTrackIds: Set<string>;
+  followedArtistIds: Set<string>;
+  savedAlbumIds: Set<string>;
   playlists: Playlist[];
   isLiked: (trackId: string) => boolean;
   toggleLike: (track: Track) => boolean;
   likeTrack: (track: Track) => void;
   unlikeTrack: (trackId: string) => void;
+  isArtistFollowed: (artistId: string) => boolean;
+  toggleFollowArtist: (artistId: string) => boolean;
+  isAlbumSaved: (albumId: string) => boolean;
+  toggleSaveAlbum: (albumId: string) => boolean;
   getLikedTracks: () => Track[];
   createPlaylist: (input: CreatePlaylistInput) => Playlist;
   updatePlaylist: (id: string, updates: Partial<Playlist>) => void;
@@ -46,6 +52,14 @@ export const LibraryProvider: React.FC<{ children: React.ReactNode }> = ({ child
     return new Set(storageService.getLikedTrackIds());
   });
 
+  const [followedArtistIds, setFollowedArtistIds] = useState<Set<string>>(() => {
+    return new Set(storageService.getFollowedArtistIds());
+  });
+
+  const [savedAlbumIds, setSavedAlbumIds] = useState<Set<string>>(() => {
+    return new Set(storageService.getSavedAlbumIds());
+  });
+
   const [playlists, setPlaylists] = useState<Playlist[]>(() => {
     return storageService.getPlaylists();
   });
@@ -54,6 +68,16 @@ export const LibraryProvider: React.FC<{ children: React.ReactNode }> = ({ child
   useEffect(() => {
     storageService.saveLikedTrackIds(Array.from(likedTrackIds));
   }, [likedTrackIds]);
+
+  // Persist followed artists
+  useEffect(() => {
+    storageService.saveFollowedArtistIds(Array.from(followedArtistIds));
+  }, [followedArtistIds]);
+
+  // Persist saved albums
+  useEffect(() => {
+    storageService.saveSavedAlbumIds(Array.from(savedAlbumIds));
+  }, [savedAlbumIds]);
 
   // Persist playlists whenever changed
   useEffect(() => {
@@ -81,6 +105,52 @@ export const LibraryProvider: React.FC<{ children: React.ReactNode }> = ({ child
       return next;
     });
     return nextLiked;
+  }, []);
+
+  const isArtistFollowed = useCallback(
+    (artistId: string): boolean => {
+      return followedArtistIds.has(artistId);
+    },
+    [followedArtistIds]
+  );
+
+  const toggleFollowArtist = useCallback((artistId: string): boolean => {
+    let nextFollowed = false;
+    setFollowedArtistIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(artistId)) {
+        next.delete(artistId);
+        nextFollowed = false;
+      } else {
+        next.add(artistId);
+        nextFollowed = true;
+      }
+      return next;
+    });
+    return nextFollowed;
+  }, []);
+
+  const isAlbumSaved = useCallback(
+    (albumId: string): boolean => {
+      return savedAlbumIds.has(albumId);
+    },
+    [savedAlbumIds]
+  );
+
+  const toggleSaveAlbum = useCallback((albumId: string): boolean => {
+    let nextSaved = false;
+    setSavedAlbumIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(albumId)) {
+        next.delete(albumId);
+        nextSaved = false;
+      } else {
+        next.add(albumId);
+        nextSaved = true;
+      }
+      return next;
+    });
+    return nextSaved;
   }, []);
 
   const likeTrack = useCallback((track: Track) => {
@@ -273,11 +343,17 @@ export const LibraryProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const contextValue = useMemo(
     () => ({
       likedTrackIds,
+      followedArtistIds,
+      savedAlbumIds,
       playlists,
       isLiked,
       toggleLike,
       likeTrack,
       unlikeTrack,
+      isArtistFollowed,
+      toggleFollowArtist,
+      isAlbumSaved,
+      toggleSaveAlbum,
       getLikedTracks,
       createPlaylist,
       updatePlaylist,
@@ -291,11 +367,17 @@ export const LibraryProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }),
     [
       likedTrackIds,
+      followedArtistIds,
+      savedAlbumIds,
       playlists,
       isLiked,
       toggleLike,
       likeTrack,
       unlikeTrack,
+      isArtistFollowed,
+      toggleFollowArtist,
+      isAlbumSaved,
+      toggleSaveAlbum,
       getLikedTracks,
       createPlaylist,
       updatePlaylist,

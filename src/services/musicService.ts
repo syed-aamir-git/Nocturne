@@ -29,6 +29,7 @@ export interface MusicServiceInterface {
   getAllArtists(): Promise<Artist[]>;
   getFeaturedArtists(): Promise<Artist[]>;
   getArtistById(id: string): Promise<Artist | null>;
+  getSimilarArtists(artistId: string): Promise<Artist[]>;
   getTracksByArtist(artistId: string): Promise<Track[]>;
   getTracksByAlbum(albumId: string): Promise<Track[]>;
   getTracksByGenre(genre: string): Promise<Track[]>;
@@ -92,6 +93,27 @@ class MusicService implements MusicServiceInterface {
   public async getArtistById(id: string): Promise<Artist | null> {
     const artist = MOCK_ARTISTS.find((a) => a.id === id) || null;
     return this.simulateDelay(artist);
+  }
+
+  public async getSimilarArtists(artistId: string): Promise<Artist[]> {
+    const current = MOCK_ARTISTS.find((a) => a.id === artistId);
+    if (!current) {
+      return this.simulateDelay(MOCK_ARTISTS.filter((a) => a.id !== artistId).slice(0, 4));
+    }
+    const currentGenres = new Set(current.genres.map((g) => g.toLowerCase()));
+    const others = MOCK_ARTISTS.filter((a) => a.id !== artistId);
+
+    const scored = others.map((other) => {
+      let score = 0;
+      other.genres.forEach((g) => {
+        if (currentGenres.has(g.toLowerCase())) score += 2;
+      });
+      return { artist: other, score };
+    });
+
+    scored.sort((a, b) => b.score - a.score);
+    const result = scored.slice(0, 4).map((s) => s.artist);
+    return this.simulateDelay(result);
   }
 
   public async getTracksByArtist(artistId: string): Promise<Track[]> {

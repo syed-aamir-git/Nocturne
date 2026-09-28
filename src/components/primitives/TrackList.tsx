@@ -96,6 +96,7 @@ export const TrackList: React.FC<TrackListProps> = ({
               index={index}
               isActive={isActive}
               isPlaying={isActive && isPlaying}
+              showAlbum={showAlbum}
               onPlay={(t) => onTrackPlay(t, tracks, index)}
               onPause={onTrackPause}
               onLikeToggle={onLikeToggle}

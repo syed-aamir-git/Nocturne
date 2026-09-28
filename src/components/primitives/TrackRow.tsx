@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
-import { Play, Pause, Heart, Music, AlignLeft, MoreHorizontal, GripVertical, AlertCircle } from 'lucide-react';
+import { Play, Pause, Heart, Music, AlignLeft, MoreHorizontal, GripVertical, AlertCircle, ListPlus } from 'lucide-react';
 import type { Track, Playlist } from '../../types';
 import { formatDuration } from '../../utilities/formatters';
 import { IconButton } from './IconButton';
 import { TrackContextMenu } from './TrackContextMenu';
 import { PlaylistModal } from '../modals/PlaylistModal';
 import { useLibrary } from '../../state/LibraryContext';
+import { usePlayer } from '../../state/PlayerContext';
 import { useToast } from '../../state/ToastContext';
 import './TrackRow.css';
 
@@ -14,6 +15,7 @@ export interface TrackRowProps {
   index: number;
   isActive?: boolean;
   isPlaying?: boolean;
+  showAlbum?: boolean;
   onPlay: (track: Track) => void;
   onPause?: () => void;
   onLikeToggle?: (track: Track, liked: boolean) => void;
@@ -31,6 +33,7 @@ export const TrackRow: React.FC<TrackRowProps> = ({
   index,
   isActive = false,
   isPlaying = false,
+  showAlbum = true,
   onPlay,
   onPause,
   onLikeToggle,
@@ -43,6 +46,7 @@ export const TrackRow: React.FC<TrackRowProps> = ({
   onDrop,
 }) => {
   const { isLiked, toggleLike } = useLibrary();
+  const { addToQueue } = usePlayer();
   const { showToast } = useToast();
   const [imgError, setImgError] = useState(false);
   const [menuPosition, setMenuPosition] = useState<{ x: number; y: number } | null>(null);
@@ -98,7 +102,7 @@ export const TrackRow: React.FC<TrackRowProps> = ({
       <div
         className={`nocturne-track-row ${isActive ? 'nocturne-track-row--active' : ''} ${
           track.isUnavailable ? 'nocturne-track-row--unavailable' : ''
-        } ${className}`}
+        } ${!showAlbum ? 'nocturne-track-row--no-album' : ''} ${className}`}
         onClick={handleRowClick}
         onContextMenu={handleContextMenu}
         role="button"
@@ -250,8 +254,8 @@ export const TrackRow: React.FC<TrackRowProps> = ({
           </span>
         </div>
 
-        {/* Album */}
-        <div className="nocturne-track-row__album">{track.album}</div>
+        {/* Album (optional) */}
+        {showAlbum && <div className="nocturne-track-row__album">{track.album}</div>}
 
         {/* Audio format badge column */}
         <div className="nocturne-track-row__badge-col">
@@ -271,7 +275,7 @@ export const TrackRow: React.FC<TrackRowProps> = ({
           {formatDuration(track.duration)}
         </div>
 
-        {/* Actions: Heart & 3-dots More button */}
+        {/* Actions: Heart, Add to Queue & 3-dots More button */}
         <div
           className="nocturne-track-row__actions"
           onClick={(e) => e.stopPropagation()}
@@ -284,6 +288,20 @@ export const TrackRow: React.FC<TrackRowProps> = ({
             style={liked ? { color: 'var(--accent-primary)' } : undefined}
           >
             <Heart size={15} fill={liked ? 'currentColor' : 'none'} />
+          </IconButton>
+
+          <IconButton
+            variant="ghost"
+            size="sm"
+            onClick={(e) => {
+              e.stopPropagation();
+              addToQueue(track);
+              showToast('Added to Queue', `"${track.title}" added to sequence`, 'default');
+            }}
+            aria-label="Add to sequence queue"
+            title="Add to queue"
+          >
+            <ListPlus size={15} />
           </IconButton>
 
           <IconButton

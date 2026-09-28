@@ -1,0 +1,498 @@
+/* ==========================================================================
+   Nocturne Artist Page - Sanctuary of the Creator
+   Atmospheric, immersive artist showcase with discography and kindred spirits
+   ========================================================================== */
+
+.nocturne-artist-page {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 16px 80px;
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+  animation: artistFadeIn var(--transition-flow);
+}
+
+@keyframes artistFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Back Link */
+.nocturne-artist-page__back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-medium);
+  font-size: 13px;
+  text-decoration: none;
+  width: fit-content;
+  transition: color var(--transition-snappy);
+}
+
+.nocturne-artist-page__back-link:hover {
+  color: var(--text-pure);
+}
+
+/* ==========================================================================
+   HERO BANNER
+   ========================================================================== */
+
+.nocturne-artist-page__hero {
+  position: relative;
+  min-height: 340px;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  box-shadow: var(--shadow-lg), 0 0 32px var(--accent-glow);
+  display: flex;
+  align-items: flex-end;
+  padding: 40px;
+}
+
+.nocturne-artist-page__hero-backdrop {
+  position: absolute;
+  inset: -20px;
+  background-size: cover;
+  background-position: center 35%;
+  filter: blur(28px) saturate(1.3) brightness(0.28);
+  pointer-events: none;
+  z-index: 0;
+  transform: scale(1.05);
+}
+
+.nocturne-artist-page__hero-overlay {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+      ellipse at 70% 20%,
+      var(--accent-glow) 0%,
+      transparent 70%
+    ),
+    linear-gradient(
+      to top,
+      var(--bg-canvas) 0%,
+      rgba(8, 7, 12, 0.75) 60%,
+      rgba(4, 3, 6, 0.4) 100%
+    );
+  pointer-events: none;
+  z-index: 1;
+}
+
+.nocturne-artist-page__hero-content {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: flex-end;
+  gap: 32px;
+  width: 100%;
+  flex-wrap: wrap;
+}
+
+/* Sculpted Avatar */
+.nocturne-artist-page__avatar-wrap {
+  width: 170px;
+  height: 170px;
+  border-radius: 50%;
+  overflow: hidden;
+  flex-shrink: 0;
+  background: var(--bg-surface-elevated);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.85), 0 0 28px var(--accent-glow);
+  border: 3px solid rgba(255, 255, 255, 0.14);
+  position: relative;
+  transition: transform var(--transition-smooth), box-shadow var(--transition-smooth);
+}
+
+.nocturne-artist-page__avatar-wrap:hover {
+  transform: scale(1.03);
+  box-shadow: 0 20px 56px rgba(0, 0, 0, 0.95), 0 0 36px var(--accent-glow-strong);
+  border-color: var(--accent-primary);
+}
+
+.nocturne-artist-page__avatar {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.nocturne-artist-page__avatar-fallback {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-surface-elevated);
+  color: var(--accent-secondary);
+}
+
+/* Header Metadata */
+.nocturne-artist-page__meta {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  flex: 1;
+  min-width: 280px;
+}
+
+.nocturne-artist-page__eyebrow-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.nocturne-artist-page__eyebrow {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: var(--accent-secondary);
+  text-transform: uppercase;
+}
+
+.nocturne-artist-page__verified-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 10px;
+  border-radius: var(--radius-full);
+  background: rgba(168, 85, 247, 0.15);
+  border: 1px solid var(--border-glow);
+  color: var(--accent-secondary);
+  font-size: 11.5px;
+  font-weight: 500;
+}
+
+.nocturne-artist-page__name {
+  font-family: var(--font-serif);
+  font-size: clamp(2.2rem, 4.5vw, 3.4rem);
+  font-weight: 700;
+  color: var(--text-pure);
+  margin: 0;
+  line-height: 1.1;
+  letter-spacing: 0.02em;
+  text-shadow: 0 2px 16px rgba(0, 0, 0, 0.8);
+}
+
+.nocturne-artist-page__listener-stat {
+  font-family: var(--font-mono);
+  font-size: 13.5px;
+  color: var(--text-medium);
+  letter-spacing: 0.02em;
+}
+
+.nocturne-artist-page__genre-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.nocturne-artist-page__genre-pill {
+  padding: 3px 10px;
+  border-radius: var(--radius-full);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--border-subtle);
+  font-size: 11.5px;
+  color: var(--text-medium);
+  transition: all var(--transition-snappy);
+}
+
+.nocturne-artist-page__genre-pill:hover {
+  background: var(--bg-surface-elevated);
+  border-color: var(--border-glow);
+  color: var(--text-pure);
+}
+
+/* Action Controls Bar */
+.nocturne-artist-page__actions {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: 16px;
+  flex-wrap: wrap;
+}
+
+.nocturne-artist-page__play-btn {
+  box-shadow: 0 0 20px var(--accent-glow-strong);
+}
+
+/* ==========================================================================
+   BIOGRAPHY SECTION
+   ========================================================================== */
+
+.nocturne-artist-page__bio-card {
+  padding: 28px 32px;
+  border-radius: var(--radius-md);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  position: relative;
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+}
+
+.nocturne-artist-page__bio-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 100%;
+  background: var(--accent-primary);
+}
+
+.nocturne-artist-page__bio-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.nocturne-artist-page__bio-title {
+  font-family: var(--font-serif);
+  font-size: 1.25rem;
+  color: var(--text-pure);
+  margin: 0;
+}
+
+.nocturne-artist-page__bio-text {
+  font-size: 14.5px;
+  line-height: 1.7;
+  color: var(--text-medium);
+  margin: 0;
+  max-width: 900px;
+}
+
+/* ==========================================================================
+   POPULAR TRACKS SECTION
+   ========================================================================== */
+
+.nocturne-artist-page__section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 18px;
+}
+
+.nocturne-artist-page__section-title {
+  font-family: var(--font-serif);
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--text-pure);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.nocturne-artist-page__section-badge {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-low);
+}
+
+/* ==========================================================================
+   DISCOGRAPHY TABS & RELEASES
+   ========================================================================== */
+
+.nocturne-artist-page__discography-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.nocturne-artist-page__filter-tabs {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.03);
+  padding: 4px;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--border-subtle);
+}
+
+.nocturne-artist-page__filter-btn {
+  padding: 5px 14px;
+  border-radius: var(--radius-full);
+  background: transparent;
+  border: none;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-medium);
+  cursor: pointer;
+  transition: all var(--transition-snappy);
+}
+
+.nocturne-artist-page__filter-btn:hover {
+  color: var(--text-pure);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.nocturne-artist-page__filter-btn--active {
+  color: var(--accent-contrast);
+  background: var(--accent-primary);
+  font-weight: 600;
+  box-shadow: 0 0 12px var(--accent-glow);
+}
+
+.nocturne-artist-page__release-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(185px, 1fr));
+  gap: 20px;
+}
+
+/* ==========================================================================
+   SIMILAR ARTISTS SECTION
+   ========================================================================== */
+
+.nocturne-artist-page__similar-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+  gap: 20px;
+}
+
+.nocturne-artist-page__similar-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 24px 18px 20px;
+  border-radius: var(--radius-md);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  transition: all var(--transition-smooth);
+  text-decoration: none;
+  position: relative;
+  overflow: hidden;
+}
+
+.nocturne-artist-page__similar-card:hover {
+  background: var(--bg-surface-elevated);
+  border-color: var(--border-glow);
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lg), 0 0 20px var(--accent-glow);
+}
+
+.nocturne-artist-page__similar-avatar-wrap {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  overflow: hidden;
+  margin-bottom: 14px;
+  background: var(--bg-surface-elevated);
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  box-shadow: var(--shadow-md);
+  position: relative;
+  transition: transform var(--transition-smooth);
+}
+
+.nocturne-artist-page__similar-card:hover .nocturne-artist-page__similar-avatar-wrap {
+  transform: scale(1.06);
+  border-color: var(--accent-primary);
+}
+
+.nocturne-artist-page__similar-avatar {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.nocturne-artist-page__similar-name {
+  font-family: var(--font-serif);
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-pure);
+  margin-bottom: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.nocturne-artist-page__similar-genre {
+  font-size: 11.5px;
+  color: var(--accent-secondary);
+  font-family: var(--font-mono);
+  margin-bottom: 8px;
+}
+
+.nocturne-artist-page__similar-listeners {
+  font-size: 11px;
+  color: var(--text-low);
+  margin-bottom: 14px;
+}
+
+.nocturne-artist-page__similar-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  justify-content: center;
+}
+
+/* ==========================================================================
+   RESPONSIVE DESIGN
+   ========================================================================== */
+
+@media (max-width: 768px) {
+  .nocturne-artist-page {
+    padding: 0 12px 60px;
+    gap: 28px;
+  }
+
+  .nocturne-artist-page__hero {
+    padding: 24px 20px;
+    min-height: auto;
+  }
+
+  .nocturne-artist-page__hero-content {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 20px;
+  }
+
+  .nocturne-artist-page__avatar-wrap {
+    width: 120px;
+    height: 120px;
+  }
+
+  .nocturne-artist-page__meta {
+    align-items: center;
+  }
+
+  .nocturne-artist-page__genre-pills {
+    justify-content: center;
+  }
+
+  .nocturne-artist-page__actions {
+    justify-content: center;
+  }
+
+  .nocturne-artist-page__discography-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .nocturne-artist-page__release-grid {
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 14px;
+  }
+
+  .nocturne-artist-page__similar-grid {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 14px;
+  }
+}

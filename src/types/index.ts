@@ -62,6 +62,7 @@ export interface Album {
   genre: string;
   tracks: Track[];
   isSingle?: boolean;
+  type?: 'album' | 'ep' | 'single';
   description?: string;
   tracksCount?: number;
   totalDuration?: number; // in seconds
