@@ -10,6 +10,7 @@ import type { Track, Album, Playlist, PlayerState, PlaybackStatus } from '../typ
 import type { CrossfadeDuration } from '../types/audio';
 import { audioEngine } from '../audio/AudioEngine';
 import { useAudioSettings } from './AudioSettingsContext';
+import { useAnalytics } from './AnalyticsContext';
 import { MOCK_TRACKS } from '../data/mockData';
 
 const QUEUE_STORAGE_KEY = 'nocturne_queue_state_v1';
@@ -106,6 +107,46 @@ function pickAutoplayTrack(currentQueue: Track[]): Track | null {
 export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { crossfadeDuration, setCrossfadeDuration, autoplay, toggleAutoplay } =
     useAudioSettings();
+  const { recordSession } = useAnalytics();
+
+  // Active listening session tracker
+  const sessionTrackRef = useRef<Track | null>(null);
+  const sessionStartTimeRef = useRef<number>(0);
+  const sessionListenedSecondsRef = useRef<number>(0);
+  const sessionLastTickTimeRef = useRef<number>(0);
+
+  const commitListeningSession = useCallback(() => {
+    const track = sessionTrackRef.current;
+    const listenedSec = Math.round(sessionListenedSecondsRef.current);
+    if (track && listenedSec >= 5) {
+      const startMs = sessionStartTimeRef.current;
+      const endMs = Date.now();
+      const trackDur = track.duration || listenedSec;
+      const compPct = Math.min(100, Math.max(1, Math.round((listenedSec / trackDur) * 100)));
+
+      recordSession({
+        trackId: track.id,
+        trackTitle: track.title,
+        artist: track.artist,
+        artistId: track.artistId,
+        album: track.album,
+        albumId: track.albumId,
+        artwork: track.artwork || track.coverUrl || '',
+        audioUrl: track.audioUrl,
+        genre: track.genre || 'Gothic Darkwave',
+        duration: trackDur,
+        startTime: startMs,
+        endTime: endMs,
+        date: new Date(startMs).toISOString().split('T')[0],
+        durationListened: listenedSec,
+        completionPercentage: compPct,
+        vibe: track.vibe,
+      });
+    }
+
+    sessionTrackRef.current = null;
+    sessionListenedSecondsRef.current = 0;
+  }, [recordSession]);
 
   const [queue, setQueue] = useState<Track[]>(() => loadInitialQueue().queue);
   const [queueIndex, setQueueIndex] = useState<number>(() => loadInitialQueue().queueIndex);
@@ -295,6 +336,12 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       setIsLoading(true);
       crossfadeTriggeredTrackId.current = null;
 
+      commitListeningSession();
+      sessionTrackRef.current = track;
+      sessionStartTimeRef.current = Date.now();
+      sessionListenedSecondsRef.current = 0;
+      sessionLastTickTimeRef.current = Date.now();
+
       if (stateRef.current.currentTrack && stateRef.current.currentTrack.id !== track.id) {
         setHistory((prev) => [...prev, stateRef.current.currentTrack!]);
       }
@@ -331,7 +378,7 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         setStatus('paused');
       }
     },
-    []
+    [commitListeningSession]
   );
 
   const playAlbum = useCallback(
@@ -593,6 +640,12 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       onPlay: () => {
         setStatus('playing');
         setIsLoading(false);
+        if (!sessionTrackRef.current && stateRef.current.currentTrack) {
+          sessionTrackRef.current = stateRef.current.currentTrack;
+          sessionStartTimeRef.current = Date.now();
+          sessionListenedSecondsRef.current = 0;
+        }
+        sessionLastTickTimeRef.current = Date.now();
       },
       onPause: () => {
         setStatus('paused');
@@ -602,6 +655,13 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         if (dur && dur > 0) {
           setDuration(dur);
         }
+
+        const now = Date.now();
+        const deltaSec = (now - sessionLastTickTimeRef.current) / 1000;
+        if (deltaSec > 0 && deltaSec < 2.0 && stateRef.current.status === 'playing') {
+          sessionListenedSecondsRef.current += deltaSec;
+        }
+        sessionLastTickTimeRef.current = now;
 
         // Automatic Acoustic Crossfade detection
         const xfadeSec = stateRef.current.crossfadeDuration;
@@ -626,6 +686,12 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
             }
 
             audioEngine.startCrossfade(upcoming.track.audioUrl, xfadeSec, () => {
+              commitListeningSession();
+              sessionTrackRef.current = upcoming.track;
+              sessionStartTimeRef.current = Date.now();
+              sessionListenedSecondsRef.current = 0;
+              sessionLastTickTimeRef.current = Date.now();
+
               setCurrentTrack(upcoming.track);
               setQueueIndex(upcoming.index);
               setCurrentTime(0);
@@ -646,6 +712,7 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         setIsLoading(false);
       },
       onEnded: () => {
+        commitListeningSession();
         handleTrackEnded();
       },
       onCrossfadeStart: () => {
@@ -664,9 +731,10 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     });
 
     return () => {
+      commitListeningSession();
       unsubscribe();
     };
-  }, [handleTrackEnded, getNextPlayableTrack]);
+  }, [handleTrackEnded, getNextPlayableTrack, commitListeningSession]);
 
   // Global Keyboard Shortcuts
   useEffect(() => {

@@ -6,19 +6,22 @@ import { ToastProvider } from './ToastContext';
 import { UIProvider } from './UIContext';
 import { SpotifyProvider } from './SpotifyContext';
 import { AudioSettingsProvider } from './AudioSettingsContext';
+import { AnalyticsProvider } from './AnalyticsContext';
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   return (
     <ThemeProvider>
       <UIProvider>
         <AudioSettingsProvider>
-          <PlayerProvider>
-            <LibraryProvider>
-              <ToastProvider>
-                <SpotifyProvider>{children}</SpotifyProvider>
-              </ToastProvider>
-            </LibraryProvider>
-          </PlayerProvider>
+          <AnalyticsProvider>
+            <PlayerProvider>
+              <LibraryProvider>
+                <ToastProvider>
+                  <SpotifyProvider>{children}</SpotifyProvider>
+                </ToastProvider>
+              </LibraryProvider>
+            </PlayerProvider>
+          </AnalyticsProvider>
         </AudioSettingsProvider>
       </UIProvider>
     </ThemeProvider>
@@ -32,3 +35,4 @@ export * from './ToastContext';
 export * from './UIContext';
 export * from './SpotifyContext';
 export * from './AudioSettingsContext';
+export * from './AnalyticsContext';

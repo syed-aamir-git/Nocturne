@@ -1,0 +1,349 @@
+.nocturne-history-page {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  padding-bottom: 60px;
+}
+
+.nocturne-history-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.nocturne-history-header__left {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.nocturne-history-header__title-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.nocturne-history-icon {
+  color: var(--accent-primary);
+}
+
+.nocturne-history-title {
+  font-size: 2rem;
+  font-weight: 700;
+  margin: 0;
+  color: var(--text-pure);
+  font-family: var(--font-serif, 'Playfair Display', serif);
+}
+
+.nocturne-history-subtitle {
+  font-size: 13.5px;
+  color: var(--text-medium);
+  margin: 0;
+}
+
+.nocturne-history-header__actions {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.nocturne-history-count-badge {
+  font-size: 12px;
+  font-family: var(--font-mono);
+  color: var(--text-low);
+  background: rgba(255, 255, 255, 0.04);
+  padding: 4px 10px;
+  border-radius: 9999px;
+  border: 1px solid var(--border-subtle);
+}
+
+/* Empty State */
+.nocturne-history-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 72px 24px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg, 12px);
+  gap: 14px;
+}
+
+.nocturne-history-empty__icon-wrap {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: rgba(168, 85, 247, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--accent-primary);
+  margin-bottom: 8px;
+}
+
+.nocturne-history-empty__title {
+  font-size: 1.35rem;
+  font-weight: 600;
+  color: var(--text-pure);
+  margin: 0;
+}
+
+.nocturne-history-empty__desc {
+  font-size: 13.5px;
+  color: var(--text-medium);
+  max-width: 480px;
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* Groups */
+.nocturne-history-groups {
+  display: flex;
+  flex-direction: column;
+  gap: 36px;
+}
+
+.nocturne-history-group {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.nocturne-history-group__header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-mono);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.nocturne-history-group__icon {
+  color: var(--accent-primary);
+}
+
+.nocturne-history-group__title {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-high);
+  margin: 0;
+}
+
+.nocturne-history-group__count {
+  font-size: 11px;
+  color: var(--text-low);
+}
+
+/* Table */
+.nocturne-history-table {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.nocturne-history-row {
+  display: grid;
+  grid-template-columns: 2.5fr 1.8fr 1fr 1.2fr 1.4fr 48px;
+  align-items: center;
+  padding: 10px 14px;
+  border-radius: var(--radius-md, 8px);
+  background: transparent;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  cursor: pointer;
+}
+
+.nocturne-history-row:not(.nocturne-history-row--header):hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.nocturne-history-row--active {
+  background: rgba(168, 85, 247, 0.1) !important;
+  border-left: 3px solid var(--accent-primary);
+}
+
+.nocturne-history-row--header {
+  cursor: default;
+  font-size: 11px;
+  font-family: var(--font-mono);
+  color: var(--text-low);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 8px 14px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+}
+
+.nocturne-history-col--track {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.nocturne-history-thumb-wrap {
+  position: relative;
+  width: 40px;
+  height: 40px;
+  border-radius: 6px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.nocturne-history-thumb {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.nocturne-history-thumb-fallback {
+  width: 100%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.05);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-medium);
+}
+
+.nocturne-history-play-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.nocturne-history-row:hover .nocturne-history-play-overlay {
+  opacity: 1;
+}
+
+.nocturne-history-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.nocturne-history-track-title {
+  font-size: 13.5px;
+  font-weight: 500;
+  color: var(--text-pure);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.nocturne-history-track-title--active {
+  color: var(--accent-primary);
+  font-weight: 600;
+}
+
+.nocturne-history-artist-name {
+  font-size: 12px;
+  color: var(--text-medium);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.nocturne-history-album-title {
+  font-size: 12.5px;
+  color: var(--text-medium);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.nocturne-history-timestamp {
+  font-size: 12px;
+  font-family: var(--font-mono);
+  color: var(--text-low);
+}
+
+.nocturne-history-duration-text {
+  font-size: 12px;
+  font-family: var(--font-mono);
+  color: var(--text-high);
+}
+
+/* Completion */
+.nocturne-history-completion-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.nocturne-history-comp-bar {
+  flex: 1;
+  max-width: 70px;
+  height: 5px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 9999px;
+  overflow: hidden;
+}
+
+.nocturne-history-comp-fill {
+  height: 100%;
+  background: var(--accent-primary);
+  border-radius: 9999px;
+}
+
+.nocturne-history-comp-badge {
+  font-size: 11px;
+  font-family: var(--font-mono);
+  color: var(--text-medium);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.nocturne-comp-complete-icon {
+  color: #10b981;
+}
+
+/* Delete Button */
+.nocturne-history-delete-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-low);
+  padding: 6px;
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: all 0.2s ease;
+}
+
+.nocturne-history-row:hover .nocturne-history-delete-btn {
+  opacity: 0.7;
+}
+
+.nocturne-history-delete-btn:hover {
+  opacity: 1 !important;
+  color: #f43f5e;
+  background: rgba(244, 63, 94, 0.1);
+}
+
+@media (max-width: 900px) {
+  .nocturne-history-row {
+    grid-template-columns: 1fr 90px 40px;
+  }
+
+  .nocturne-history-col--album,
+  .nocturne-history-col--duration,
+  .nocturne-history-col--completion {
+    display: none;
+  }
+}

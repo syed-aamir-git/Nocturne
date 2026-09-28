@@ -1,119 +1,297 @@
 import React from 'react';
-import { BarChart2, Moon, Clock, Radio, Activity } from 'lucide-react';
+import {
+  BarChart2,
+  Clock,
+  Music,
+  Users,
+  Disc,
+  Play,
+  Flame,
+  Award,
+} from 'lucide-react';
+import { useAnalytics } from '../state/AnalyticsContext';
+import { usePlayer } from '../state/PlayerContext';
 import { Card } from '../components/primitives/Card';
+import { ListeningClock } from '../components/analytics/ListeningClock';
+import { MusicPersonalityCard } from '../components/analytics/MusicPersonalityCard';
+import {
+  DailyListeningChart,
+  HourlyListeningChart,
+  MonthlyListeningChart,
+  TopArtistsChart,
+  TopGenresChart,
+  TopSongsChart,
+  WeekdayListeningChart,
+} from '../components/analytics/AnalyticsCharts';
+import { MOCK_TRACKS } from '../data/mockData';
+import type { AnalyticsTimeRange } from '../types/analytics';
+import './StatisticsPage.css';
+
+const TIME_RANGE_OPTIONS: { id: AnalyticsTimeRange; label: string }[] = [
+  { id: 'today', label: 'Today' },
+  { id: '7d', label: '7 Days' },
+  { id: '30d', label: '30 Days' },
+  { id: '3m', label: '3 Months' },
+  { id: '6m', label: '6 Months' },
+  { id: '1y', label: '1 Year' },
+  { id: 'all', label: 'All Time' },
+];
 
 export const StatisticsPage: React.FC = () => {
-  const hourDistribution = [
-    { hour: '10 PM', pct: 25 },
-    { hour: '11 PM', pct: 45 },
-    { hour: '12 AM', pct: 75 },
-    { hour: '01 AM', pct: 90 },
-    { hour: '02 AM', pct: 100 },
-    { hour: '03 AM', pct: 95 },
-    { hour: '04 AM', pct: 60 },
-    { hour: '05 AM', pct: 30 },
-  ];
+  const {
+    timeRange,
+    setTimeRange,
+    overview,
+    dailyStats,
+    hourlyStats,
+    weekdayStats,
+    monthlyStats,
+    topArtists,
+    topGenres,
+    topSongs,
+    personality,
+    history,
+  } = useAnalytics();
 
-  const metrics = [
-    {
-      title: 'Midnight Immersion Ratio',
-      val: '88.4%',
-      sub: 'Streams occurring between 00:00 - 05:00',
-      icon: <Moon size={18} />,
-    },
-    {
-      title: 'Total Sanctuary Hours',
-      val: '218.5 hrs',
-      sub: 'Time spent in solitary listening',
-      icon: <Clock size={18} />,
-    },
-    {
-      title: 'Peak Reverberation',
-      val: '02:45 AM',
-      sub: 'Most concentrated listening window',
-      icon: <Activity size={18} />,
-    },
-    {
-      title: 'Bit-Perfect Ratio',
-      val: '94.2%',
-      sub: 'Rendered in 24-bit 96kHz Lossless',
-      icon: <Radio size={18} />,
-    },
-  ];
+  const { playTrack } = usePlayer();
+
+  const handlePlayTopSong = () => {
+    if (overview.mostPlayedSong) {
+      const full = MOCK_TRACKS.find((t) => t.id === overview.mostPlayedSong?.id);
+      if (full) playTrack(full);
+    }
+  };
+
+  const formatHoursOrMinutes = (mins: number, hours: number): string => {
+    if (hours >= 1) return `${hours} hrs`;
+    return `${mins} mins`;
+  };
 
   return (
-    <div style={{ maxWidth: 1200, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 36 }}>
-      <div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4 }}>
-          <BarChart2 size={22} color="var(--accent-primary)" />
-          <h1 style={{ fontSize: '2rem', margin: 0 }}>Sanctuary Statistics</h1>
-        </div>
-        <p style={{ color: 'var(--text-medium)', fontSize: '13.5px' }}>
-          Quantitative reflections of your late-night acoustic habits
-        </p>
-      </div>
-
-      {/* Metric Cards */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 16 }}>
-        {metrics.map((m) => (
-          <Card key={m.title} variant="elevated" style={{ padding: '20px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', color: 'var(--accent-primary)', marginBottom: 12 }}>
-              <span style={{ fontSize: '11px', fontFamily: 'var(--font-mono)', textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--text-low)' }}>
-                {m.title}
-              </span>
-              {m.icon}
-            </div>
-            <div style={{ fontSize: '1.9rem', fontFamily: 'var(--font-serif)', color: 'var(--text-pure)', fontWeight: 700, marginBottom: 4 }}>
-              {m.val}
-            </div>
-            <div style={{ fontSize: '11.5px', color: 'var(--text-medium)' }}>
-              {m.sub}
-            </div>
-          </Card>
-        ))}
-      </div>
-
-      {/* Hourly Density Visualization */}
-      <Card variant="flat" style={{ padding: '24px' }}>
-        <div style={{ marginBottom: 20 }}>
-          <h3 style={{ fontSize: '1.15rem', marginBottom: 4 }}>Nighttime Density Distribution</h3>
-          <p style={{ fontSize: '12.5px', color: 'var(--text-medium)' }}>
-            Average volume of audio streamed across nocturnal hours
+    <div className="nocturne-stats-page">
+      {/* Top Header & Range Filters */}
+      <div className="nocturne-stats-header">
+        <div className="nocturne-stats-header__left">
+          <div className="nocturne-stats-header__title-row">
+            <BarChart2 size={24} className="nocturne-stats-icon" />
+            <h1 className="nocturne-stats-title">Sanctuary Statistics</h1>
+          </div>
+          <p className="nocturne-stats-subtitle">
+            Quantitative reflections and circadian analytics derived from actual stored listening data
           </p>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', height: 180, paddingTop: 20 }}>
-          {hourDistribution.map((slot) => (
-            <div
-              key={slot.hour}
-              style={{
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                gap: 8,
-                flex: 1,
-              }}
+        {/* Time Filter Pills */}
+        <div className="nocturne-stats-time-filters" role="group" aria-label="Time Filter Options">
+          {TIME_RANGE_OPTIONS.map((opt) => (
+            <button
+              key={opt.id}
+              type="button"
+              className={`nocturne-stats-time-pill ${
+                timeRange === opt.id ? 'nocturne-stats-time-pill--active' : ''
+              }`}
+              onClick={() => setTimeRange(opt.id)}
             >
-              <div
-                style={{
-                  width: '40%',
-                  minWidth: 16,
-                  maxWidth: 36,
-                  height: `${(slot.pct / 100) * 140}px`,
-                  background: slot.pct >= 90 ? 'var(--accent-primary)' : 'var(--bg-surface-elevated)',
-                  border: '1px solid var(--border-medium)',
-                  borderRadius: 'var(--radius-xs)',
-                  transition: 'height var(--transition-flow)',
-                  boxShadow: slot.pct >= 90 ? '0 0 16px var(--accent-glow)' : 'none',
-                }}
-              />
-              <span style={{ fontSize: '10.5px', fontFamily: 'var(--font-mono)', color: 'var(--text-low)' }}>
-                {slot.hour}
-              </span>
-            </div>
+              {opt.label}
+            </button>
           ))}
         </div>
-      </Card>
+      </div>
+
+      {history.length === 0 ? (
+        <div className="nocturne-stats-empty">
+          <Clock size={40} className="nocturne-stats-empty-icon" />
+          <h2>Awaiting Acoustic Inscriptions</h2>
+          <p>
+            No listening data is currently recorded. Once you stream music in Nocturne, your detailed
+            analytics, 24-hour listening clock, and personality profile will appear here.
+          </p>
+        </div>
+      ) : (
+        <>
+          {/* Overview Metric Cards */}
+          <div className="nocturne-stats-overview-grid">
+            <Card variant="elevated" className="nocturne-stats-metric-card">
+              <div className="nocturne-metric-card__header">
+                <span className="nocturne-metric-card__label">Total Listening Time</span>
+                <Clock size={16} className="nocturne-metric-card__icon" />
+              </div>
+              <div className="nocturne-metric-card__val">
+                {formatHoursOrMinutes(overview.totalListeningMinutes, overview.totalListeningHours)}
+              </div>
+              <div className="nocturne-metric-card__sub">
+                {overview.totalListeningMinutes.toLocaleString()} minutes streamed
+              </div>
+            </Card>
+
+            <Card variant="elevated" className="nocturne-stats-metric-card">
+              <div className="nocturne-metric-card__header">
+                <span className="nocturne-metric-card__label">Songs Played</span>
+                <Music size={16} className="nocturne-metric-card__icon" />
+              </div>
+              <div className="nocturne-metric-card__val">{overview.totalSongsPlayed}</div>
+              <div className="nocturne-metric-card__sub">
+                {overview.completionRateAverage}% avg completion rate
+              </div>
+            </Card>
+
+            <Card variant="elevated" className="nocturne-stats-metric-card">
+              <div className="nocturne-metric-card__header">
+                <span className="nocturne-metric-card__label">Artists Listened</span>
+                <Users size={16} className="nocturne-metric-card__icon" />
+              </div>
+              <div className="nocturne-metric-card__val">{overview.uniqueArtistsCount}</div>
+              <div className="nocturne-metric-card__sub">Unique sonic creators explored</div>
+            </Card>
+
+            <Card variant="elevated" className="nocturne-stats-metric-card">
+              <div className="nocturne-metric-card__header">
+                <span className="nocturne-metric-card__label">Albums Explored</span>
+                <Disc size={16} className="nocturne-metric-card__icon" />
+              </div>
+              <div className="nocturne-metric-card__val">{overview.uniqueAlbumsCount}</div>
+              <div className="nocturne-metric-card__sub">Nocturnal chambers experienced</div>
+            </Card>
+          </div>
+
+          {/* Most Played Highlights */}
+          <div className="nocturne-stats-highlights-grid">
+            {/* Most Played Song */}
+            <Card variant="flat" className="nocturne-stats-highlight-card">
+              <div className="nocturne-highlight-tag">
+                <Flame size={13} />
+                <span>Most Played Song</span>
+              </div>
+
+              {overview.mostPlayedSong ? (
+                <div className="nocturne-highlight-content">
+                  <div className="nocturne-highlight-thumb-wrap" onClick={handlePlayTopSong}>
+                    {overview.mostPlayedSong.artwork && (
+                      <img
+                        src={overview.mostPlayedSong.artwork}
+                        alt={overview.mostPlayedSong.title}
+                        className="nocturne-highlight-thumb"
+                      />
+                    )}
+                    <div className="nocturne-highlight-play-btn">
+                      <Play size={14} fill="white" />
+                    </div>
+                  </div>
+
+                  <div className="nocturne-highlight-info">
+                    <span className="nocturne-highlight-title">
+                      {overview.mostPlayedSong.title}
+                    </span>
+                    <span className="nocturne-highlight-sub">
+                      {overview.mostPlayedSong.subtitle}
+                    </span>
+                    <span className="nocturne-highlight-stats">
+                      {overview.mostPlayedSong.count} plays • {overview.mostPlayedSong.minutes} mins
+                    </span>
+                  </div>
+                </div>
+              ) : (
+                <div className="nocturne-highlight-empty">None recorded yet</div>
+              )}
+            </Card>
+
+            {/* Most Played Artist */}
+            <Card variant="flat" className="nocturne-stats-highlight-card">
+              <div className="nocturne-highlight-tag">
+                <Award size={13} />
+                <span>Most Played Artist</span>
+              </div>
+
+              {overview.mostPlayedArtist ? (
+                <div className="nocturne-highlight-content">
+                  {overview.mostPlayedArtist.artwork ? (
+                    <img
+                      src={overview.mostPlayedArtist.artwork}
+                      alt={overview.mostPlayedArtist.title}
+                      className="nocturne-highlight-avatar"
+                    />
+                  ) : (
+                    <div className="nocturne-highlight-avatar-fallback">
+                      <Users size={18} />
+                    </div>
+                  )}
+
+                  <div className="nocturne-highlight-info">
+                    <span className="nocturne-highlight-title">
+                      {overview.mostPlayedArtist.title}
+                    </span>
+                    <span className="nocturne-highlight-sub">
+                      {overview.mostPlayedArtist.subtitle}
+                    </span>
+                    <span className="nocturne-highlight-stats">
+                      {overview.mostPlayedArtist.minutes} mins listened
+                    </span>
+                  </div>
+                </div>
+              ) : (
+                <div className="nocturne-highlight-empty">None recorded yet</div>
+              )}
+            </Card>
+
+            {/* Most Played Album */}
+            <Card variant="flat" className="nocturne-stats-highlight-card">
+              <div className="nocturne-highlight-tag">
+                <Disc size={13} />
+                <span>Most Played Album</span>
+              </div>
+
+              {overview.mostPlayedAlbum ? (
+                <div className="nocturne-highlight-content">
+                  {overview.mostPlayedAlbum.artwork && (
+                    <img
+                      src={overview.mostPlayedAlbum.artwork}
+                      alt={overview.mostPlayedAlbum.title}
+                      className="nocturne-highlight-thumb"
+                    />
+                  )}
+
+                  <div className="nocturne-highlight-info">
+                    <span className="nocturne-highlight-title">
+                      {overview.mostPlayedAlbum.title}
+                    </span>
+                    <span className="nocturne-highlight-sub">
+                      {overview.mostPlayedAlbum.subtitle}
+                    </span>
+                    <span className="nocturne-highlight-stats">
+                      {overview.mostPlayedAlbum.count} tracks • {overview.mostPlayedAlbum.minutes} mins
+                    </span>
+                  </div>
+                </div>
+              ) : (
+                <div className="nocturne-highlight-empty">None recorded yet</div>
+              )}
+            </Card>
+          </div>
+
+          {/* Music Personality Section */}
+          <MusicPersonalityCard personality={personality} />
+
+          {/* 24-Hour Listening Clock */}
+          <ListeningClock hourlyStats={hourlyStats} nocturnalRatio={personality.nocturnalRatio} />
+
+          {/* Analytical Charts Grid */}
+          <div className="nocturne-stats-charts-grid">
+            <DailyListeningChart stats={dailyStats} />
+            <HourlyListeningChart stats={hourlyStats} />
+          </div>
+
+          <div className="nocturne-stats-charts-grid">
+            <TopSongsChart songs={topSongs} />
+            <TopArtistsChart artists={topArtists} />
+          </div>
+
+          <div className="nocturne-stats-charts-grid nocturne-stats-charts-grid--three">
+            <TopGenresChart genres={topGenres} />
+            <WeekdayListeningChart stats={weekdayStats} />
+            {monthlyStats.length > 0 && <MonthlyListeningChart stats={monthlyStats} />}
+          </div>
+        </>
+      )}
     </div>
   );
 };
