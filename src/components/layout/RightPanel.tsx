@@ -626,7 +626,12 @@ export const RightPanel: React.FC = () => {
                   return (
                     <div
                       key={idx}
-                      onClick={() => seek(line.time)}
+                      onClick={() => {
+                        seek(line.time);
+                        if (!isPlaying) {
+                          togglePlayPause();
+                        }
+                      }}
                       style={{
                         padding: '6px 10px',
                         borderRadius: 6,

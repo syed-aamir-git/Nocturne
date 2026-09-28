@@ -266,13 +266,23 @@ export const PlayerBar: React.FC = () => {
       {/* Right: Volume, Lyrics, Queue, & Details Panel */}
       <div className="nocturne-player__right">
         {/* Lyrics Button */}
-        <Tooltip content={isLyricsOpen ? 'Close Lyrics (Press L)' : 'Lyrics & Lore (Press L)'} position="top">
+        <Tooltip
+          content={
+            !currentTrack
+              ? 'Select a track to view lyrics & lore'
+              : isLyricsOpen
+              ? 'Close Lyrics (Press L)'
+              : 'Lyrics & Lore (Press L)'
+          }
+          position="top"
+        >
           <IconButton
             variant="ghost"
             size="sm"
             active={isLyricsOpen}
             onClick={toggleLyrics}
             aria-label="Toggle Lyrics & Lore"
+            disabled={!currentTrack}
           >
             <Mic2 size={16} />
           </IconButton>

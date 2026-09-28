@@ -90,29 +90,36 @@ export const LyricsModal: React.FC = () => {
   // Quick initial loading state simulation when switching tracks
   useEffect(() => {
     if (!currentTrack) {
-      setSimulatedState('not_available');
       return;
     }
 
-    setSimulatedState('loading');
-    const timer = setTimeout(() => {
+    const loadTimer = setTimeout(() => {
+      setSimulatedState('loading');
+    }, 0);
+
+    const resolveTimer = setTimeout(() => {
       const hasLyrics = Boolean(currentTrack.lyrics);
       const hasSynced = Boolean(currentTrack.syncedLyrics && currentTrack.syncedLyrics.length > 0);
       setSimulatedState(hasLyrics || hasSynced ? 'available' : 'not_available');
-    }, 280);
+    }, 240);
 
-    return () => clearTimeout(timer);
-  }, [currentTrack?.id]);
+    return () => {
+      clearTimeout(loadTimer);
+      clearTimeout(resolveTimer);
+    };
+  }, [currentTrack]);
 
   // Default to synced mode if synced lyrics exist
   useEffect(() => {
-    if (currentTrack?.syncedLyrics && currentTrack.syncedLyrics.length > 0) {
-      setLyricsMode('synced');
-    } else {
-      setLyricsMode('plain');
-    }
-    setIsUserScrolling(false);
-  }, [currentTrack?.id]);
+    if (!currentTrack) return;
+    const hasSynced = Boolean(currentTrack.syncedLyrics && currentTrack.syncedLyrics.length > 0);
+    const modeTimer = setTimeout(() => {
+      setLyricsMode(hasSynced ? 'synced' : 'plain');
+      setIsUserScrolling(false);
+    }, 0);
+
+    return () => clearTimeout(modeTimer);
+  }, [currentTrack]);
 
   // Auto-scroll to active line if not user scrolling
   useEffect(() => {
@@ -170,7 +177,31 @@ export const LyricsModal: React.FC = () => {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isLyricsOpen, closeLyrics]);
 
-  if (!isLyricsOpen || !currentTrack) return null;
+  if (!isLyricsOpen) return null;
+
+  if (!currentTrack) {
+    return (
+      <div className="nocturne-lyrics-modal" role="dialog" aria-modal="true" aria-label="Lyrics and Lore">
+        <div className="nocturne-lyrics-modal__container" style={{ justifyContent: 'center', alignItems: 'center' }}>
+          <header className="nocturne-lyrics-modal__header" style={{ width: '100%' }}>
+            <span className="nocturne-lyrics-modal__title">Lyrics & Lore</span>
+            <IconButton variant="ghost" size="md" onClick={closeLyrics} aria-label="Close lyrics">
+              <X size={20} />
+            </IconButton>
+          </header>
+          <div className="nocturne-lyrics-state--not-available" style={{ flex: 1 }}>
+            <div className="nocturne-lyrics-state__icon-wrap">
+              <Music size={36} />
+            </div>
+            <h3 className="nocturne-lyrics-state__title">No Composition Currently Playing</h3>
+            <p className="nocturne-lyrics-state__desc">
+              Initiate playback on any piece in the sanctuary library to view its poetic inscriptions, acoustic metrics, and creator credits.
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const artworkUrl = currentTrack.artwork || currentTrack.coverUrl || '';
 
@@ -366,6 +397,9 @@ export const LyricsModal: React.FC = () => {
                             }}
                             onClick={() => {
                               seek(line.time);
+                              if (!isPlaying) {
+                                togglePlayPause();
+                              }
                               setIsUserScrolling(false);
                             }}
                           >
