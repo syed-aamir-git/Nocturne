@@ -3,7 +3,6 @@ import {
   X,
   Activity,
   Music,
-  AlignLeft,
   Info,
   ListMusic,
   Trash2,
@@ -14,6 +13,9 @@ import {
   ChevronUp,
   ChevronDown,
   Plus,
+  Mic2,
+  ScrollText,
+  Maximize2,
 } from 'lucide-react';
 import { useUI } from '../../state/UIContext';
 import { usePlayer } from '../../state/PlayerContext';
@@ -25,7 +27,7 @@ import type { Track } from '../../types';
 import './RightPanel.css';
 
 export const RightPanel: React.FC = () => {
-  const { rightPanelOpen, toggleRightPanel, rightPanelTab, setRightPanelTab } = useUI();
+  const { rightPanelOpen, toggleRightPanel, rightPanelTab, setRightPanelTab, openLyrics } = useUI();
   const {
     currentTrack,
     queue,
@@ -39,6 +41,7 @@ export const RightPanel: React.FC = () => {
     playNext,
     addTracksToQueue,
     togglePlayPause,
+    seek,
   } = usePlayer();
   const { showToast } = useToast();
 
@@ -131,6 +134,28 @@ export const RightPanel: React.FC = () => {
               <ListMusic size={12} />
               <span>Queue ({queue.length})</span>
             </button>
+
+            <button
+              type="button"
+              onClick={() => setRightPanelTab('lyrics')}
+              style={{
+                background: rightPanelTab === 'lyrics' ? 'var(--bg-surface-elevated)' : 'transparent',
+                border: 'none',
+                color: rightPanelTab === 'lyrics' ? 'var(--accent-secondary)' : 'var(--text-low)',
+                padding: '3px 8px',
+                borderRadius: 3,
+                fontSize: '11px',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 4,
+                fontWeight: rightPanelTab === 'lyrics' ? 600 : 400,
+              }}
+            >
+              <Mic2 size={12} />
+              <span>Lyrics</span>
+            </button>
+
             <button
               type="button"
               onClick={() => setRightPanelTab('info')}
@@ -151,29 +176,27 @@ export const RightPanel: React.FC = () => {
               <Info size={12} />
               <span>Info</span>
             </button>
-            {currentTrack && (currentTrack.lyrics || currentTrack.syncedLyrics) && (
-              <button
-                type="button"
-                onClick={() => setRightPanelTab('lyrics')}
-                style={{
-                  background:
-                    rightPanelTab === 'lyrics' ? 'var(--bg-surface-elevated)' : 'transparent',
-                  border: 'none',
-                  color: rightPanelTab === 'lyrics' ? 'var(--accent-secondary)' : 'var(--text-low)',
-                  padding: '3px 8px',
-                  borderRadius: 3,
-                  fontSize: '11px',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 4,
-                  fontWeight: rightPanelTab === 'lyrics' ? 600 : 400,
-                }}
-              >
-                <AlignLeft size={12} />
-                <span>Lyrics</span>
-              </button>
-            )}
+
+            <button
+              type="button"
+              onClick={() => setRightPanelTab('credits')}
+              style={{
+                background: rightPanelTab === 'credits' ? 'var(--bg-surface-elevated)' : 'transparent',
+                border: 'none',
+                color: rightPanelTab === 'credits' ? 'var(--accent-secondary)' : 'var(--text-low)',
+                padding: '3px 8px',
+                borderRadius: 3,
+                fontSize: '11px',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 4,
+                fontWeight: rightPanelTab === 'credits' ? 600 : 400,
+              }}
+            >
+              <ScrollText size={12} />
+              <span>Credits</span>
+            </button>
           </div>
           <IconButton
             variant="ghost"
@@ -528,22 +551,72 @@ export const RightPanel: React.FC = () => {
               border: '1px solid var(--border-subtle)',
               display: 'flex',
               flexDirection: 'column',
-              gap: 12,
+              gap: 14,
             }}
           >
-            <span
-              style={{
-                fontSize: '11px',
-                fontFamily: 'var(--font-mono)',
-                color: 'var(--accent-secondary)',
-                letterSpacing: '0.08em',
-              }}
-            >
-              {currentTrack.syncedLyrics ? 'SYNCED INSCRIPTIONS' : 'LYRICS & POETRY'}
-            </span>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <span
+                style={{
+                  fontSize: '11px',
+                  fontFamily: 'var(--font-mono)',
+                  color: 'var(--accent-secondary)',
+                  letterSpacing: '0.08em',
+                  textTransform: 'uppercase',
+                }}
+              >
+                {currentTrack.syncedLyrics ? 'SYNCED INSCRIPTION' : 'LYRICS & POETRY'}
+              </span>
 
-            {currentTrack.syncedLyrics ? (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              <button
+                type="button"
+                onClick={() => openLyrics('lyrics')}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 4,
+                  background: 'rgba(255, 255, 255, 0.06)',
+                  border: '1px solid var(--border-subtle)',
+                  color: 'var(--text-high)',
+                  fontSize: '11px',
+                  padding: '3px 8px',
+                  borderRadius: 4,
+                  cursor: 'pointer',
+                }}
+                title="Open cinematic full-screen lyrics"
+              >
+                <Maximize2 size={11} />
+                <span>Immersive</span>
+              </button>
+            </div>
+
+            {!currentTrack.lyrics && (!currentTrack.syncedLyrics || currentTrack.syncedLyrics.length === 0) ? (
+              <div
+                style={{
+                  padding: '32px 16px',
+                  textAlign: 'center',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  gap: 12,
+                }}
+              >
+                <Music size={32} color="var(--text-low)" />
+                <p
+                  style={{
+                    margin: 0,
+                    fontSize: '14px',
+                    fontFamily: 'var(--font-serif)',
+                    color: 'var(--text-high)',
+                  }}
+                >
+                  Lyrics aren't available for this track yet.
+                </p>
+                <p style={{ margin: 0, fontSize: '12px', color: 'var(--text-low)', lineHeight: 1.5 }}>
+                  Transcriptions for this instrumental composition have not yet been recorded.
+                </p>
+              </div>
+            ) : currentTrack.syncedLyrics && currentTrack.syncedLyrics.length > 0 ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                 {currentTrack.syncedLyrics.map((line, idx) => {
                   const isPastOrCurrent = currentTime >= line.time;
                   const nextLine = currentTrack.syncedLyrics![idx + 1];
@@ -551,23 +624,34 @@ export const RightPanel: React.FC = () => {
                     isPastOrCurrent && (!nextLine || currentTime < nextLine.time);
 
                   return (
-                    <p
+                    <div
                       key={idx}
+                      onClick={() => seek(line.time)}
                       style={{
-                        margin: 0,
-                        fontSize: isCurrent ? '14px' : '13px',
-                        fontWeight: isCurrent ? 600 : 400,
-                        color: isCurrent
-                          ? 'var(--accent-secondary)'
-                          : isPastOrCurrent
-                          ? 'var(--text-high)'
-                          : 'var(--text-low)',
-                        transition: 'all 0.3s ease',
-                        lineHeight: 1.4,
+                        padding: '6px 10px',
+                        borderRadius: 6,
+                        cursor: 'pointer',
+                        background: isCurrent ? 'rgba(255, 255, 255, 0.06)' : 'transparent',
+                        borderLeft: isCurrent ? '2px solid var(--accent-primary)' : '2px solid transparent',
+                        transition: 'all 0.2s ease',
                       }}
                     >
-                      {line.text}
-                    </p>
+                      <p
+                        style={{
+                          margin: 0,
+                          fontSize: isCurrent ? '15px' : '13px',
+                          fontWeight: isCurrent ? 600 : 400,
+                          color: isCurrent
+                            ? 'var(--accent-secondary)'
+                            : isPastOrCurrent
+                            ? 'var(--text-high)'
+                            : 'var(--text-low)',
+                          lineHeight: 1.4,
+                        }}
+                      >
+                        {line.text}
+                      </p>
+                    </div>
                   );
                 })}
               </div>
@@ -655,6 +739,123 @@ export const RightPanel: React.FC = () => {
               harmonic resonance. Optimal listening: headphones in darkened chamber."
             </div>
           </>
+        )}
+
+        {/* ==================== TAB 4: CREDITS ==================== */}
+        {rightPanelTab === 'credits' && currentTrack && (
+          <div
+            style={{
+              padding: '16px',
+              borderRadius: 'var(--radius-md)',
+              background: 'rgba(255, 255, 255, 0.02)',
+              border: '1px solid var(--border-subtle)',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 16,
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <span
+                style={{
+                  fontSize: '11px',
+                  fontFamily: 'var(--font-mono)',
+                  color: 'var(--accent-secondary)',
+                  letterSpacing: '0.08em',
+                  textTransform: 'uppercase',
+                }}
+              >
+                ARCHIVAL LINEAGE
+              </span>
+
+              <button
+                type="button"
+                onClick={() => openLyrics('credits')}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 4,
+                  background: 'rgba(255, 255, 255, 0.06)',
+                  border: '1px solid var(--border-subtle)',
+                  color: 'var(--text-high)',
+                  fontSize: '11px',
+                  padding: '3px 8px',
+                  borderRadius: 4,
+                  cursor: 'pointer',
+                }}
+                title="Open detailed credits modal"
+              >
+                <Maximize2 size={11} />
+                <span>Full Details</span>
+              </button>
+            </div>
+
+            <div>
+              <span style={{ fontSize: '11px', fontFamily: 'var(--font-mono)', color: 'var(--text-low)' }}>
+                PERFORMERS
+              </span>
+              <div style={{ marginTop: 6, display: 'flex', flexDirection: 'column', gap: 6 }}>
+                {currentTrack.credits?.performers ? (
+                  currentTrack.credits.performers.map((p, idx) => (
+                    <p key={idx} style={{ margin: 0, fontSize: '13px', color: 'var(--text-high)' }}>
+                      • {p}
+                    </p>
+                  ))
+                ) : (
+                  <p style={{ margin: 0, fontSize: '13px', color: 'var(--text-high)' }}>
+                    • {currentTrack.artist} (Lead Performance)
+                  </p>
+                )}
+              </div>
+            </div>
+
+            <div>
+              <span style={{ fontSize: '11px', fontFamily: 'var(--font-mono)', color: 'var(--text-low)' }}>
+                SONGWRITING
+              </span>
+              <div style={{ marginTop: 6, display: 'flex', flexDirection: 'column', gap: 6 }}>
+                {currentTrack.credits?.composers ? (
+                  currentTrack.credits.composers.map((c, idx) => (
+                    <p key={idx} style={{ margin: 0, fontSize: '13px', color: 'var(--text-high)' }}>
+                      • Composer: {c}
+                    </p>
+                  ))
+                ) : (
+                  <p style={{ margin: 0, fontSize: '13px', color: 'var(--text-high)' }}>
+                    • Composer: {currentTrack.artist}
+                  </p>
+                )}
+                {currentTrack.credits?.lyricists &&
+                  currentTrack.credits.lyricists.map((l, idx) => (
+                    <p key={`lyr-${idx}`} style={{ margin: 0, fontSize: '13px', color: 'var(--text-high)' }}>
+                      • Lyricist: {l}
+                    </p>
+                  ))}
+              </div>
+            </div>
+
+            <div>
+              <span style={{ fontSize: '11px', fontFamily: 'var(--font-mono)', color: 'var(--text-low)' }}>
+                PRODUCTION & ENGINEERING
+              </span>
+              <div style={{ marginTop: 6, display: 'flex', flexDirection: 'column', gap: 6 }}>
+                <p style={{ margin: 0, fontSize: '13px', color: 'var(--text-high)' }}>
+                  • Producer: {currentTrack.credits?.producers?.[0] || 'Nocturne Sonic Guild'}
+                </p>
+                <p style={{ margin: 0, fontSize: '13px', color: 'var(--text-high)' }}>
+                  • Mix: {currentTrack.credits?.mixedBy?.[0] || 'Julian Mercer at Obsidian Labs'}
+                </p>
+                <p style={{ margin: 0, fontSize: '13px', color: 'var(--text-high)' }}>
+                  • Master: {currentTrack.credits?.masteredBy?.[0] || 'Evelyn Thorne'}
+                </p>
+              </div>
+            </div>
+
+            <div style={{ borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: 10 }}>
+              <p style={{ margin: 0, fontSize: '11px', color: 'var(--text-low)', lineHeight: 1.5 }}>
+                {currentTrack.credits?.copyrightNotice || '© 2024-2025 Nocturne Sanctuary Records.'}
+              </p>
+            </div>
+          </div>
         )}
       </div>
     </aside>

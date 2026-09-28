@@ -14,6 +14,22 @@ export interface SyncedLyricLine {
   text: string;
 }
 
+export type LyricsState = 'available' | 'not_available' | 'loading' | 'error';
+export type LyricsTab = 'lyrics' | 'info' | 'credits';
+
+export interface TrackCredits {
+  performers?: string[];
+  composers?: string[];
+  lyricists?: string[];
+  producers?: string[];
+  mixedBy?: string[];
+  masteredBy?: string[];
+  recordLabel?: string;
+  releaseYear?: number;
+  copyrightNotice?: string;
+  studio?: string;
+}
+
 export type TrackMatchStatus = 'matched' | 'unmatched' | 'possible';
 
 export interface Track {
@@ -36,6 +52,7 @@ export interface Track {
   playCount: number;
   bitrate?: string; // e.g. "24-bit / 96kHz FLAC"
   vibe?: string; // e.g. "Gothic Darkwave", "Midnight Ambient"
+  credits?: TrackCredits;
   isUnavailable?: boolean; // True if Spotify imported track is not available in Nocturne library
   originalSpotifyUri?: string;
   originalSpotifyId?: string;

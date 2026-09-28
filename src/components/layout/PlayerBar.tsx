@@ -16,6 +16,7 @@ import {
   Music,
   Loader2,
   AlertCircle,
+  Mic2,
 } from 'lucide-react';
 import { usePlayer } from '../../state/PlayerContext';
 import { useLibrary } from '../../state/LibraryContext';
@@ -50,7 +51,7 @@ export const PlayerBar: React.FC = () => {
     cycleRepeatMode,
   } = usePlayer();
 
-  const { rightPanelOpen, toggleRightPanel, openRightPanel } = useUI();
+  const { rightPanelOpen, toggleRightPanel, openRightPanel, isLyricsOpen, toggleLyrics } = useUI();
   const { isLiked, toggleLike } = useLibrary();
   const { showToast } = useToast();
   const [imgError, setImgError] = useState(false);
@@ -262,8 +263,21 @@ export const PlayerBar: React.FC = () => {
         </div>
       </div>
 
-      {/* Right: Volume, Queue, & Details Panel */}
+      {/* Right: Volume, Lyrics, Queue, & Details Panel */}
       <div className="nocturne-player__right">
+        {/* Lyrics Button */}
+        <Tooltip content={isLyricsOpen ? 'Close Lyrics (Press L)' : 'Lyrics & Lore (Press L)'} position="top">
+          <IconButton
+            variant="ghost"
+            size="sm"
+            active={isLyricsOpen}
+            onClick={toggleLyrics}
+            aria-label="Toggle Lyrics & Lore"
+          >
+            <Mic2 size={16} />
+          </IconButton>
+        </Tooltip>
+
         {/* Queue Button */}
         <Tooltip content={`Playback Queue (${queue.length} tracks)`} position="top">
           <IconButton

@@ -1,0 +1,736 @@
+/* ==========================================================================
+   NOCTURNE IMMERSIVE LYRICS & LORE MODAL
+   Cinematic, dark aesthetic with dynamic artwork blur and fluid typography
+   ========================================================================== */
+
+.nocturne-lyrics-modal {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-modal);
+  display: flex;
+  flex-direction: column;
+  background-color: #07070a;
+  color: var(--text-high);
+  overflow: hidden;
+  animation: lyricsModalFadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes lyricsModalFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Dynamic Ambient Artwork Backdrop */
+.nocturne-lyrics-modal__backdrop {
+  position: absolute;
+  inset: -40px;
+  background-size: cover;
+  background-position: center;
+  filter: blur(70px) brightness(0.28) saturate(1.4);
+  transform: scale(1.1);
+  opacity: 0.75;
+  pointer-events: none;
+  z-index: 0;
+  transition: background-image 0.8s ease;
+}
+
+.nocturne-lyrics-modal__vignette {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    circle at center,
+    rgba(10, 10, 16, 0.5) 0%,
+    rgba(6, 6, 9, 0.9) 65%,
+    #050508 100%
+  );
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Main Container */
+.nocturne-lyrics-modal__container {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+/* Header */
+.nocturne-lyrics-modal__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 32px 14px 32px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+.nocturne-lyrics-modal__track-summary {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+  flex: 1;
+  max-width: 380px;
+}
+
+.nocturne-lyrics-modal__art-thumb {
+  width: 44px;
+  height: 44px;
+  border-radius: 6px;
+  object-fit: cover;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  flex-shrink: 0;
+}
+
+.nocturne-lyrics-modal__art-thumb-fallback {
+  width: 44px;
+  height: 44px;
+  border-radius: 6px;
+  background: var(--bg-surface-elevated);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  flex-shrink: 0;
+}
+
+.nocturne-lyrics-modal__meta {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.nocturne-lyrics-modal__title {
+  font-family: var(--font-sans);
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-high);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.nocturne-lyrics-modal__artist {
+  font-size: 13px;
+  color: var(--text-medium);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Nav Tabs */
+.nocturne-lyrics-modal__tabs {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.04);
+  padding: 4px;
+  border-radius: 30px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.nocturne-lyrics-modal__tab-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 16px;
+  border-radius: 20px;
+  background: transparent;
+  border: none;
+  color: var(--text-medium);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.nocturne-lyrics-modal__tab-btn:hover {
+  color: var(--text-high);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.nocturne-lyrics-modal__tab-btn--active {
+  background: var(--accent-primary) !important;
+  color: #fff !important;
+  box-shadow: 0 0 16px var(--accent-glow);
+}
+
+/* Actions */
+.nocturne-lyrics-modal__actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  justify-content: flex-end;
+}
+
+.nocturne-lyrics-modal__pill-btn {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 12px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 14px;
+  color: var(--text-medium);
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.nocturne-lyrics-modal__pill-btn:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: var(--text-high);
+}
+
+.nocturne-lyrics-modal__pill-btn--active {
+  border-color: var(--accent-primary);
+  color: var(--accent-secondary);
+  background: rgba(147, 51, 234, 0.15);
+}
+
+/* Content Area */
+.nocturne-lyrics-modal__content {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ==================== TAB 1: LYRICS VIEW ==================== */
+.nocturne-lyrics-scroll-container {
+  flex: 1;
+  overflow-y: auto;
+  scroll-behavior: smooth;
+  padding: 60px 32px 140px 32px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
+}
+
+.nocturne-lyrics-scroll-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+.nocturne-lyrics-scroll-container::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 4px;
+}
+
+.nocturne-lyrics-list {
+  max-width: 820px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  text-align: left;
+}
+
+/* Synced Line */
+.nocturne-lyrics__line {
+  position: relative;
+  padding: 10px 18px;
+  border-radius: 10px;
+  font-family: var(--font-sans);
+  font-size: 24px;
+  line-height: 1.45;
+  font-weight: 500;
+  cursor: pointer;
+  transition: color 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+              opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+              text-shadow 0.3s ease;
+  user-select: none;
+}
+
+/* Future Lines */
+.nocturne-lyrics__line--future {
+  color: var(--text-low);
+  opacity: 0.32;
+  transform: scale(0.98);
+  transform-origin: left center;
+}
+
+.nocturne-lyrics__line--future:hover {
+  opacity: 0.65;
+  color: var(--text-high);
+}
+
+/* Past Lines */
+.nocturne-lyrics__line--past {
+  color: rgba(255, 255, 255, 0.68);
+  opacity: 0.62;
+  transform: scale(0.99);
+  transform-origin: left center;
+}
+
+.nocturne-lyrics__line--past:hover {
+  opacity: 0.9;
+  color: var(--text-high);
+}
+
+/* Active Highlight Line */
+.nocturne-lyrics__line--active {
+  color: #ffffff !important;
+  opacity: 1 !important;
+  font-size: 30px;
+  font-weight: 700;
+  transform: scale(1.02);
+  transform-origin: left center;
+  text-shadow: 0 0 24px var(--accent-glow), 0 2px 10px rgba(0, 0, 0, 0.8);
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.08) 0%, transparent 100%);
+  border-left: 3px solid var(--accent-primary);
+}
+
+.nocturne-lyrics__line-time {
+  font-size: 11px;
+  font-family: var(--font-mono);
+  color: var(--accent-secondary);
+  opacity: 0;
+  margin-left: 12px;
+  transition: opacity 0.2s ease;
+  vertical-align: middle;
+}
+
+.nocturne-lyrics__line:hover .nocturne-lyrics__line-time {
+  opacity: 0.75;
+}
+
+/* Plain Lyrics Mode */
+.nocturne-lyrics-plain-container {
+  max-width: 760px;
+  width: 100%;
+  font-size: 20px;
+  line-height: 1.85;
+  color: rgba(255, 255, 255, 0.85);
+  white-space: pre-wrap;
+  text-align: left;
+  letter-spacing: 0.01em;
+}
+
+/* Floating Return to Current Line Pill */
+.nocturne-lyrics-modal__sync-pill {
+  position: absolute;
+  bottom: 100px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  background: var(--bg-surface-elevated);
+  border: 1px solid var(--accent-primary);
+  border-radius: 30px;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.7), 0 0 16px var(--accent-glow);
+  cursor: pointer;
+  z-index: 10;
+  animation: syncPillBounce 0.3s ease;
+  transition: transform 0.2s ease, background 0.2s ease;
+}
+
+.nocturne-lyrics-modal__sync-pill:hover {
+  transform: translateX(-50%) scale(1.05);
+  background: var(--accent-primary);
+}
+
+@keyframes syncPillBounce {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 20px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
+
+/* ==================== LYRICS STATES ==================== */
+
+/* State: Not Available */
+.nocturne-lyrics-state--not-available {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  text-align: center;
+  padding: 40px 24px;
+}
+
+.nocturne-lyrics-state__icon-wrap {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 24px;
+  color: var(--text-medium);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+
+.nocturne-lyrics-state__title {
+  font-family: var(--font-serif);
+  font-size: 24px;
+  font-weight: 500;
+  color: var(--text-high);
+  margin-bottom: 12px;
+  letter-spacing: -0.01em;
+}
+
+.nocturne-lyrics-state__desc {
+  font-size: 14px;
+  color: var(--text-medium);
+  max-width: 440px;
+  line-height: 1.6;
+}
+
+/* State: Loading */
+.nocturne-lyrics-state--loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  gap: 20px;
+  padding: 60px 20px;
+}
+
+.nocturne-lyrics-state__pulse-spinner {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  border-top-color: var(--accent-primary);
+  animation: lyricsSpin 1s linear infinite;
+}
+
+@keyframes lyricsSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.nocturne-lyrics-state__loading-text {
+  font-size: 14px;
+  color: var(--text-medium);
+  font-family: var(--font-mono);
+  letter-spacing: 0.05em;
+}
+
+/* State: Error */
+.nocturne-lyrics-state--error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  text-align: center;
+  padding: 40px 20px;
+  gap: 16px;
+}
+
+/* ==================== TAB 2: SONG INFO ==================== */
+.nocturne-song-info-container {
+  flex: 1;
+  overflow-y: auto;
+  padding: 48px 32px 120px 32px;
+  max-width: 900px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.nocturne-song-info__hero {
+  display: flex;
+  gap: 32px;
+  margin-bottom: 40px;
+  align-items: center;
+}
+
+.nocturne-song-info__art-large {
+  width: 180px;
+  height: 180px;
+  border-radius: 12px;
+  object-fit: cover;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  flex-shrink: 0;
+}
+
+.nocturne-song-info__details {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.nocturne-song-info__badge {
+  align-self: flex-start;
+  padding: 3px 10px;
+  background: rgba(147, 51, 234, 0.15);
+  border: 1px solid var(--accent-primary);
+  border-radius: 12px;
+  font-size: 11px;
+  font-family: var(--font-mono);
+  color: var(--accent-secondary);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.nocturne-song-info__track-name {
+  font-family: var(--font-serif);
+  font-size: 32px;
+  font-weight: 600;
+  color: var(--text-high);
+  line-height: 1.2;
+}
+
+.nocturne-song-info__artist-link {
+  font-size: 16px;
+  color: var(--accent-secondary);
+  font-weight: 500;
+}
+
+.nocturne-song-info__album-name {
+  font-size: 14px;
+  color: var(--text-medium);
+}
+
+/* Audio Signal Matrix */
+.nocturne-song-info__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 16px;
+  margin-bottom: 32px;
+}
+
+.nocturne-song-info__card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 10px;
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.nocturne-song-info__card-label {
+  font-size: 11px;
+  font-family: var(--font-mono);
+  color: var(--text-low);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.nocturne-song-info__card-val {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-high);
+}
+
+.nocturne-song-info__lore {
+  background: rgba(255, 255, 255, 0.02);
+  border-left: 3px solid var(--accent-primary);
+  padding: 18px 24px;
+  border-radius: 0 8px 8px 0;
+  font-size: 14px;
+  font-style: italic;
+  color: var(--text-medium);
+  line-height: 1.7;
+}
+
+/* ==================== TAB 3: CREDITS ==================== */
+.nocturne-credits-container {
+  flex: 1;
+  overflow-y: auto;
+  padding: 48px 32px 120px 32px;
+  max-width: 900px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.nocturne-credits__header {
+  margin-bottom: 32px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding-bottom: 18px;
+}
+
+.nocturne-credits__title {
+  font-family: var(--font-serif);
+  font-size: 26px;
+  font-weight: 600;
+  color: var(--text-high);
+  margin-bottom: 6px;
+}
+
+.nocturne-credits__subtitle {
+  font-size: 13px;
+  color: var(--text-medium);
+}
+
+.nocturne-credits__section {
+  margin-bottom: 28px;
+}
+
+.nocturne-credits__section-title {
+  font-size: 12px;
+  font-family: var(--font-mono);
+  color: var(--accent-secondary);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 14px;
+}
+
+.nocturne-credits__list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.nocturne-credits__item {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 10px 14px;
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.nocturne-credits__name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-high);
+}
+
+.nocturne-credits__role {
+  font-size: 12px;
+  color: var(--text-medium);
+  font-style: italic;
+}
+
+.nocturne-credits__legal {
+  margin-top: 40px;
+  padding-top: 20px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  font-size: 12px;
+  color: var(--text-low);
+  line-height: 1.6;
+}
+
+/* ==================== BOTTOM EMBEDDED PLAYER ==================== */
+.nocturne-lyrics-modal__player-bar {
+  position: relative;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 32px;
+  background: rgba(8, 8, 12, 0.88);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+.nocturne-lyrics-modal__player-controls {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.nocturne-lyrics-modal__progress-wrap {
+  flex: 1;
+  max-width: 600px;
+  margin: 0 24px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.nocturne-lyrics-modal__time {
+  font-size: 11px;
+  font-family: var(--font-mono);
+  color: var(--text-medium);
+  min-width: 40px;
+}
+
+/* ==================== RESPONSIVE DESIGN ==================== */
+@media (max-width: 768px) {
+  .nocturne-lyrics-modal__header {
+    padding: 14px 18px;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .nocturne-lyrics-modal__track-summary {
+    max-width: 100%;
+    order: 1;
+    width: calc(100% - 44px);
+  }
+
+  .nocturne-lyrics-modal__actions {
+    order: 2;
+    flex: initial;
+  }
+
+  .nocturne-lyrics-modal__tabs {
+    order: 3;
+    width: 100%;
+    justify-content: center;
+    margin-top: 4px;
+  }
+
+  .nocturne-lyrics-scroll-container {
+    padding: 32px 18px 120px 18px;
+  }
+
+  .nocturne-lyrics__line {
+    font-size: 19px;
+    padding: 8px 12px;
+  }
+
+  .nocturne-lyrics__line--active {
+    font-size: 23px;
+  }
+
+  .nocturne-lyrics-modal__player-bar {
+    padding: 10px 16px;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .nocturne-lyrics-modal__progress-wrap {
+    width: 100%;
+    max-width: 100%;
+    margin: 0;
+  }
+
+  .nocturne-song-info__hero {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .nocturne-song-info__badge {
+    align-self: center;
+  }
+}

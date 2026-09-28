@@ -32,15 +32,50 @@ export const MOCK_TRACKS: Track[] = [
     playCount: 1420500,
     bitrate: '24-bit / 96kHz FLAC',
     vibe: 'Gothic Darkwave',
-    lyrics: `Cold stone arches drink the purple sky\nThe city sleeps while the shadows sigh\nIn the violet hour we are made anew\nDrifting beyond the morning dew`,
+    lyrics: `Cold stone arches drink the purple sky
+The city sleeps while the shadows sigh
+In the violet hour we are made anew
+Drifting beyond the morning dew
+
+Subterranean bells ring through the haze
+Lost in the twilight labyrinth maze
+Echoes remember what mortals forget
+A midnight promise we have kept
+
+Carry the lantern into the deep
+Where sleepless phantoms silently weep
+Until the dawn breaks silver and cold
+And the forgotten tales are retold`,
     syncedLyrics: [
       { time: 0, text: 'Cold stone arches drink the purple sky' },
-      { time: 14, text: 'The city sleeps while the shadows sigh' },
-      { time: 28, text: 'In the violet hour we are made anew' },
-      { time: 42, text: 'Drifting beyond the morning dew' },
-      { time: 60, text: 'Subterranean bells ring through the haze' },
-      { time: 78, text: 'Lost in the twilight labyrinth maze' },
+      { time: 6, text: 'The city sleeps while the shadows sigh' },
+      { time: 13, text: 'In the violet hour we are made anew' },
+      { time: 20, text: 'Drifting beyond the morning dew' },
+      { time: 28, text: 'Subterranean bells ring through the haze' },
+      { time: 37, text: 'Lost in the twilight labyrinth maze' },
+      { time: 46, text: 'Echoes remember what mortals forget' },
+      { time: 55, text: 'A midnight promise we have kept' },
+      { time: 65, text: 'Carry the lantern into the deep' },
+      { time: 75, text: 'Where sleepless phantoms silently weep' },
+      { time: 86, text: 'Until the dawn breaks silver and cold' },
+      { time: 98, text: 'And the forgotten tales are retold' },
     ],
+    credits: {
+      performers: [
+        'Vespera St. Clair (Lead Vocals, Moog Sub 37, Prophet-6)',
+        'Dante Vance (Baritone Guitars, Bowed Electric Cello)',
+        'Kaelen Cross (Analog Rhythm Matrix, Sub-Bass Synthesizer)',
+      ],
+      composers: ['Vespera St. Clair', 'Dante Vance'],
+      lyricists: ['Vespera St. Clair'],
+      producers: ['Nocturne Sonic Sanctuary Guild', 'Dante Vance'],
+      mixedBy: ['Julian Mercer at Obsidian Sound Labs, Berlin'],
+      masteredBy: ['Evelyn Thorne at Abbey Dark Studios, London'],
+      recordLabel: 'Nocturne Records / Darkwave Archive',
+      releaseYear: 2025,
+      copyrightNotice: '© 2025 Nocturne Sanctuary Ltd. Demo recording for Nocturne Audio Platform.',
+      studio: 'Cathedral Crypt Studio, Prague',
+    },
   },
   {
     id: 'tr-2',
@@ -60,13 +95,40 @@ export const MOCK_TRACKS: Track[] = [
     playCount: 1120300,
     bitrate: '24-bit / 96kHz FLAC',
     vibe: 'Gothic Darkwave',
-    lyrics: `Silver dust falling on obsidian stairs\nA quiet flame consumes our prayers\nWatch the pale moon dissolve in ash\nBefore the morning sunbeams crash`,
+    lyrics: `Silver dust falling on obsidian stairs
+A quiet flame consumes our prayers
+Watch the pale moon dissolve in ash
+Before the morning sunbeams crash
+
+We burn the remnants of the night
+To greet the cold unyielding light
+No tears remain for what has flown
+Into the black expanse unknown`,
     syncedLyrics: [
       { time: 0, text: 'Silver dust falling on obsidian stairs' },
-      { time: 18, text: 'A quiet flame consumes our prayers' },
-      { time: 36, text: 'Watch the pale moon dissolve in ash' },
-      { time: 54, text: 'Before the morning sunbeams crash' },
+      { time: 8, text: 'A quiet flame consumes our prayers' },
+      { time: 17, text: 'Watch the pale moon dissolve in ash' },
+      { time: 26, text: 'Before the morning sunbeams crash' },
+      { time: 38, text: 'We burn the remnants of the night' },
+      { time: 48, text: 'To greet the cold unyielding light' },
+      { time: 59, text: 'No tears remain for what has flown' },
+      { time: 70, text: 'Into the black expanse unknown' },
     ],
+    credits: {
+      performers: [
+        'Vespera St. Clair (Vocals, Oberheim OB-6)',
+        'Dante Vance (Acoustic & Electric 12-string Guitars)',
+      ],
+      composers: ['Vespera St. Clair'],
+      lyricists: ['Vespera St. Clair'],
+      producers: ['Nocturne Sanctuary Guild'],
+      mixedBy: ['Julian Mercer at Obsidian Sound Labs'],
+      masteredBy: ['Evelyn Thorne'],
+      recordLabel: 'Nocturne Records / Darkwave Archive',
+      releaseYear: 2025,
+      copyrightNotice: '© 2025 Nocturne Sanctuary Ltd.',
+      studio: 'Nocturne Tower Studio, Vienna',
+    },
   },
   {
     id: 'tr-3',
@@ -86,13 +148,27 @@ export const MOCK_TRACKS: Track[] = [
     playCount: 843200,
     bitrate: '24-bit / 96kHz FLAC',
     vibe: 'Gothic Darkwave',
-    lyrics: `Echoes down the marble hall\nFootsteps fade against the wall\nNo light penetrates this crypt of stone\nHere we sit upon our silent throne`,
+    lyrics: `Echoes down the marble hall
+Footsteps fade against the wall
+No light penetrates this crypt of stone
+Here we sit upon our silent throne`,
     syncedLyrics: [
       { time: 0, text: 'Echoes down the marble hall' },
-      { time: 16, text: 'Footsteps fade against the wall' },
-      { time: 32, text: 'No light penetrates this crypt of stone' },
-      { time: 48, text: 'Here we sit upon our silent throne' },
+      { time: 9, text: 'Footsteps fade against the wall' },
+      { time: 18, text: 'No light penetrates this crypt of stone' },
+      { time: 28, text: 'Here we sit upon our silent throne' },
     ],
+    credits: {
+      performers: ['Vespera St. Clair (Vocals, Pipe Organ, Modular Synth)'],
+      composers: ['Vespera St. Clair'],
+      lyricists: ['Vespera St. Clair'],
+      producers: ['Nocturne Sonic Sanctuary'],
+      mixedBy: ['Julian Mercer'],
+      masteredBy: ['Evelyn Thorne'],
+      recordLabel: 'Nocturne Records',
+      releaseYear: 2025,
+      copyrightNotice: '© 2025 Nocturne Records',
+    },
   },
   {
     id: 'tr-4',
@@ -112,7 +188,26 @@ export const MOCK_TRACKS: Track[] = [
     playCount: 712000,
     bitrate: '24-bit / 96kHz FLAC',
     vibe: 'Gothic Darkwave',
-    lyrics: `Wrapped in silk and midnight dust\nA sanctuary free of lust\nWhere time is frozen in a glass\nWatching ancient empires pass`,
+    lyrics: `Wrapped in silk and midnight dust
+A sanctuary free of lust
+Where time is frozen in a glass
+Watching ancient empires pass
+
+The shadows lengthen on the floor
+Beyond the locked obsidian door
+No sorrow penetrates this room
+Enfolded in perpetual gloom`,
+    credits: {
+      performers: ['Vespera St. Clair (Vocals, Synthesizers)', 'Dante Vance (Acoustic Guitar)'],
+      composers: ['Vespera St. Clair'],
+      lyricists: ['Vespera St. Clair'],
+      producers: ['Nocturne Sonic Sanctuary'],
+      mixedBy: ['Julian Mercer'],
+      masteredBy: ['Evelyn Thorne'],
+      recordLabel: 'Nocturne Records',
+      releaseYear: 2025,
+      copyrightNotice: '© 2025 Nocturne Records',
+    },
   },
   {
     id: 'tr-5',
@@ -132,6 +227,16 @@ export const MOCK_TRACKS: Track[] = [
     playCount: 541000,
     bitrate: '24-bit / 96kHz FLAC',
     vibe: 'Gothic Darkwave',
+    credits: {
+      performers: ['Dante Vance (Baritone Guitars, Bowed Strings)', 'Kaelen Cross (Percussion, Sub-Bass)'],
+      composers: ['Dante Vance', 'Kaelen Cross'],
+      producers: ['Nocturne Sonic Sanctuary'],
+      mixedBy: ['Julian Mercer'],
+      masteredBy: ['Evelyn Thorne'],
+      recordLabel: 'Nocturne Records',
+      releaseYear: 2025,
+      copyrightNotice: '© 2025 Nocturne Records (Instrumental Composition)',
+    },
   },
 
   // --- Artist 2: Lykos Neoclassical (art-2) ---
@@ -154,7 +259,19 @@ export const MOCK_TRACKS: Track[] = [
     playCount: 890400,
     bitrate: '24-bit / 192kHz MQA',
     vibe: 'Gothic Neoclassical',
-    lyrics: `(Solo Cello in D Minor)\nRecorded at 3:15 AM in an 18th-century stone chapel. Natural room decay: 4.2 seconds.`,
+    lyrics: `(Solo Cello in D Minor)
+Recorded at 3:15 AM in an 18th-century stone chapel. Natural room decay: 4.2 seconds.`,
+    credits: {
+      performers: ['Lykos (Solo Master Cello, Venice 1742)'],
+      composers: ['Lykos'],
+      producers: ['Nocturne Acoustic Archival Group'],
+      mixedBy: ['Julian Mercer'],
+      masteredBy: ['Evelyn Thorne'],
+      recordLabel: 'Nocturne Classical Heritage',
+      releaseYear: 2024,
+      copyrightNotice: '© 2024 Nocturne Records',
+      studio: 'St. Leopold Stone Crypt, Vienna',
+    },
   },
   {
     id: 'tr-7',

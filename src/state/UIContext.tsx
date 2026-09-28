@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState } from 'react';
 
-export type RightPanelTab = 'info' | 'lyrics' | 'queue';
+export type RightPanelTab = 'info' | 'lyrics' | 'queue' | 'credits';
+export type LyricsTab = 'lyrics' | 'info' | 'credits';
 
 interface UIContextType {
   sidebarCollapsed: boolean;
@@ -14,6 +15,13 @@ interface UIContextType {
   setRightPanelTab: (tab: RightPanelTab) => void;
   openRightPanel: (tab?: RightPanelTab) => void;
   toggleRightPanel: () => void;
+  isLyricsOpen: boolean;
+  setIsLyricsOpen: (open: boolean) => void;
+  lyricsTab: LyricsTab;
+  setLyricsTab: (tab: LyricsTab) => void;
+  openLyrics: (tab?: LyricsTab) => void;
+  closeLyrics: () => void;
+  toggleLyrics: () => void;
   searchQuery: string;
   setSearchQuery: (query: string) => void;
   activeModal: string | null;
@@ -28,6 +36,8 @@ export const UIProvider: React.FC<{ children: React.ReactNode }> = ({ children }
   const [mobileMenuOpen, setMobileMenuOpen] = useState<boolean>(false);
   const [rightPanelOpen, setRightPanelOpen] = useState<boolean>(false);
   const [rightPanelTab, setRightPanelTab] = useState<RightPanelTab>('queue');
+  const [isLyricsOpen, setIsLyricsOpen] = useState<boolean>(false);
+  const [lyricsTab, setLyricsTab] = useState<LyricsTab>('lyrics');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [activeModal, setActiveModal] = useState<string | null>(null);
 
@@ -37,6 +47,12 @@ export const UIProvider: React.FC<{ children: React.ReactNode }> = ({ children }
     if (tab) setRightPanelTab(tab);
     setRightPanelOpen(true);
   };
+  const openLyrics = (tab?: LyricsTab) => {
+    if (tab) setLyricsTab(tab);
+    setIsLyricsOpen(true);
+  };
+  const closeLyrics = () => setIsLyricsOpen(false);
+  const toggleLyrics = () => setIsLyricsOpen((prev) => !prev);
   const openModal = (id: string) => setActiveModal(id);
   const closeModal = () => setActiveModal(null);
 
@@ -54,6 +70,13 @@ export const UIProvider: React.FC<{ children: React.ReactNode }> = ({ children }
         setRightPanelTab,
         openRightPanel,
         toggleRightPanel,
+        isLyricsOpen,
+        setIsLyricsOpen,
+        lyricsTab,
+        setLyricsTab,
+        openLyrics,
+        closeLyrics,
+        toggleLyrics,
         searchQuery,
         setSearchQuery,
         activeModal,
