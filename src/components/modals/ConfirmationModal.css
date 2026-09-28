@@ -1,0 +1,68 @@
+.nocturne-confirm-modal {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.nocturne-confirm-modal__header {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+}
+
+.nocturne-confirm-modal__icon-wrap {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.nocturne-confirm-modal__icon-wrap--danger {
+  background: rgba(239, 68, 68, 0.12);
+  border: 1px solid rgba(239, 68, 68, 0.25);
+  color: var(--indicator-error, #f87171);
+}
+
+.nocturne-confirm-modal__icon-wrap--warning {
+  background: rgba(245, 158, 11, 0.12);
+  border: 1px solid rgba(245, 158, 11, 0.25);
+  color: var(--indicator-warning, #fbbf24);
+}
+
+.nocturne-confirm-modal__icon-wrap--default {
+  background: rgba(168, 85, 247, 0.12);
+  border: 1px solid rgba(168, 85, 247, 0.25);
+  color: var(--accent-primary, #a855f7);
+}
+
+.nocturne-confirm-modal__text {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.nocturne-confirm-modal__title {
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: var(--text-pure, #ffffff);
+  margin: 0;
+}
+
+.nocturne-confirm-modal__desc {
+  font-size: 13px;
+  color: var(--text-medium, rgba(255, 255, 255, 0.7));
+  line-height: 1.5;
+  margin: 0;
+}
+
+.nocturne-confirm-modal__actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.08));
+}

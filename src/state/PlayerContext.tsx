@@ -35,7 +35,9 @@ export interface PlayerContextType extends PlayerState {
   setVolume: (vol: number) => void;
   toggleMute: () => void;
   toggleShuffle: () => void;
+  setShuffle: (shuffle: boolean) => void;
   cycleRepeatMode: () => void;
+  setRepeatMode: (mode: 'off' | 'all' | 'one') => void;
   addToQueue: (track: Track) => void;
   addTracksToQueue: (tracks: Track[]) => void;
   playNext: (track: Track) => void;
@@ -839,7 +841,9 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         setVolume,
         toggleMute,
         toggleShuffle,
+        setShuffle: setShuffleState,
         cycleRepeatMode,
+        setRepeatMode,
         addToQueue,
         addTracksToQueue,
         playNext,

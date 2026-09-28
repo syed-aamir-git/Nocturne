@@ -1,29 +1,76 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import {
-  Settings as SettingsIcon,
-  Radio,
+  User,
+  PlayCircle,
   Volume2,
-  HardDrive,
+  Palette,
+  Shield,
+  Database,
+  Sliders,
+  Download,
   Trash2,
+  RotateCcw,
   CheckCircle,
   XCircle,
-  Download,
-  Sliders,
-  Palette,
-  RotateCcw,
+  FileSpreadsheet,
+  HardDrive,
+  Cpu,
 } from 'lucide-react';
-import { Card } from '../components/primitives/Card';
 import { Button } from '../components/primitives/Button';
+import { Slider } from '../components/primitives/Slider';
+import { Toggle } from '../components/primitives/Toggle';
+import { SelectDropdown } from '../components/primitives/SelectDropdown';
+import type { SelectOption } from '../components/primitives/SelectDropdown';
+import { ConfirmationModal } from '../components/modals/ConfirmationModal';
 import { useTheme } from '../state/ThemeContext';
 import { useToast } from '../state/ToastContext';
+import { usePlayer } from '../state/PlayerContext';
 import { useSpotify } from '../state/SpotifyContext';
 import { useAudioSettings } from '../state/AudioSettingsContext';
+import { useAnalytics } from '../state/AnalyticsContext';
+import { storageService } from '../services/storageService';
 import { BUILTIN_EQ_PRESETS, CROSSFADE_OPTIONS } from '../types/audio';
-import type { AudioQuality } from '../types/audio';
+import type { AudioQuality, CrossfadeDuration } from '../types/audio';
+import type { UserAccountProfile, PrivacySettings } from '../types';
 import { ACCENT_COLOR_PRESETS } from '../utilities/constants';
+import './SettingsPage.css';
+
+type SettingsCategory = 'account' | 'playback' | 'audio' | 'appearance' | 'privacy' | 'data';
+
+const AVATAR_PRESETS = [
+  {
+    id: 'wanderer',
+    name: 'Wanderer',
+    url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&q=80',
+  },
+  {
+    id: 'scholar',
+    name: 'Scholar',
+    url: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=120&q=80',
+  },
+  {
+    id: 'acolyte',
+    name: 'Acolyte',
+    url: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=120&q=80',
+  },
+  {
+    id: 'poet',
+    name: 'Poet',
+    url: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?auto=format&fit=crop&w=120&q=80',
+  },
+  {
+    id: 'archon',
+    name: 'Archon',
+    url: 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=120&q=80',
+  },
+];
 
 export const SettingsPage: React.FC = () => {
+  const { showToast } = useToast();
+
+  const [activeCategory, setActiveCategory] = useState<SettingsCategory>('account');
+
+  // Contexts
   const {
     currentTheme,
     availableThemes,
@@ -48,19 +95,13 @@ export const SettingsPage: React.FC = () => {
     setAnimationMode,
     resetToDefaults,
   } = useTheme();
-  const { showToast } = useToast();
-  const navigate = useNavigate();
+
   const {
-    isConnected,
-    isConnecting,
-    userProfile,
-    isDemoMode,
-    connect,
-    connectDemo,
-    disconnect,
-    clientId,
-    setCustomClientId,
-  } = useSpotify();
+    shuffle,
+    setShuffle,
+    repeatMode,
+    setRepeatMode,
+  } = usePlayer();
 
   const {
     audioQuality,
@@ -76,1279 +117,1228 @@ export const SettingsPage: React.FC = () => {
     equalizerEnabled,
     toggleEqualizerEnabled,
     currentPresetId,
+    selectPreset,
     savedPresets,
     openEqualizer,
   } = useAudioSettings();
 
-  const [showConfig, setShowConfig] = useState(false);
-  const [tempId, setTempId] = useState(clientId);
+  const { history, clearHistory } = useAnalytics();
 
-  const qualityOptions: { id: AudioQuality; title: string; spec: string }[] = [
+  const {
+    isConnected,
+    isConnecting,
+    userProfile: spotifyUser,
+    isDemoMode,
+    connect,
+    connectDemo,
+    disconnect,
+  } = useSpotify();
+
+  // State: Account Profile
+  const [profile, setProfile] = useState<UserAccountProfile>(() => storageService.getUserProfile());
+
+  // State: Privacy Settings
+  const [privacy, setPrivacy] = useState<PrivacySettings>(() => storageService.getPrivacySettings());
+
+  // State: Spatial Virtualizer (Audio Processing)
+  const [spatialStereo, setSpatialStereo] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem('nocturne_spatial_stereo_v1') === 'true';
+    } catch {
+      return false;
+    }
+  });
+
+  // State: Confirmation Modals
+  const [showClearHistoryConfirm, setShowClearHistoryConfirm] = useState(false);
+  const [showResetPreferencesConfirm, setShowResetPreferencesConfirm] = useState(false);
+
+  // Handlers: Account
+  const handleSaveProfile = () => {
+    storageService.saveUserProfile(profile);
+    showToast('Sanctuary Profile Saved', `Updated identity for ${profile.name}`, 'default');
+  };
+
+  // Handlers: Privacy
+  const updatePrivacy = (partial: Partial<PrivacySettings>) => {
+    const updated = { ...privacy, ...partial };
+    setPrivacy(updated);
+    storageService.savePrivacySettings(updated);
+    showToast('Privacy Preserved', 'Updated sanctuary privacy protocols', 'default');
+  };
+
+  // Handlers: Audio Processing
+  const handleToggleSpatialStereo = (checked: boolean) => {
+    setSpatialStereo(checked);
+    try {
+      localStorage.setItem('nocturne_spatial_stereo_v1', String(checked));
+    } catch {
+      // ignore
+    }
+    showToast(
+      checked ? 'Spatial Acoustic Stage Active' : 'Direct Stereo Bypass',
+      checked ? 'Expanded binaural headphone soundstage' : 'Standard binaural field',
+      'atmosphere'
+    );
+  };
+
+  // Handlers: Data Export (Real JSON & CSV Blob downloads)
+  const handleExportJSON = () => {
+    const exportData = {
+      exportedAt: new Date().toISOString(),
+      user: profile.name,
+      username: profile.username,
+      totalListeningSessions: history.length,
+      history: history,
+    };
+    const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `nocturne-listening-history-${new Date().toISOString().slice(0, 10)}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    showToast('Archive Exported', 'Listening history JSON downloaded successfully', 'default');
+  };
+
+  const handleExportCSV = () => {
+    const headers = ['Track Title', 'Artist', 'Album', 'Date', 'Time', 'Duration Listened (Sec)', 'Completion %'];
+    const rows = history.map((entry) => [
+      `"${(entry.trackTitle || '').replace(/"/g, '""')}"`,
+      `"${(entry.artist || '').replace(/"/g, '""')}"`,
+      `"${(entry.album || '').replace(/"/g, '""')}"`,
+      entry.date || (entry.startTime ? new Date(entry.startTime).toISOString().slice(0, 10) : ''),
+      entry.startTime ? new Date(entry.startTime).toTimeString().slice(0, 8) : '',
+      entry.durationListened || 0,
+      entry.completionPercentage || 0,
+    ]);
+    const csvContent = [headers.join(','), ...rows.map((r) => r.join(','))].join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `nocturne-listening-history-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    showToast('Archive Exported', 'Listening history CSV downloaded successfully', 'default');
+  };
+
+  // Handlers: Destructive Confirmation Executions
+  const handleExecuteClearHistory = () => {
+    clearHistory();
+    setShowClearHistoryConfirm(false);
+    showToast('History Cleansed', 'All chronological listening records and clock stats erased', 'default');
+  };
+
+  const handleExecuteResetPreferences = () => {
+    resetToDefaults();
+    setAudioQuality('lossless');
+    setVolumeNormalization(true);
+    setPlaybackRate(1.0);
+    setCrossfadeDuration(2);
+    setAutoplay(true);
+    setShuffle(false);
+    setRepeatMode('off');
+    const defaultPrivacy: PrivacySettings = {
+      listeningHistoryEnabled: true,
+      activityVisibility: false,
+      personalizedRecommendations: true,
+    };
+    setPrivacy(defaultPrivacy);
+    storageService.savePrivacySettings(defaultPrivacy);
+    setShowResetPreferencesConfirm(false);
+    showToast('Preferences Reset', 'All settings restored to factory Nocturne defaults', 'atmosphere');
+  };
+
+  // Options for Dropdowns
+  const crossfadeSelectOptions: SelectOption[] = CROSSFADE_OPTIONS.map((opt) => ({
+    value: String(opt.value),
+    label: opt.label,
+    description: opt.value === 0 ? 'Instantaneous switch' : `${opt.value}s dual-channel volume ramp`,
+  }));
+
+  const qualitySelectOptions: SelectOption[] = [
     {
-      id: 'lossless',
-      title: 'Lossless Hi-Res (Recommended)',
-      spec: '24-bit / 96kHz FLAC • Bit-perfect master reproduction without dynamic compression',
+      value: 'lossless',
+      label: 'Lossless Master (24-bit / 96kHz FLAC)',
+      description: 'Bit-perfect master reproduction without dynamic compression',
     },
     {
-      id: 'high',
-      title: 'Studio High Fidelity (320 kbps)',
-      spec: '320 kbps AAC / Vorbis • Studio monitoring acoustic fidelity',
+      value: 'high',
+      label: 'Studio High Fidelity (320 kbps AAC)',
+      description: 'Studio monitoring acoustic clarity',
     },
     {
-      id: 'standard',
-      title: 'Standard Broadcast (192 kbps)',
-      spec: '192 kbps MP3 / AAC • Balanced bandwidth usage and pristine acoustics',
+      value: 'standard',
+      label: 'Standard Broadcast (192 kbps)',
+      description: 'Balanced bandwidth and pristine acoustics',
     },
     {
-      id: 'saver',
-      title: 'Data Saver (96 kbps)',
-      spec: '96 kbps AAC+ • Optimized for low-bandwidth cellular connections',
+      value: 'saver',
+      label: 'Data Saver (96 kbps)',
+      description: 'Low-bandwidth cellular streaming mode',
     },
   ];
 
-  const currentPresetName =
-    currentPresetId === 'custom'
-      ? 'Custom EQ'
-      : [...BUILTIN_EQ_PRESETS, ...savedPresets].find((p) => p.id === currentPresetId)?.name || 'Custom';
+  const repeatSelectOptions: SelectOption[] = [
+    { value: 'off', label: 'Off', description: 'Sequence plays once to completion' },
+    { value: 'all', label: 'Repeat Sequence', description: 'Continuously loops active queue' },
+    { value: 'one', label: 'Repeat Current Hymn', description: 'Infinite solitary loop of current track' },
+  ];
+
+  const eqPresetsCombined = [...BUILTIN_EQ_PRESETS, ...savedPresets];
+  const eqPresetOptions: SelectOption[] = eqPresetsCombined.map((p) => ({
+    value: p.id,
+    label: p.name,
+    description: p.isCustom ? 'User customized acoustic curve' : 'Standard 7-band parametric curve',
+  }));
+  if (currentPresetId === 'custom') {
+    eqPresetOptions.unshift({
+      value: 'custom',
+      label: 'Custom User EQ',
+      description: 'Hand-sculpted parametric curve',
+    });
+  }
+
+  const speedOptions = [0.5, 0.75, 1.0, 1.25, 1.5, 2.0];
 
   return (
-    <div style={{ maxWidth: 1000, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 36 }}>
-      <div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4 }}>
-          <SettingsIcon size={22} color="var(--accent-primary)" />
-          <h1 style={{ fontSize: '2rem', margin: 0 }}>Preferences</h1>
+    <div className="nocturne-settings-page">
+      {/* Page Header */}
+      <div className="nocturne-settings-header">
+        <div className="nocturne-settings-header__title-row">
+          <h1 className="nocturne-settings-header__title">Sanctum Preferences</h1>
         </div>
-        <p style={{ color: 'var(--text-medium)', fontSize: '13.5px' }}>
-          Calibrate audio fidelity, acoustic buffers, connected services, and the nocturnal atmosphere
+        <p className="nocturne-settings-header__desc">
+          Configure personal identity, audio pipeline, acoustic behaviors, nocturnal aesthetics, and data privacy.
         </p>
       </div>
 
-      {/* 1. Connected Services */}
-      <Card variant="flat" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: 18 }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <Radio size={18} color="var(--accent-primary)" />
-            <h3 style={{ fontSize: '1.2rem', margin: 0 }}>Connected Services</h3>
-          </div>
-          <span style={{ fontSize: '11.5px', fontFamily: 'var(--font-mono)', color: 'var(--text-low)' }}>
-            OAUTH 2.0 PKCE
-          </span>
-        </div>
-
-        {/* Spotify Service Item */}
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            flexWrap: 'wrap',
-            gap: 16,
-            padding: '16px',
-            borderRadius: 'var(--radius-sm)',
-            background: 'var(--bg-surface-elevated)',
-            border: '1px solid var(--border-subtle)',
-          }}
+      {/* Category Navigation Bar */}
+      <nav className="nocturne-settings-nav" aria-label="Settings Categories">
+        <button
+          type="button"
+          className={`nocturne-settings-nav__btn ${activeCategory === 'account' ? 'nocturne-settings-nav__btn--active' : ''}`}
+          onClick={() => setActiveCategory('account')}
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-            <div
-              style={{
-                width: 44,
-                height: 44,
-                borderRadius: '50%',
-                background: isConnected ? 'rgba(52, 211, 153, 0.15)' : 'rgba(255, 255, 255, 0.04)',
-                border: `1px solid ${isConnected ? 'rgba(52, 211, 153, 0.3)' : 'var(--border-subtle)'}`,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              <Radio size={22} color={isConnected ? 'var(--indicator-success)' : 'var(--text-medium)'} />
+          <User size={15} />
+          <span>Account</span>
+        </button>
+
+        <button
+          type="button"
+          className={`nocturne-settings-nav__btn ${activeCategory === 'playback' ? 'nocturne-settings-nav__btn--active' : ''}`}
+          onClick={() => setActiveCategory('playback')}
+        >
+          <PlayCircle size={15} />
+          <span>Playback</span>
+        </button>
+
+        <button
+          type="button"
+          className={`nocturne-settings-nav__btn ${activeCategory === 'audio' ? 'nocturne-settings-nav__btn--active' : ''}`}
+          onClick={() => setActiveCategory('audio')}
+        >
+          <Volume2 size={15} />
+          <span>Audio</span>
+        </button>
+
+        <button
+          type="button"
+          className={`nocturne-settings-nav__btn ${activeCategory === 'appearance' ? 'nocturne-settings-nav__btn--active' : ''}`}
+          onClick={() => setActiveCategory('appearance')}
+        >
+          <Palette size={15} />
+          <span>Appearance</span>
+        </button>
+
+        <button
+          type="button"
+          className={`nocturne-settings-nav__btn ${activeCategory === 'privacy' ? 'nocturne-settings-nav__btn--active' : ''}`}
+          onClick={() => setActiveCategory('privacy')}
+        >
+          <Shield size={15} />
+          <span>Privacy</span>
+        </button>
+
+        <button
+          type="button"
+          className={`nocturne-settings-nav__btn ${activeCategory === 'data' ? 'nocturne-settings-nav__btn--active' : ''}`}
+          onClick={() => setActiveCategory('data')}
+        >
+          <Database size={15} />
+          <span>Data & Storage</span>
+        </button>
+      </nav>
+
+      {/* 1. ACCOUNT CATEGORY */}
+      {activeCategory === 'account' && (
+        <section className="nocturne-settings-section">
+          {/* Profile Card */}
+          <div className="nocturne-settings-card">
+            <div className="nocturne-settings-card__header">
+              <div className="nocturne-settings-card__header-left">
+                <User size={18} color="var(--accent-primary)" />
+                <h2 className="nocturne-settings-card__title">Profile & Identity</h2>
+              </div>
+              <span className="nocturne-settings-card__badge">SANCTUM CITIZEN</span>
             </div>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <span style={{ fontWeight: 600, fontSize: '15px', color: 'var(--text-pure)' }}>
-                  Spotify
+            <div className="nocturne-profile-grid">
+              {/* Avatar Selector */}
+              <div className="nocturne-profile-avatar-col">
+                <img
+                  src={profile.avatarUrl}
+                  alt={profile.name}
+                  className="nocturne-profile-avatar-preview"
+                />
+                <span style={{ fontSize: '11px', color: 'var(--text-low)', fontFamily: 'var(--font-mono)' }}>
+                  AVATAR PRESETS
                 </span>
-                <span
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: 4,
-                    padding: '2px 8px',
-                    borderRadius: '9999px',
-                    fontSize: '11px',
-                    fontFamily: 'var(--font-mono)',
-                    background: isConnected ? 'rgba(52, 211, 153, 0.12)' : 'rgba(255, 255, 255, 0.05)',
-                    color: isConnected ? 'var(--indicator-success)' : 'var(--text-low)',
-                    border: `1px solid ${isConnected ? 'rgba(52, 211, 153, 0.3)' : 'var(--border-subtle)'}`,
-                  }}
-                >
-                  {isConnected ? (
-                    <>
-                      <CheckCircle size={10} />
-                      Connected
-                    </>
-                  ) : (
-                    <>
-                      <XCircle size={10} />
-                      Not Connected
-                    </>
-                  )}
+                <div className="nocturne-profile-avatar-presets">
+                  {AVATAR_PRESETS.map((preset) => (
+                    <img
+                      key={preset.id}
+                      src={preset.url}
+                      alt={preset.name}
+                      title={preset.name}
+                      className={`nocturne-profile-avatar-thumb ${
+                        profile.avatarUrl === preset.url ? 'nocturne-profile-avatar-thumb--active' : ''
+                      }`}
+                      onClick={() => setProfile((prev) => ({ ...prev, avatarUrl: preset.url }))}
+                    />
+                  ))}
+                </div>
+              </div>
+
+              {/* Text Fields */}
+              <div className="nocturne-profile-fields">
+                <div className="nocturne-field-group">
+                  <label className="nocturne-field-label">Display Name</label>
+                  <input
+                    type="text"
+                    className="nocturne-input"
+                    value={profile.name}
+                    onChange={(e) => setProfile((prev) => ({ ...prev, name: e.target.value }))}
+                    placeholder="Enter display name..."
+                  />
+                </div>
+
+                <div className="nocturne-field-group">
+                  <label className="nocturne-field-label">Sanctum Handle / Username</label>
+                  <input
+                    type="text"
+                    className="nocturne-input"
+                    value={profile.username}
+                    onChange={(e) => setProfile((prev) => ({ ...prev, username: e.target.value.replace(/^@/, '') }))}
+                    placeholder="username"
+                  />
+                </div>
+
+                <div className="nocturne-field-group">
+                  <label className="nocturne-field-label">Custom Avatar Image URL</label>
+                  <input
+                    type="url"
+                    className="nocturne-input"
+                    value={profile.avatarUrl}
+                    onChange={(e) => setProfile((prev) => ({ ...prev, avatarUrl: e.target.value }))}
+                    placeholder="https://example.com/avatar.jpg"
+                  />
+                </div>
+
+                <div className="nocturne-field-group">
+                  <label className="nocturne-field-label">Acoustic Bio</label>
+                  <textarea
+                    className="nocturne-input nocturne-textarea"
+                    value={profile.bio}
+                    onChange={(e) => setProfile((prev) => ({ ...prev, bio: e.target.value }))}
+                    placeholder="Describe your late-night atmosphere..."
+                  />
+                </div>
+
+                <div style={{ display: 'flex', justifyContent: 'flex-end', paddingTop: 8 }}>
+                  <Button variant="primary" size="sm" onClick={handleSaveProfile}>
+                    Save Profile Changes
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Account Information Card */}
+          <div className="nocturne-settings-card">
+            <div className="nocturne-settings-card__header">
+              <div className="nocturne-settings-card__header-left">
+                <Shield size={18} color="var(--accent-primary)" />
+                <h2 className="nocturne-settings-card__title">Account Credentials & Membership</h2>
+              </div>
+              <span className="nocturne-settings-card__badge">AUTHENTICATED</span>
+            </div>
+
+            <div className="nocturne-account-info-list">
+              <div className="nocturne-account-info-item">
+                <span className="nocturne-account-info-label">Account Email</span>
+                <span className="nocturne-account-info-value">{profile.email}</span>
+              </div>
+
+              <div className="nocturne-account-info-item">
+                <span className="nocturne-account-info-label">Sanctum Membership Tier</span>
+                <span className="nocturne-account-info-value" style={{ color: 'var(--accent-primary)' }}>
+                  {profile.membershipTier}
                 </span>
               </div>
 
-              {isConnected ? (
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: '12.5px', color: 'var(--text-medium)' }}>
-                  <span style={{ color: 'var(--text-pure)', fontWeight: 500 }}>
-                    Connected to Spotify
+              <div className="nocturne-account-info-item">
+                <span className="nocturne-account-info-label">Solitude Member Since</span>
+                <span className="nocturne-account-info-value">{profile.memberSince}</span>
+              </div>
+
+              <div className="nocturne-account-info-item">
+                <span className="nocturne-account-info-label">Connected Spotify Account</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <span
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 4,
+                      fontSize: '11px',
+                      color: isConnected ? 'var(--indicator-success)' : 'var(--text-low)',
+                    }}
+                  >
+                    {isConnected ? <CheckCircle size={12} /> : <XCircle size={12} />}
+                    {isConnected ? (spotifyUser?.name || 'Linked') : 'Not Connected'}
+                    {isDemoMode && ' (Sandbox)'}
                   </span>
-                  <span>•</span>
-                  <span>{userProfile?.name || 'Account Linked'}</span>
-                  {isDemoMode && <span>(Sandbox Mode)</span>}
+                  {isConnected ? (
+                    <Button variant="ghost" size="sm" onClick={disconnect}>
+                      Disconnect
+                    </Button>
+                  ) : (
+                    <div style={{ display: 'flex', gap: 6 }}>
+                      <Button variant="secondary" size="sm" onClick={connect} disabled={isConnecting}>
+                        Connect
+                      </Button>
+                      <Button variant="ghost" size="sm" onClick={connectDemo}>
+                        Demo Mode
+                      </Button>
+                    </div>
+                  )}
                 </div>
-              ) : (
-                <span style={{ fontSize: '12px', color: 'var(--text-low)' }}>
-                  Link your account to import playlists and sync library references
-                </span>
-              )}
+              </div>
             </div>
           </div>
+        </section>
+      )}
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            {isConnected ? (
-              <>
-                <Button
-                  variant="primary"
-                  size="sm"
-                  leftIcon={<Download size={14} />}
-                  onClick={() => navigate('/import')}
-                >
-                  Import Music
-                </Button>
-                <Button variant="ghost" size="sm" onClick={disconnect}>
-                  Disconnect Spotify
-                </Button>
-              </>
-            ) : (
-              <>
-                <Button
-                  variant="primary"
-                  size="sm"
-                  leftIcon={<Radio size={14} />}
-                  onClick={connect}
-                  disabled={isConnecting}
-                >
-                  {isConnecting ? 'Connecting...' : 'Connect Spotify'}
-                </Button>
-                <Button variant="secondary" size="sm" onClick={connectDemo}>
-                  Demo Mode
-                </Button>
-                <Button variant="ghost" size="sm" onClick={() => setShowConfig(!showConfig)}>
-                  Config
-                </Button>
-              </>
-            )}
+      {/* 2. PLAYBACK CATEGORY */}
+      {activeCategory === 'playback' && (
+        <section className="nocturne-settings-section">
+          <div className="nocturne-settings-card">
+            <div className="nocturne-settings-card__header">
+              <div className="nocturne-settings-card__header-left">
+                <PlayCircle size={18} color="var(--accent-primary)" />
+                <h2 className="nocturne-settings-card__title">Playback Dynamics & Sequencing</h2>
+              </div>
+              <span className="nocturne-settings-card__badge">WEB AUDIO BUFFER</span>
+            </div>
+
+            {/* Crossfade */}
+            <div className="nocturne-setting-row">
+              <div className="nocturne-setting-row__info">
+                <span className="nocturne-setting-row__label">Acoustic Crossfade</span>
+                <span className="nocturne-setting-row__desc">
+                  Seamlessly overlaps fading track into the incoming song via dual-channel Web Audio gain nodes.
+                </span>
+              </div>
+              <div className="nocturne-setting-row__control">
+                <SelectDropdown
+                  value={String(crossfadeDuration)}
+                  options={crossfadeSelectOptions}
+                  onChange={(val) => {
+                    const num = Number(val) as CrossfadeDuration;
+                    setCrossfadeDuration(num);
+                    showToast('Crossfade Updated', num === 0 ? 'Crossfade disabled' : `${num}s duration active`, 'default');
+                  }}
+                  width={210}
+                />
+              </div>
+            </div>
+
+            {/* Autoplay */}
+            <div className="nocturne-setting-row">
+              <div className="nocturne-setting-row__info">
+                <span className="nocturne-setting-row__label">Continuous Autoplay</span>
+                <span className="nocturne-setting-row__desc">
+                  Automatically queries and queues kindred recordings when the current sequence reaches its conclusion.
+                </span>
+              </div>
+              <div className="nocturne-setting-row__control">
+                <Toggle
+                  checked={autoplay}
+                  onChange={(checked) => {
+                    setAutoplay(checked);
+                    showToast(checked ? 'Autoplay Active' : 'Autoplay Disabled', 'Playback finishes when queue ends', 'default');
+                  }}
+                  aria-label="Toggle Continuous Autoplay"
+                />
+              </div>
+            </div>
+
+            {/* Repeat Mode */}
+            <div className="nocturne-setting-row">
+              <div className="nocturne-setting-row__info">
+                <span className="nocturne-setting-row__label">Repeat Mode</span>
+                <span className="nocturne-setting-row__desc">
+                  Choose between repeating the entire queue, infinitely looping the current hymn, or playing once.
+                </span>
+              </div>
+              <div className="nocturne-setting-row__control">
+                <SelectDropdown
+                  value={repeatMode}
+                  options={repeatSelectOptions}
+                  onChange={(val) => {
+                    const mode = val as 'off' | 'all' | 'one';
+                    setRepeatMode(mode);
+                    showToast('Repeat Mode', mode === 'one' ? 'Looping current track' : mode === 'all' ? 'Looping queue' : 'Repeat off', 'default');
+                  }}
+                  width={210}
+                />
+              </div>
+            </div>
+
+            {/* Shuffle */}
+            <div className="nocturne-setting-row">
+              <div className="nocturne-setting-row__info">
+                <span className="nocturne-setting-row__label">Sequence Shuffle</span>
+                <span className="nocturne-setting-row__desc">
+                  Randomize the playing sequence across the active playlist or album queue without destructive ordering.
+                </span>
+              </div>
+              <div className="nocturne-setting-row__control">
+                <Toggle
+                  checked={shuffle}
+                  onChange={(checked) => {
+                    setShuffle(checked);
+                    showToast(checked ? 'Shuffle Active' : 'Shuffle Disabled', 'Playing in sequence order', 'default');
+                  }}
+                  aria-label="Toggle Shuffle"
+                />
+              </div>
+            </div>
+
+            {/* Volume Normalization */}
+            <div className="nocturne-setting-row">
+              <div className="nocturne-setting-row__info">
+                <span className="nocturne-setting-row__label">Volume Normalization (Compressor)</span>
+                <span className="nocturne-setting-row__desc">
+                  Dynamically balances perceived loudness across varying master mixes using real-time Web Audio compression.
+                </span>
+              </div>
+              <div className="nocturne-setting-row__control">
+                <Toggle
+                  checked={volumeNormalization}
+                  onChange={(checked) => {
+                    setVolumeNormalization(checked);
+                    showToast(checked ? 'Normalization Engaged' : 'Normalization Bypassed', 'Dynamics leveled', 'default');
+                  }}
+                  aria-label="Toggle Volume Normalization"
+                />
+              </div>
+            </div>
+
+            {/* Playback Quality */}
+            <div className="nocturne-setting-row">
+              <div className="nocturne-setting-row__info">
+                <span className="nocturne-setting-row__label">Playback Stream Quality</span>
+                <span className="nocturne-setting-row__desc">
+                  Direct master streaming format. Lossless delivers uncompressed 24-bit / 96kHz FLAC audio.
+                </span>
+              </div>
+              <div className="nocturne-setting-row__control">
+                <SelectDropdown
+                  value={audioQuality}
+                  options={qualitySelectOptions}
+                  onChange={(val) => {
+                    setAudioQuality(val as AudioQuality);
+                    showToast('Stream Quality Calibrated', val.toUpperCase(), 'atmosphere');
+                  }}
+                  width={260}
+                />
+              </div>
+            </div>
+
+            {/* Playback Speed */}
+            <div className="nocturne-setting-row">
+              <div className="nocturne-setting-row__info">
+                <span className="nocturne-setting-row__label">Playback Velocity (Speed)</span>
+                <span className="nocturne-setting-row__desc">
+                  Time-stretch track tempo with automatic harmonic pitch preservation ({playbackRate}x speed).
+                </span>
+              </div>
+              <div className="nocturne-setting-row__control">
+                <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                  {speedOptions.map((rate) => {
+                    const isSelected = playbackRate === rate;
+                    return (
+                      <button
+                        key={rate}
+                        type="button"
+                        onClick={() => {
+                          setPlaybackRate(rate);
+                          showToast('Playback Velocity Updated', `${rate}x speed`, 'default');
+                        }}
+                        style={{
+                          padding: '5px 10px',
+                          borderRadius: 'var(--radius-xs)',
+                          background: isSelected ? 'var(--accent-primary)' : 'rgba(255, 255, 255, 0.05)',
+                          border: `1px solid ${isSelected ? 'var(--accent-primary)' : 'var(--border-subtle)'}`,
+                          color: isSelected ? '#000000' : 'var(--text-medium)',
+                          fontSize: '12px',
+                          fontFamily: 'var(--font-mono)',
+                          fontWeight: isSelected ? 600 : 400,
+                          cursor: 'pointer',
+                          transition: 'all var(--transition-snappy)',
+                        }}
+                      >
+                        {rate}x
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
           </div>
-        </div>
+        </section>
+      )}
 
-        {/* Client ID Configuration Drawer */}
-        {showConfig && !isConnected && (
-          <div
-            style={{
-              padding: 14,
-              borderRadius: 'var(--radius-sm)',
-              background: 'rgba(0, 0, 0, 0.35)',
-              border: '1px solid var(--border-subtle)',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: 8,
-            }}
-          >
-            <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-pure)' }}>
-              Spotify OAuth Client ID
-            </span>
-            <span style={{ fontSize: '11px', color: 'var(--text-medium)' }}>
-              Configure in <code>.env</code> as <code>VITE_SPOTIFY_CLIENT_ID</code> or enter below (Callback:{' '}
-              <code>{window.location.origin}/callback</code>):
-            </span>
-            <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
-              <input
-                type="text"
-                value={tempId}
-                onChange={(e) => setTempId(e.target.value)}
-                placeholder="Paste Spotify Client ID..."
+      {/* 3. AUDIO CATEGORY */}
+      {activeCategory === 'audio' && (
+        <section className="nocturne-settings-section">
+          {/* Equalizer */}
+          <div className="nocturne-settings-card">
+            <div className="nocturne-settings-card__header">
+              <div className="nocturne-settings-card__header-left">
+                <Sliders size={18} color="var(--accent-primary)" />
+                <h2 className="nocturne-settings-card__title">Parametric Equalizer</h2>
+              </div>
+              <span
                 style={{
-                  flex: 1,
-                  padding: '6px 10px',
-                  borderRadius: 'var(--radius-sm)',
-                  background: 'rgba(255, 255, 255, 0.05)',
-                  border: '1px solid var(--border-subtle)',
-                  color: 'var(--text-pure)',
-                  fontSize: '12px',
+                  fontSize: '11px',
                   fontFamily: 'var(--font-mono)',
-                }}
-              />
-              <Button
-                variant="primary"
-                size="sm"
-                onClick={() => {
-                  setCustomClientId(tempId);
-                  showToast('Client ID Saved', 'Credentials updated in session.', 'default');
-                  setShowConfig(false);
+                  padding: '2px 8px',
+                  borderRadius: 'var(--radius-full)',
+                  background: equalizerEnabled ? 'rgba(52, 211, 153, 0.12)' : 'rgba(255, 255, 255, 0.05)',
+                  color: equalizerEnabled ? 'var(--indicator-success)' : 'var(--text-low)',
+                  border: `1px solid ${equalizerEnabled ? 'rgba(52, 211, 153, 0.3)' : 'var(--border-subtle)'}`,
                 }}
               >
-                Save
+                {equalizerEnabled ? 'DSP ACTIVE' : 'BYPASS'}
+              </span>
+            </div>
+
+            <div className="nocturne-setting-row">
+              <div className="nocturne-setting-row__info">
+                <span className="nocturne-setting-row__label">Equalizer DSP State</span>
+                <span className="nocturne-setting-row__desc">
+                  Toggle the 7-band biquad filter chain (60Hz, 150Hz, 400Hz, 1kHz, 2.4kHz, 6kHz, 15kHz).
+                </span>
+              </div>
+              <div className="nocturne-setting-row__control">
+                <Toggle
+                  checked={equalizerEnabled}
+                  onChange={toggleEqualizerEnabled}
+                  aria-label="Toggle Equalizer"
+                />
+              </div>
+            </div>
+
+            <div className="nocturne-setting-row">
+              <div className="nocturne-setting-row__info">
+                <span className="nocturne-setting-row__label">Acoustic Preset</span>
+                <span className="nocturne-setting-row__desc">
+                  Select an acoustic curve optimized for genres, late-night listening, or vocal presence.
+                </span>
+              </div>
+              <div className="nocturne-setting-row__control">
+                <SelectDropdown
+                  value={currentPresetId}
+                  options={eqPresetOptions}
+                  onChange={(val) => {
+                    selectPreset(val);
+                    showToast('Equalizer Preset', val, 'atmosphere');
+                  }}
+                  width={240}
+                />
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: 10 }}>
+              <span style={{ fontSize: '12px', color: 'var(--text-low)' }}>
+                Press <kbd style={{ padding: '2px 6px', borderRadius: 4, background: 'rgba(255,255,255,0.08)' }}>E</kbd> anywhere to summon the visualizer console.
+              </span>
+              <Button
+                variant="secondary"
+                size="sm"
+                leftIcon={<Sliders size={14} />}
+                onClick={openEqualizer}
+              >
+                Open Equalizer Console
               </Button>
             </div>
           </div>
-        )}
-      </Card>
 
-      {/* 2. Audio Fidelity */}
-      <Card variant="flat" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: 18 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <Radio size={18} color="var(--accent-primary)" />
-          <h3 style={{ fontSize: '1.2rem', margin: 0 }}>Audio Pipeline Fidelity</h3>
-        </div>
-
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-          {qualityOptions.map((opt) => {
-            const isSelected = audioQuality === opt.id;
-            return (
-              <div
-                key={opt.id}
-                onClick={() => {
-                  setAudioQuality(opt.id);
-                  showToast('Pipeline Calibrated', opt.title, 'atmosphere');
-                }}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  padding: '14px 16px',
-                  borderRadius: 'var(--radius-sm)',
-                  background: isSelected ? 'var(--bg-surface-elevated)' : 'rgba(255, 255, 255, 0.02)',
-                  border: `1px solid ${isSelected ? 'var(--accent-primary)' : 'var(--border-subtle)'}`,
-                  cursor: 'pointer',
-                  transition: 'all var(--transition-snappy)',
-                }}
-              >
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-                  <span style={{ fontWeight: 600, color: isSelected ? 'var(--text-pure)' : 'var(--text-high)' }}>
-                    {opt.title}
-                  </span>
-                  <span style={{ fontSize: '11.5px', color: 'var(--text-low)', fontFamily: 'var(--font-mono)' }}>
-                    {opt.spec}
-                  </span>
-                </div>
-                <div
-                  style={{
-                    width: 16,
-                    height: 16,
-                    borderRadius: '50%',
-                    border: `2px solid ${isSelected ? 'var(--accent-primary)' : 'var(--border-medium)'}`,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}
-                >
-                  {isSelected && (
-                    <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--accent-primary)' }} />
-                  )}
-                </div>
+          {/* Audio Processing Architecture */}
+          <div className="nocturne-settings-card">
+            <div className="nocturne-settings-card__header">
+              <div className="nocturne-settings-card__header-left">
+                <Cpu size={18} color="var(--accent-primary)" />
+                <h2 className="nocturne-settings-card__title">Audio Processing Engine</h2>
               </div>
-            );
-          })}
-        </div>
-      </Card>
-
-      {/* 2.5. Equalizer & Acoustic Sculpting */}
-      <Card variant="flat" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: 18 }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <Sliders size={18} color="var(--accent-primary)" />
-            <h3 style={{ fontSize: '1.2rem', margin: 0 }}>7-Band Parametric Equalizer</h3>
-          </div>
-          <span
-            style={{
-              fontSize: '11px',
-              fontFamily: 'var(--font-mono)',
-              padding: '2px 8px',
-              borderRadius: '9999px',
-              background: equalizerEnabled ? 'rgba(52, 211, 153, 0.12)' : 'rgba(255, 255, 255, 0.05)',
-              color: equalizerEnabled ? 'var(--indicator-success)' : 'var(--text-low)',
-              border: `1px solid ${equalizerEnabled ? 'rgba(52, 211, 153, 0.3)' : 'var(--border-subtle)'}`,
-            }}
-          >
-            {equalizerEnabled ? 'DSP ACTIVE' : 'BYPASS'}
-          </span>
-        </div>
-
-        <p style={{ color: 'var(--text-medium)', fontSize: '12.5px', margin: 0, lineHeight: 1.5 }}>
-          Shape the acoustic frequency response from 60 Hz sub-bass to 15 kHz crystalline air.
-          Equipped with 10 master presets, custom user profiles, and real-time Web Audio biquad filtering.
-        </p>
-
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            flexWrap: 'wrap',
-            gap: 16,
-            padding: '16px',
-            borderRadius: 'var(--radius-sm)',
-            background: 'var(--bg-surface-elevated)',
-            border: '1px solid var(--border-subtle)',
-          }}
-        >
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <span style={{ fontSize: '13px', color: 'var(--text-medium)' }}>Active Acoustic Preset:</span>
-              <span
-                style={{
-                  fontWeight: 600,
-                  fontSize: '13.5px',
-                  color: 'var(--accent-primary)',
-                  fontFamily: 'var(--font-mono)',
-                }}
-              >
-                {currentPresetName}
-              </span>
+              <span className="nocturne-settings-card__badge">HARDWARE ACCELERATED</span>
             </div>
-            <span style={{ fontSize: '11px', color: 'var(--text-low)' }}>
-              Press <kbd style={{ padding: '1px 5px', borderRadius: 4, background: 'rgba(255,255,255,0.08)', border: '1px solid var(--border-subtle)' }}>E</kbd> anywhere to summon the live visualizer console
-            </span>
-          </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <Button
-              variant={equalizerEnabled ? 'primary' : 'secondary'}
-              size="sm"
-              onClick={toggleEqualizerEnabled}
-            >
-              {equalizerEnabled ? 'Enabled' : 'Bypass'}
-            </Button>
-            <Button
-              variant="secondary"
-              size="sm"
-              leftIcon={<Sliders size={14} />}
-              onClick={openEqualizer}
-            >
-              Open Equalizer Console
-            </Button>
-          </div>
-        </div>
-      </Card>
+            <div className="nocturne-setting-row">
+              <div className="nocturne-setting-row__info">
+                <span className="nocturne-setting-row__label">Spatial Stereo Field Expansion</span>
+                <span className="nocturne-setting-row__desc">
+                  Binaural acoustic virtualization for expanded headphone soundstage and ambient imaging.
+                </span>
+              </div>
+              <div className="nocturne-setting-row__control">
+                <Toggle
+                  checked={spatialStereo}
+                  onChange={handleToggleSpatialStereo}
+                  aria-label="Toggle Spatial Stereo"
+                />
+              </div>
+            </div>
 
-      {/* 3. Deep Interface Customization & Aesthetics */}
-      <Card variant="flat" style={{ padding: '28px', display: 'flex', flexDirection: 'column', gap: 28 }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <Palette size={20} color="var(--accent-primary)" />
-            <div>
-              <h3 style={{ fontSize: '1.25rem', margin: 0 }}>Interface Customization & Aesthetics</h3>
-              <p style={{ margin: '4px 0 0', fontSize: '12.5px', color: 'var(--text-medium)' }}>
-                Sculpt the nocturnal visual identity, geometry, luminescence, and atmospheric textures
-              </p>
+            <div className="nocturne-account-info-list" style={{ marginTop: 8 }}>
+              <div className="nocturne-account-info-item">
+                <span className="nocturne-account-info-label">Web Audio Engine Pipeline</span>
+                <span className="nocturne-account-info-value" style={{ color: 'var(--indicator-success)' }}>
+                  Active (Low Latency Interactive Mode)
+                </span>
+              </div>
+              <div className="nocturne-account-info-item">
+                <span className="nocturne-account-info-label">Output Sample Rate</span>
+                <span className="nocturne-account-info-value">96,000 Hz Master Direct</span>
+              </div>
+              <div className="nocturne-account-info-item">
+                <span className="nocturne-account-info-label">Bit-Depth Precision</span>
+                <span className="nocturne-account-info-value">32-Bit IEEE Floating Point DSP</span>
+              </div>
             </div>
           </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            leftIcon={<RotateCcw size={13} />}
-            onClick={() => {
-              resetToDefaults();
-              showToast('Aesthetics Reset', 'Restored default Nocturne visual identity', 'atmosphere');
-            }}
-          >
-            Reset to Defaults
-          </Button>
-        </div>
+        </section>
+      )}
 
-        {/* 3.1. Primary Atmospheric Themes */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-pure)' }}>
-              Atmospheric Theme
-            </span>
-            <span style={{ fontSize: '11px', fontFamily: 'var(--font-mono)', color: 'var(--text-low)' }}>
-              6 SIGNATURE NOIRS
-            </span>
-          </div>
-
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: 12 }}>
-            {availableThemes.map((thm) => {
-              const isSelected = thm.id === currentTheme.id;
-              return (
-                <div
-                  key={thm.id}
-                  onClick={() => {
-                    setThemeId(thm.id);
-                    showToast('Atmosphere Altered', `Activated ${thm.name}`, 'atmosphere');
-                  }}
-                  style={{
-                    padding: '16px',
-                    borderRadius: 'var(--radius-sm)',
-                    background: isSelected ? 'var(--bg-surface-elevated)' : 'rgba(255, 255, 255, 0.02)',
-                    border: `1.5px solid ${isSelected ? thm.accent : 'var(--border-subtle)'}`,
-                    boxShadow: isSelected ? `0 0 18px ${thm.glow}` : 'none',
-                    cursor: 'pointer',
-                    transition: 'all var(--transition-snappy)',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: 8,
-                  }}
-                >
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <span
-                        style={{
-                          width: 14,
-                          height: 14,
-                          borderRadius: '50%',
-                          background: thm.accent,
-                          boxShadow: `0 0 8px ${thm.accent}`,
-                        }}
-                      />
-                      <span style={{ fontWeight: 600, color: 'var(--text-pure)', fontSize: '13.5px' }}>
-                        {thm.name}
-                      </span>
-                    </div>
-                    {isSelected && (
-                      <span
-                        style={{
-                          fontSize: '10px',
-                          fontFamily: 'var(--font-mono)',
-                          color: thm.accent,
-                          padding: '1px 6px',
-                          borderRadius: 'var(--radius-full)',
-                          background: 'rgba(255, 255, 255, 0.06)',
-                        }}
-                      >
-                        ACTIVE
-                      </span>
-                    )}
-                  </div>
-                  <div style={{ fontSize: '11px', color: 'var(--text-low)', lineHeight: 1.45 }}>
-                    {thm.description}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* 3.2. Accent Color Luminescence */}
-        <div
-          style={{
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 14,
-            paddingTop: 18,
-            borderTop: '1px solid var(--border-subtle)',
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 10 }}>
-            <div>
-              <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-pure)' }}>
-                Accent Color Luminescence
-              </span>
-              <p style={{ margin: '2px 0 0', fontSize: '11.5px', color: 'var(--text-medium)' }}>
-                Pervades play controls, illuminated borders, equalizer bars, and glowing interactive states
-              </p>
-            </div>
-            {isCustomAccent && (
+      {/* 4. APPEARANCE CATEGORY */}
+      {activeCategory === 'appearance' && (
+        <section className="nocturne-settings-section">
+          <div className="nocturne-settings-card">
+            <div className="nocturne-settings-card__header">
+              <div className="nocturne-settings-card__header-left">
+                <Palette size={18} color="var(--accent-primary)" />
+                <h2 className="nocturne-settings-card__title">Interface Atmosphere & Theming</h2>
+              </div>
               <Button
                 variant="ghost"
                 size="sm"
+                leftIcon={<RotateCcw size={13} />}
                 onClick={() => {
-                  resetAccentColor();
-                  showToast('Accent Reset', `Restored ${currentTheme.name} default`, 'default');
+                  resetToDefaults();
+                  showToast('Aesthetics Reset', 'Default visual theme restored', 'atmosphere');
                 }}
               >
-                Use Theme Accent ({currentTheme.accent})
+                Reset Aesthetics
               </Button>
-            )}
-          </div>
+            </div>
 
-          {/* Preset Swatches */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-            {ACCENT_COLOR_PRESETS.map((preset) => {
-              const isSelected = accentColor.toLowerCase() === preset.color.toLowerCase();
-              return (
-                <button
-                  key={preset.id}
-                  type="button"
-                  title={preset.name}
-                  onClick={() => {
-                    setAccentColor(preset.color, true);
-                    showToast('Accent Calibrated', preset.name, 'atmosphere');
-                  }}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 8,
-                    padding: '6px 12px',
-                    borderRadius: 'var(--radius-full)',
-                    background: isSelected ? 'var(--bg-surface-elevated)' : 'rgba(255, 255, 255, 0.03)',
-                    border: `1.5px solid ${isSelected ? preset.color : 'var(--border-subtle)'}`,
-                    boxShadow: isSelected ? `0 0 12px ${preset.color}66` : 'none',
-                    cursor: 'pointer',
-                    transition: 'all var(--transition-snappy)',
-                  }}
-                >
-                  <span
-                    style={{
-                      width: 12,
-                      height: 12,
-                      borderRadius: '50%',
-                      background: preset.color,
-                      boxShadow: `0 0 6px ${preset.color}`,
+            {/* Themes Grid */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              <span className="nocturne-setting-row__label">Atmospheric Themes (6 Signature Noirs)</span>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: 12 }}>
+                {availableThemes.map((thm) => {
+                  const isSelected = thm.id === currentTheme.id;
+                  return (
+                    <div
+                      key={thm.id}
+                      onClick={() => {
+                        setThemeId(thm.id);
+                        showToast('Atmosphere Activated', thm.name, 'atmosphere');
+                      }}
+                      style={{
+                        padding: '14px',
+                        borderRadius: 'var(--radius-sm)',
+                        background: isSelected ? 'var(--bg-surface-elevated)' : 'rgba(255, 255, 255, 0.02)',
+                        border: `1.5px solid ${isSelected ? thm.accent : 'var(--border-subtle)'}`,
+                        boxShadow: isSelected ? `0 0 16px ${thm.glow}` : 'none',
+                        cursor: 'pointer',
+                        transition: 'all var(--transition-snappy)',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: 8,
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                          <span
+                            style={{
+                              width: 14,
+                              height: 14,
+                              borderRadius: '50%',
+                              background: thm.accent,
+                              boxShadow: `0 0 8px ${thm.accent}`,
+                            }}
+                          />
+                          <span style={{ fontWeight: 600, color: 'var(--text-pure)', fontSize: '13px' }}>
+                            {thm.name}
+                          </span>
+                        </div>
+                        {isSelected && (
+                          <span style={{ fontSize: '10px', fontFamily: 'var(--font-mono)', color: thm.accent }}>
+                            ACTIVE
+                          </span>
+                        )}
+                      </div>
+                      <span style={{ fontSize: '11px', color: 'var(--text-low)', lineHeight: 1.4 }}>
+                        {thm.description}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Accent Color */}
+            <div className="nocturne-setting-row" style={{ paddingTop: 16 }}>
+              <div className="nocturne-setting-row__info">
+                <span className="nocturne-setting-row__label">Accent Color Luminescence</span>
+                <span className="nocturne-setting-row__desc">
+                  Illuminates play buttons, interactive borders, equalizer bars, and glowing aura states.
+                </span>
+              </div>
+              <div className="nocturne-setting-row__control" style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                {ACCENT_COLOR_PRESETS.map((preset) => {
+                  const isSelected = accentColor.toLowerCase() === preset.color.toLowerCase();
+                  return (
+                    <button
+                      key={preset.id}
+                      type="button"
+                      title={preset.name}
+                      onClick={() => setAccentColor(preset.color, true)}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 6,
+                        padding: '4px 10px',
+                        borderRadius: 'var(--radius-full)',
+                        background: isSelected ? 'var(--bg-surface-elevated)' : 'rgba(255, 255, 255, 0.03)',
+                        border: `1.5px solid ${isSelected ? preset.color : 'var(--border-subtle)'}`,
+                        cursor: 'pointer',
+                        fontSize: '11.5px',
+                        color: isSelected ? 'var(--text-pure)' : 'var(--text-medium)',
+                      }}
+                    >
+                      <span style={{ width: 10, height: 10, borderRadius: '50%', background: preset.color }} />
+                      {preset.name}
+                    </button>
+                  );
+                })}
+                <input
+                  type="color"
+                  value={accentColor}
+                  onChange={(e) => setAccentColor(e.target.value, true)}
+                  title="Custom accent hex"
+                  style={{ width: 24, height: 24, border: 'none', borderRadius: '50%', cursor: 'pointer', background: 'none' }}
+                />
+                {isCustomAccent && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      resetAccentColor();
+                      showToast('Accent Reset', `Restored ${currentTheme.name} default`, 'default');
                     }}
-                  />
-                  <span
                     style={{
-                      fontSize: '11.5px',
-                      color: isSelected ? 'var(--text-pure)' : 'var(--text-medium)',
-                      fontWeight: isSelected ? 600 : 400,
+                      padding: '4px 8px',
+                      borderRadius: 'var(--radius-xs)',
+                      background: 'rgba(255, 255, 255, 0.05)',
+                      border: '1px solid var(--border-subtle)',
+                      color: 'var(--text-medium)',
+                      fontSize: '11px',
+                      cursor: 'pointer',
                     }}
                   >
-                    {preset.name}
-                  </span>
-                </button>
-              );
-            })}
+                    Reset Accent
+                  </button>
+                )}
+              </div>
+            </div>
 
-            {/* Custom Color Input */}
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 8,
-                padding: '4px 10px',
-                borderRadius: 'var(--radius-full)',
-                background: 'rgba(255, 255, 255, 0.03)',
-                border: '1px solid var(--border-subtle)',
-              }}
-            >
-              <input
-                type="color"
-                value={accentColor}
-                onChange={(e) => setAccentColor(e.target.value, true)}
-                title="Choose custom accent color"
-                style={{
-                  width: 22,
-                  height: 22,
-                  border: 'none',
-                  borderRadius: '50%',
-                  cursor: 'pointer',
-                  background: 'none',
-                  padding: 0,
-                }}
-              />
-              <span style={{ fontSize: '11px', fontFamily: 'var(--font-mono)', color: 'var(--text-low)' }}>
-                {accentColor.toUpperCase()}
-              </span>
+            {/* Spatial Layout Density */}
+            <div className="nocturne-setting-row">
+              <div className="nocturne-setting-row__info">
+                <span className="nocturne-setting-row__label">Layout Density</span>
+                <span className="nocturne-setting-row__desc">
+                  Controls vertical padding and row spacing across track listings and page grids.
+                </span>
+              </div>
+              <div className="nocturne-setting-row__control">
+                <SelectDropdown
+                  value={layoutDensity}
+                  options={[
+                    { value: 'compact', label: 'Compact', description: 'Condensed rows with reduced margins' },
+                    { value: 'comfortable', label: 'Comfortable', description: 'Balanced late-night acoustics (Default)' },
+                    { value: 'spacious', label: 'Spacious', description: 'Expansive margins and roomier rows' },
+                  ]}
+                  onChange={(val) => setLayoutDensity(val as 'compact' | 'comfortable' | 'spacious')}
+                  width={200}
+                />
+              </div>
+            </div>
+
+            {/* Sidebar Mode */}
+            <div className="nocturne-setting-row">
+              <div className="nocturne-setting-row__info">
+                <span className="nocturne-setting-row__label">Sidebar Navigation Geometry</span>
+                <span className="nocturne-setting-row__desc">
+                  Choose between expanded drawer labels, 72px icon rail, or hidden immersive view.
+                </span>
+              </div>
+              <div className="nocturne-setting-row__control">
+                <SelectDropdown
+                  value={sidebarMode}
+                  options={[
+                    { value: 'expanded', label: 'Expanded Panel', description: 'Full titles and count badges' },
+                    { value: 'compact', label: 'Compact Rail', description: '72px icon rail maximizing width' },
+                    { value: 'hidden', label: 'Hidden (Immersive)', description: 'Minimalist canvas with top toggle' },
+                  ]}
+                  onChange={(val) => setSidebarMode(val as 'expanded' | 'compact' | 'hidden')}
+                  width={200}
+                />
+              </div>
+            </div>
+
+            {/* Player Size */}
+            <div className="nocturne-setting-row">
+              <div className="nocturne-setting-row__info">
+                <span className="nocturne-setting-row__label">Player Transport Bar Scale</span>
+                <span className="nocturne-setting-row__desc">
+                  Adjust bottom transport bar height: Minimal (60px), Standard (90px), or Large (124px).
+                </span>
+              </div>
+              <div className="nocturne-setting-row__control">
+                <SelectDropdown
+                  value={playerSize}
+                  options={[
+                    { value: 'minimal', label: 'Minimal (60px)' },
+                    { value: 'standard', label: 'Standard (90px)' },
+                    { value: 'large', label: 'Large (124px)' },
+                  ]}
+                  onChange={(val) => setPlayerSize(val as 'minimal' | 'standard' | 'large')}
+                  width={200}
+                />
+              </div>
+            </div>
+
+            {/* Background Mode */}
+            <div className="nocturne-setting-row">
+              <div className="nocturne-setting-row__info">
+                <span className="nocturne-setting-row__label">Background Texture Mode</span>
+                <span className="nocturne-setting-row__desc">
+                  Canvas style: Solid, Theme Gradient, Album Artwork reflection, or Living Ambient Aura.
+                </span>
+              </div>
+              <div className="nocturne-setting-row__control">
+                <SelectDropdown
+                  value={backgroundMode}
+                  options={[
+                    { value: 'solid', label: 'Solid Noir' },
+                    { value: 'gradient', label: 'Radial Gradient' },
+                    { value: 'album_art', label: 'Album Artwork Reflection' },
+                    { value: 'ambient', label: 'Living Ambient Glow' },
+                  ]}
+                  onChange={(val) => setBackgroundMode(val as 'solid' | 'gradient' | 'album_art' | 'ambient')}
+                  width={200}
+                />
+              </div>
+            </div>
+
+            {/* Blur & Opacity Sliders */}
+            <div className="nocturne-setting-row">
+              <div className="nocturne-setting-row__info">
+                <span className="nocturne-setting-row__label">Atmospheric Blur Depth</span>
+                <span className="nocturne-setting-row__desc">
+                  Diffuses backdrop layers and album art reflections ({backgroundBlur}px).
+                </span>
+              </div>
+              <div className="nocturne-setting-row__control" style={{ width: 200 }}>
+                <Slider
+                  min={0}
+                  max={40}
+                  step={2}
+                  value={backgroundBlur}
+                  onChange={setBackgroundBlur}
+                  aria-label="Background Blur"
+                />
+              </div>
+            </div>
+
+            <div className="nocturne-setting-row">
+              <div className="nocturne-setting-row__info">
+                <span className="nocturne-setting-row__label">Interface Glass Opacity</span>
+                <span className="nocturne-setting-row__desc">
+                  Calibrates surface density across panels, sidebars, and cards ({interfaceOpacity}%).
+                </span>
+              </div>
+              <div className="nocturne-setting-row__control" style={{ width: 200 }}>
+                <Slider
+                  min={50}
+                  max={100}
+                  step={5}
+                  value={interfaceOpacity}
+                  onChange={setInterfaceOpacity}
+                  aria-label="Interface Opacity"
+                />
+              </div>
+            </div>
+
+            {/* Animations */}
+            <div className="nocturne-setting-row">
+              <div className="nocturne-setting-row__info">
+                <span className="nocturne-setting-row__label">Motion & Animation Intensity</span>
+                <span className="nocturne-setting-row__desc">
+                  Control kinetic responsiveness, pulsing glows, and page transitions.
+                </span>
+              </div>
+              <div className="nocturne-setting-row__control">
+                <SelectDropdown
+                  value={animationMode}
+                  options={[
+                    { value: 'full', label: 'Full Kinetic Motion' },
+                    { value: 'reduced', label: 'Reduced Transitions' },
+                    { value: 'off', label: 'Instantaneous (Off)' },
+                  ]}
+                  onChange={(val) => setAnimationMode(val as 'full' | 'reduced' | 'off')}
+                  width={200}
+                />
+              </div>
             </div>
           </div>
-        </div>
+        </section>
+      )}
 
-        {/* 3.3. Spatial Layout Density */}
-        <div
-          style={{
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 12,
-            paddingTop: 18,
-            borderTop: '1px solid var(--border-subtle)',
-          }}
-        >
-          <div>
-            <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-pure)' }}>
-              Layout Density
-            </span>
-            <p style={{ margin: '2px 0 0', fontSize: '11.5px', color: 'var(--text-medium)' }}>
-              Controls vertical compactness across track listings, card spacing, and viewport margins
-            </p>
-          </div>
-
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 10 }}>
-            {(
-              [
-                {
-                  id: 'compact',
-                  name: 'Compact',
-                  desc: 'Tight information density with condensed rows and reduced padding',
-                },
-                {
-                  id: 'comfortable',
-                  name: 'Comfortable',
-                  desc: 'Balanced late-night acoustics & legibility (Default standard)',
-                },
-                {
-                  id: 'spacious',
-                  name: 'Spacious',
-                  desc: 'Generous margins, roomier track rows, and expansive breathing room',
-                },
-              ] as const
-            ).map((item) => {
-              const isSelected = layoutDensity === item.id;
-              return (
-                <div
-                  key={item.id}
-                  onClick={() => {
-                    setLayoutDensity(item.id);
-                    showToast('Layout Density Adjusted', item.name, 'default');
-                  }}
-                  style={{
-                    padding: '14px',
-                    borderRadius: 'var(--radius-sm)',
-                    background: isSelected ? 'var(--bg-surface-elevated)' : 'rgba(255, 255, 255, 0.02)',
-                    border: `1.5px solid ${isSelected ? 'var(--accent-primary)' : 'var(--border-subtle)'}`,
-                    cursor: 'pointer',
-                    transition: 'all var(--transition-snappy)',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: 4,
-                  }}
-                >
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <span style={{ fontWeight: 600, color: isSelected ? 'var(--text-pure)' : 'var(--text-high)', fontSize: '13px' }}>
-                      {item.name}
-                    </span>
-                    {isSelected && (
-                      <span style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--accent-primary)' }} />
-                    )}
-                  </div>
-                  <span style={{ fontSize: '11px', color: 'var(--text-low)', lineHeight: 1.4 }}>
-                    {item.desc}
-                  </span>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* 3.4. Sidebar Navigation Geometry */}
-        <div
-          style={{
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 12,
-            paddingTop: 18,
-            borderTop: '1px solid var(--border-subtle)',
-          }}
-        >
-          <div>
-            <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-pure)' }}>
-              Sidebar Navigation Mode
-            </span>
-            <p style={{ margin: '2px 0 0', fontSize: '11.5px', color: 'var(--text-medium)' }}>
-              Calibrate the primary navigation rail geometry or hide it for full-screen immersion
-            </p>
-          </div>
-
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 10 }}>
-            {(
-              [
-                {
-                  id: 'expanded',
-                  name: 'Expanded',
-                  desc: 'Full navigation panel with category titles, labels & dynamic badges',
-                },
-                {
-                  id: 'compact',
-                  name: 'Compact',
-                  desc: '72px icon rail maximizing horizontal browsing width for content',
-                },
-                {
-                  id: 'hidden',
-                  name: 'Hidden',
-                  desc: 'Distraction-free canvas with floating drawer menu in the top bar',
-                },
-              ] as const
-            ).map((item) => {
-              const isSelected = sidebarMode === item.id;
-              return (
-                <div
-                  key={item.id}
-                  onClick={() => {
-                    setSidebarMode(item.id);
-                    showToast('Sidebar Mode Changed', item.name, 'default');
-                  }}
-                  style={{
-                    padding: '14px',
-                    borderRadius: 'var(--radius-sm)',
-                    background: isSelected ? 'var(--bg-surface-elevated)' : 'rgba(255, 255, 255, 0.02)',
-                    border: `1.5px solid ${isSelected ? 'var(--accent-primary)' : 'var(--border-subtle)'}`,
-                    cursor: 'pointer',
-                    transition: 'all var(--transition-snappy)',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: 4,
-                  }}
-                >
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <span style={{ fontWeight: 600, color: isSelected ? 'var(--text-pure)' : 'var(--text-high)', fontSize: '13px' }}>
-                      {item.name}
-                    </span>
-                    {isSelected && (
-                      <span style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--accent-primary)' }} />
-                    )}
-                  </div>
-                  <span style={{ fontSize: '11px', color: 'var(--text-low)', lineHeight: 1.4 }}>
-                    {item.desc}
-                  </span>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* 3.5. Player Bar Size */}
-        <div
-          style={{
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 12,
-            paddingTop: 18,
-            borderTop: '1px solid var(--border-subtle)',
-          }}
-        >
-          <div>
-            <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-pure)' }}>
-              Audio Player Scale
-            </span>
-            <p style={{ margin: '2px 0 0', fontSize: '11.5px', color: 'var(--text-medium)' }}>
-              Adjust bottom transport bar height, artwork resolution, and control presence
-            </p>
-          </div>
-
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 10 }}>
-            {(
-              [
-                {
-                  id: 'minimal',
-                  name: 'Minimal',
-                  desc: 'Slim 60px transport bar with condensed essential controls',
-                },
-                {
-                  id: 'standard',
-                  name: 'Standard',
-                  desc: '90px balanced master bar with waveform metrics & scrubber (Default)',
-                },
-                {
-                  id: 'large',
-                  name: 'Large',
-                  desc: '124px expansive showcase bar with high-res artwork & roomier controls',
-                },
-              ] as const
-            ).map((item) => {
-              const isSelected = playerSize === item.id;
-              return (
-                <div
-                  key={item.id}
-                  onClick={() => {
-                    setPlayerSize(item.id);
-                    showToast('Player Scale Adjusted', item.name, 'default');
-                  }}
-                  style={{
-                    padding: '14px',
-                    borderRadius: 'var(--radius-sm)',
-                    background: isSelected ? 'var(--bg-surface-elevated)' : 'rgba(255, 255, 255, 0.02)',
-                    border: `1.5px solid ${isSelected ? 'var(--accent-primary)' : 'var(--border-subtle)'}`,
-                    cursor: 'pointer',
-                    transition: 'all var(--transition-snappy)',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: 4,
-                  }}
-                >
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <span style={{ fontWeight: 600, color: isSelected ? 'var(--text-pure)' : 'var(--text-high)', fontSize: '13px' }}>
-                      {item.name}
-                    </span>
-                    {isSelected && (
-                      <span style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--accent-primary)' }} />
-                    )}
-                  </div>
-                  <span style={{ fontSize: '11px', color: 'var(--text-low)', lineHeight: 1.4 }}>
-                    {item.desc}
-                  </span>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* 3.6. Background Mode */}
-        <div
-          style={{
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 12,
-            paddingTop: 18,
-            borderTop: '1px solid var(--border-subtle)',
-          }}
-        >
-          <div>
-            <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-pure)' }}>
-              Atmospheric Background Mode
-            </span>
-            <p style={{ margin: '2px 0 0', fontSize: '11.5px', color: 'var(--text-medium)' }}>
-              Choose the foundational canvas texture and acoustic luminescence backdrop
-            </p>
-          </div>
-
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 10 }}>
-            {(
-              [
-                {
-                  id: 'solid',
-                  name: 'Solid',
-                  desc: 'Pure opaque dark canvas with zero ambient lighting for minimalist focus',
-                },
-                {
-                  id: 'gradient',
-                  name: 'Gradient',
-                  desc: 'Deep nocturnal radial gradients harmonic to the active theme palette',
-                },
-                {
-                  id: 'album_art',
-                  name: 'Album Artwork',
-                  desc: 'Dynamic frosted artwork extracted from the currently playing hymn',
-                },
-                {
-                  id: 'ambient',
-                  name: 'Ambient',
-                  desc: 'Living nocturnal energy auras with drifting celestial glow',
-                },
-              ] as const
-            ).map((item) => {
-              const isSelected = backgroundMode === item.id;
-              return (
-                <div
-                  key={item.id}
-                  onClick={() => {
-                    setBackgroundMode(item.id);
-                    showToast('Background Altered', item.name, 'atmosphere');
-                  }}
-                  style={{
-                    padding: '14px',
-                    borderRadius: 'var(--radius-sm)',
-                    background: isSelected ? 'var(--bg-surface-elevated)' : 'rgba(255, 255, 255, 0.02)',
-                    border: `1.5px solid ${isSelected ? 'var(--accent-primary)' : 'var(--border-subtle)'}`,
-                    cursor: 'pointer',
-                    transition: 'all var(--transition-snappy)',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: 4,
-                  }}
-                >
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <span style={{ fontWeight: 600, color: isSelected ? 'var(--text-pure)' : 'var(--text-high)', fontSize: '13px' }}>
-                      {item.name}
-                    </span>
-                    {isSelected && (
-                      <span style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--accent-primary)' }} />
-                    )}
-                  </div>
-                  <span style={{ fontSize: '11px', color: 'var(--text-low)', lineHeight: 1.4 }}>
-                    {item.desc}
-                  </span>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* 3.7. Adjustable Blur & Opacity Sliders */}
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-            gap: 20,
-            paddingTop: 18,
-            borderTop: '1px solid var(--border-subtle)',
-          }}
-        >
-          {/* Background Blur */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <div>
-                <div style={{ fontWeight: 500, color: 'var(--text-pure)', fontSize: '13px' }}>
-                  Atmospheric Blur Depth
-                </div>
-                <div style={{ fontSize: '11px', color: 'var(--text-medium)' }}>
-                  Diffuses backdrop layers and album art reflections
-                </div>
+      {/* 5. PRIVACY CATEGORY */}
+      {activeCategory === 'privacy' && (
+        <section className="nocturne-settings-section">
+          <div className="nocturne-settings-card">
+            <div className="nocturne-settings-card__header">
+              <div className="nocturne-settings-card__header-left">
+                <Shield size={18} color="var(--accent-primary)" />
+                <h2 className="nocturne-settings-card__title">Privacy & Solitude Protocols</h2>
               </div>
-              <span
-                style={{
-                  fontFamily: 'var(--font-mono)',
-                  fontSize: '12px',
-                  color: 'var(--accent-primary)',
-                  background: 'rgba(255, 255, 255, 0.05)',
-                  padding: '2px 8px',
-                  borderRadius: 4,
-                }}
+              <span className="nocturne-settings-card__badge">END-TO-END LOCAL</span>
+            </div>
+
+            {/* Listening History Toggle */}
+            <div className="nocturne-setting-row">
+              <div className="nocturne-setting-row__info">
+                <span className="nocturne-setting-row__label">Track Listening History</span>
+                <span className="nocturne-setting-row__desc">
+                  Record hymns, timestamps, and acoustic durations into chronological milestones and statistics.
+                  When disabled, your playback enters Private Sanctuary mode.
+                </span>
+              </div>
+              <div className="nocturne-setting-row__control">
+                <Toggle
+                  checked={privacy.listeningHistoryEnabled}
+                  onChange={(checked) => updatePrivacy({ listeningHistoryEnabled: checked })}
+                  aria-label="Toggle Listening History"
+                />
+              </div>
+            </div>
+
+            {/* Activity Visibility Toggle */}
+            <div className="nocturne-setting-row">
+              <div className="nocturne-setting-row__info">
+                <span className="nocturne-setting-row__label">Sanctuary Activity Visibility</span>
+                <span className="nocturne-setting-row__desc">
+                  Allow kindred spirits in your network to observe your currently playing hymn and top artists.
+                </span>
+              </div>
+              <div className="nocturne-setting-row__control">
+                <Toggle
+                  checked={privacy.activityVisibility}
+                  onChange={(checked) => updatePrivacy({ activityVisibility: checked })}
+                  aria-label="Toggle Activity Visibility"
+                />
+              </div>
+            </div>
+
+            {/* Personalized Recommendations Toggle */}
+            <div className="nocturne-setting-row">
+              <div className="nocturne-setting-row__info">
+                <span className="nocturne-setting-row__label">Personalized Acoustic Discovery</span>
+                <span className="nocturne-setting-row__desc">
+                  Tailor Discover and Home recommendations based on your listening patterns, top genres, and midnight moods.
+                </span>
+              </div>
+              <div className="nocturne-setting-row__control">
+                <Toggle
+                  checked={privacy.personalizedRecommendations}
+                  onChange={(checked) => updatePrivacy({ personalizedRecommendations: checked })}
+                  aria-label="Toggle Recommendations"
+                />
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* 6. DATA & STORAGE CATEGORY */}
+      {activeCategory === 'data' && (
+        <section className="nocturne-settings-section">
+          {/* Data Export & Backup */}
+          <div className="nocturne-settings-card">
+            <div className="nocturne-settings-card__header">
+              <div className="nocturne-settings-card__header-left">
+                <Download size={18} color="var(--accent-primary)" />
+                <h2 className="nocturne-settings-card__title">Export Listening History Archive</h2>
+              </div>
+              <span className="nocturne-settings-card__badge">{history.length} RECORDED SESSIONS</span>
+            </div>
+
+            <p style={{ margin: 0, fontSize: '13px', color: 'var(--text-medium)', lineHeight: 1.5 }}>
+              Export your complete chronological listening archive, track play counts, acoustic durations,
+              and timestamps for external archiving or data migration.
+            </p>
+
+            <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+              <Button
+                variant="primary"
+                size="sm"
+                leftIcon={<Download size={14} />}
+                onClick={handleExportJSON}
+                disabled={history.length === 0}
               >
-                {backgroundBlur}px
-              </span>
-            </div>
-            <input
-              type="range"
-              min={0}
-              max={40}
-              step={2}
-              value={backgroundBlur}
-              onChange={(e) => setBackgroundBlur(Number(e.target.value))}
-              style={{
-                width: '100%',
-                accentColor: 'var(--accent-primary)',
-                cursor: 'pointer',
-              }}
-            />
-          </div>
+                Export JSON Archive
+              </Button>
 
-          {/* Interface Opacity */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <div>
-                <div style={{ fontWeight: 500, color: 'var(--text-pure)', fontSize: '13px' }}>
-                  Interface Surface Opacity
-                </div>
-                <div style={{ fontSize: '11px', color: 'var(--text-medium)' }}>
-                  Calibrates glass density across sidebars, cards & panels
-                </div>
-              </div>
-              <span
-                style={{
-                  fontFamily: 'var(--font-mono)',
-                  fontSize: '12px',
-                  color: 'var(--accent-primary)',
-                  background: 'rgba(255, 255, 255, 0.05)',
-                  padding: '2px 8px',
-                  borderRadius: 4,
-                }}
+              <Button
+                variant="secondary"
+                size="sm"
+                leftIcon={<FileSpreadsheet size={14} />}
+                onClick={handleExportCSV}
+                disabled={history.length === 0}
               >
-                {interfaceOpacity}%
+                Export CSV Spreadsheet
+              </Button>
+            </div>
+          </div>
+
+          {/* Destructive Actions with Confirmation */}
+          <div className="nocturne-settings-card">
+            <div className="nocturne-settings-card__header">
+              <div className="nocturne-settings-card__header-left">
+                <Trash2 size={18} color="var(--indicator-error)" />
+                <h2 className="nocturne-settings-card__title">Destructive Actions & Resets</h2>
+              </div>
+              <span className="nocturne-settings-card__badge" style={{ color: 'var(--indicator-error)' }}>
+                CONFIRMATION REQUIRED
               </span>
             </div>
-            <input
-              type="range"
-              min={50}
-              max={100}
-              step={5}
-              value={interfaceOpacity}
-              onChange={(e) => setInterfaceOpacity(Number(e.target.value))}
-              style={{
-                width: '100%',
-                accentColor: 'var(--accent-primary)',
-                cursor: 'pointer',
-              }}
-            />
-          </div>
-        </div>
 
-        {/* 3.8. Animation Intensity Modes */}
-        <div
-          style={{
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 12,
-            paddingTop: 18,
-            borderTop: '1px solid var(--border-subtle)',
-          }}
-        >
-          <div>
-            <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-pure)' }}>
-              Motion & Animation Intensity
-            </span>
-            <p style={{ margin: '2px 0 0', fontSize: '11.5px', color: 'var(--text-medium)' }}>
-              Control kinetic responsiveness, pulsing glows, and page transitions
-            </p>
-          </div>
-
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 10 }}>
-            {(
-              [
-                {
-                  id: 'full',
-                  name: 'Full',
-                  desc: 'Fluid kinetic micro-animations, glowing pulses & liquid transitions',
-                },
-                {
-                  id: 'reduced',
-                  name: 'Reduced',
-                  desc: 'Subdued snappy transitions with minimal motion for battery saving',
-                },
-                {
-                  id: 'off',
-                  name: 'Off',
-                  desc: 'Zero transition motion; immediate instantaneous state switching',
-                },
-              ] as const
-            ).map((item) => {
-              const isSelected = animationMode === item.id;
-              return (
-                <div
-                  key={item.id}
-                  onClick={() => {
-                    setAnimationMode(item.id);
-                    showToast('Motion Intensity Altered', `${item.name} animations active`, 'default');
-                  }}
-                  style={{
-                    padding: '14px',
-                    borderRadius: 'var(--radius-sm)',
-                    background: isSelected ? 'var(--bg-surface-elevated)' : 'rgba(255, 255, 255, 0.02)',
-                    border: `1.5px solid ${isSelected ? 'var(--accent-primary)' : 'var(--border-subtle)'}`,
-                    cursor: 'pointer',
-                    transition: 'all var(--transition-snappy)',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: 4,
-                  }}
-                >
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <span style={{ fontWeight: 600, color: isSelected ? 'var(--text-pure)' : 'var(--text-high)', fontSize: '13px' }}>
-                      {item.name}
-                    </span>
-                    {isSelected && (
-                      <span style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--accent-primary)' }} />
-                    )}
-                  </div>
-                  <span style={{ fontSize: '11px', color: 'var(--text-low)', lineHeight: 1.4 }}>
-                    {item.desc}
-                  </span>
+            {/* Clear History */}
+            <div className="nocturne-danger-box">
+              <div>
+                <div style={{ fontWeight: 600, color: 'var(--text-pure)', fontSize: '13.5px' }}>
+                  Clear Listening History
                 </div>
-              );
-            })}
-          </div>
-        </div>
-      </Card>
-
-      {/* 4. Audio Dynamics & Playback Engine */}
-      <Card variant="flat" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: 20 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <Volume2 size={18} color="var(--accent-primary)" />
-          <h3 style={{ fontSize: '1.2rem', margin: 0 }}>Playback Dynamics & Speed</h3>
-        </div>
-
-        {/* Playback Speed */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <div>
-              <div style={{ fontWeight: 500, color: 'var(--text-pure)', fontSize: '13.5px' }}>
-                Playback Speed Velocity
+                <div style={{ fontSize: '12px', color: 'var(--text-medium)', marginTop: 2 }}>
+                  Permanently deletes all {history.length} recorded listening sessions, milestones, and clock charts.
+                </div>
               </div>
-              <div style={{ fontSize: '11.5px', color: 'var(--text-medium)' }}>
-                Time-stretch acoustic tempo with pitch-correction preservation
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => setShowClearHistoryConfirm(true)}
+                disabled={history.length === 0}
+                style={{ borderColor: 'rgba(239, 68, 68, 0.4)', color: 'var(--indicator-error)' }}
+              >
+                Clear History...
+              </Button>
+            </div>
+
+            {/* Reset Preferences */}
+            <div className="nocturne-danger-box">
+              <div>
+                <div style={{ fontWeight: 600, color: 'var(--text-pure)', fontSize: '13.5px' }}>
+                  Reset Preferences to Defaults
+                </div>
+                <div style={{ fontSize: '12px', color: 'var(--text-medium)', marginTop: 2 }}>
+                  Restores theme, accent colors, audio playback rates, equalizer, and layout to factory standards.
+                </div>
+              </div>
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => setShowResetPreferencesConfirm(true)}
+                style={{ borderColor: 'rgba(239, 68, 68, 0.4)', color: 'var(--indicator-error)' }}
+              >
+                Reset Preferences...
+              </Button>
+            </div>
+          </div>
+
+          {/* Stream Cache */}
+          <div className="nocturne-settings-card" style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+              <HardDrive size={22} color="var(--text-medium)" />
+              <div>
+                <div style={{ fontWeight: 500, color: 'var(--text-pure)', fontSize: '13.5px' }}>Nocturnal Stream Cache</div>
+                <div style={{ fontSize: '11.5px', color: 'var(--text-medium)' }}>
+                  428 MB of lossless FLAC segments cached in IndexedDB
+                </div>
               </div>
             </div>
-            <span
-              style={{
-                fontFamily: 'var(--font-mono)',
-                fontSize: '12px',
-                color: 'var(--accent-primary)',
-                background: 'rgba(255, 255, 255, 0.05)',
-                padding: '2px 8px',
-                borderRadius: 4,
-              }}
+
+            <Button
+              variant="secondary"
+              size="sm"
+              leftIcon={<Trash2 size={14} />}
+              onClick={() => showToast('Cache Cleansed', '428 MB stream cache cleared', 'default')}
             >
-              {playbackRate}x
-            </span>
+              Purge Cache
+            </Button>
           </div>
+        </section>
+      )}
 
-          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-            {[0.5, 0.75, 1.0, 1.25, 1.5, 2.0].map((rate) => {
-              const isSelected = playbackRate === rate;
-              return (
-                <button
-                  key={rate}
-                  type="button"
-                  onClick={() => {
-                    setPlaybackRate(rate);
-                    showToast('Playback Velocity Updated', `${rate}x speed active`, 'default');
-                  }}
-                  style={{
-                    padding: '6px 14px',
-                    borderRadius: 'var(--radius-sm)',
-                    background: isSelected ? 'var(--accent-primary)' : 'rgba(255, 255, 255, 0.04)',
-                    color: isSelected ? '#000000' : 'var(--text-high)',
-                    border: `1px solid ${isSelected ? 'var(--accent-primary)' : 'var(--border-subtle)'}`,
-                    fontSize: '12px',
-                    fontFamily: 'var(--font-mono)',
-                    fontWeight: isSelected ? 600 : 400,
-                    cursor: 'pointer',
-                    transition: 'all var(--transition-snappy)',
-                  }}
-                >
-                  {rate}x
-                </button>
-              );
-            })}
-          </div>
-        </div>
+      {/* Confirmation Modals */}
+      <ConfirmationModal
+        isOpen={showClearHistoryConfirm}
+        onClose={() => setShowClearHistoryConfirm(false)}
+        onConfirm={handleExecuteClearHistory}
+        title="Clear Listening History?"
+        description={`This will permanently erase all ${history.length} recorded listening sessions, historical milestones, and your 24-hour listening clock data. This action cannot be reversed.`}
+        confirmLabel="Erase All History"
+        cancelLabel="Keep History"
+        variant="danger"
+      />
 
-        {/* Volume Normalization */}
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            paddingTop: 14,
-            borderTop: '1px solid var(--border-subtle)',
-          }}
-        >
-          <div>
-            <div style={{ fontWeight: 500, color: 'var(--text-pure)' }}>Volume Normalization (Compressor)</div>
-            <div style={{ fontSize: '11.5px', color: 'var(--text-medium)' }}>
-              Studio dynamics leveling prevents abrupt acoustic volume spikes across differing masters
-            </div>
-          </div>
-          <Button
-            variant={volumeNormalization ? 'primary' : 'secondary'}
-            size="sm"
-            onClick={() => {
-              const next = !volumeNormalization;
-              setVolumeNormalization(next);
-              showToast(
-                next ? 'Volume Normalization Engaged' : 'Volume Normalization Bypassed',
-                next ? 'Studio dynamics compressor active' : 'Raw track mastering output',
-                'default'
-              );
-            }}
-          >
-            {volumeNormalization ? 'Active' : 'Disabled'}
-          </Button>
-        </div>
-
-        {/* Crossfade Transitions */}
-        <div
-          style={{
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 10,
-            paddingTop: 14,
-            borderTop: '1px solid var(--border-subtle)',
-          }}
-        >
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <div>
-              <div style={{ fontWeight: 500, color: 'var(--text-pure)', fontSize: '13.5px' }}>
-                Acoustic Crossfade Duration
-              </div>
-              <div style={{ fontSize: '11.5px', color: 'var(--text-medium)' }}>
-                Smoothly blends fading tracks into upcoming sequences via dual-channel Web Audio volume ramps
-              </div>
-            </div>
-            <span
-              style={{
-                fontFamily: 'var(--font-mono)',
-                fontSize: '12px',
-                color: 'var(--accent-primary)',
-                background: 'rgba(255, 255, 255, 0.05)',
-                padding: '2px 8px',
-                borderRadius: 4,
-              }}
-            >
-              {crossfadeDuration === 0 ? 'Off' : `${crossfadeDuration}s`}
-            </span>
-          </div>
-
-          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-            {CROSSFADE_OPTIONS.map((opt) => {
-              const isSelected = crossfadeDuration === opt.value;
-              return (
-                <button
-                  key={opt.value}
-                  type="button"
-                  onClick={() => {
-                    setCrossfadeDuration(opt.value);
-                    showToast(
-                      'Crossfade Updated',
-                      opt.value === 0 ? 'Crossfade disabled' : `${opt.label} acoustic crossfade active`,
-                      'default'
-                    );
-                  }}
-                  style={{
-                    padding: '6px 14px',
-                    borderRadius: 'var(--radius-sm)',
-                    background: isSelected ? 'var(--accent-primary)' : 'rgba(255, 255, 255, 0.04)',
-                    color: isSelected ? '#000000' : 'var(--text-high)',
-                    border: `1px solid ${isSelected ? 'var(--accent-primary)' : 'var(--border-subtle)'}`,
-                    fontSize: '12px',
-                    fontFamily: 'var(--font-mono)',
-                    fontWeight: isSelected ? 600 : 400,
-                    cursor: 'pointer',
-                    transition: 'all var(--transition-snappy)',
-                  }}
-                >
-                  {opt.label}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Autoplay Toggle */}
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            paddingTop: 14,
-            borderTop: '1px solid var(--border-subtle)',
-          }}
-        >
-          <div>
-            <div style={{ fontWeight: 500, color: 'var(--text-pure)' }}>Continuous Autoplay</div>
-            <div style={{ fontSize: '11.5px', color: 'var(--text-medium)' }}>
-              Automatically discovers and queues matching nocturnal tracks when your queue finishes
-            </div>
-          </div>
-          <Button
-            variant={autoplay ? 'primary' : 'secondary'}
-            size="sm"
-            onClick={() => {
-              const next = !autoplay;
-              setAutoplay(next);
-              showToast(
-                next ? 'Autoplay Active' : 'Autoplay Disabled',
-                next ? 'Continuous listening session enabled' : 'Playback stops when queue ends',
-                'default'
-              );
-            }}
-          >
-            {autoplay ? 'Active' : 'Disabled'}
-          </Button>
-        </div>
-      </Card>
-
-      {/* 5. Cache & Memory */}
-      <Card variant="flat" style={{ padding: '24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-          <HardDrive size={22} color="var(--text-medium)" />
-          <div>
-            <div style={{ fontWeight: 500, color: 'var(--text-pure)' }}>Nocturnal Stream Cache</div>
-            <div style={{ fontSize: '11.5px', color: 'var(--text-medium)' }}>
-              428 MB of FLAC audio cached for offline night playback
-            </div>
-          </div>
-        </div>
-
-        <Button
-          variant="secondary"
-          size="sm"
-          leftIcon={<Trash2 size={15} />}
-          onClick={() => showToast('Cache Cleansed', '428 MB released', 'default')}
-        >
-          Purge Cache
-        </Button>
-      </Card>
+      <ConfirmationModal
+        isOpen={showResetPreferencesConfirm}
+        onClose={() => setShowResetPreferencesConfirm(false)}
+        onConfirm={handleExecuteResetPreferences}
+        title="Reset All Preferences?"
+        description="This will restore all visual theme choices, accent luminescence, layout density, equalizer presets, audio quality, and privacy configurations back to Nocturne factory defaults."
+        confirmLabel="Reset All Preferences"
+        cancelLabel="Cancel"
+        variant="warning"
+      />
     </div>
   );
 };
+
+export default SettingsPage;

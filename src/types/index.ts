@@ -139,3 +139,20 @@ export interface ToastMessage {
   variant?: 'default' | 'success' | 'warning' | 'error' | 'atmosphere';
   duration?: number;
 }
+
+export interface UserAccountProfile {
+  name: string;
+  username: string;
+  avatarUrl: string;
+  email: string;
+  bio: string;
+  membershipTier: string;
+  memberSince: string;
+}
+
+export interface PrivacySettings {
+  listeningHistoryEnabled: boolean;
+  activityVisibility: boolean;
+  personalizedRecommendations: boolean;
+}
+

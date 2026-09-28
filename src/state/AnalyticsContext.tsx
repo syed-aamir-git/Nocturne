@@ -12,6 +12,7 @@ import type {
   WeekdayListeningStat,
 } from '../types/analytics';
 import { generateSeedHistory } from '../services/analyticsSeed';
+import { storageService } from '../services/storageService';
 import {
   calculateDailyListening,
   calculateHourlyListening,
@@ -92,6 +93,10 @@ export const AnalyticsProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   }, []);
 
   const recordSession = useCallback((entryData: Omit<ListeningHistoryEntry, 'id'>) => {
+    const privacy = storageService.getPrivacySettings();
+    if (!privacy.listeningHistoryEnabled) {
+      return;
+    }
     const newEntry: ListeningHistoryEntry = {
       ...entryData,
       id: `hist-${Date.now()}-${Math.random().toString(36).substring(2, 8)}`,

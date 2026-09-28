@@ -1,4 +1,4 @@
-import type { Playlist, Track } from '../types';
+import type { Playlist, Track, UserAccountProfile, PrivacySettings } from '../types';
 import { MOCK_PLAYLISTS, MOCK_TRACKS } from '../data/mockData';
 
 const LIKED_TRACKS_KEY = 'nocturne_liked_track_ids_v1';
@@ -161,6 +161,81 @@ export const storageService = {
       localStorage.removeItem('nocturne_search_history_v1');
     } catch (e) {
       console.warn('[StorageService] Error clearing search history:', e);
+    }
+  },
+
+  getUserProfile(): UserAccountProfile {
+    try {
+      const stored = localStorage.getItem('nocturne_account_profile_v1');
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (parsed && typeof parsed === 'object') {
+          return {
+            name: parsed.name || 'Nocturne Wanderer',
+            username: parsed.username || 'nocturne_wanderer',
+            avatarUrl:
+              parsed.avatarUrl ||
+              'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&q=80',
+            email: parsed.email || 'wanderer@nocturne.sanctum',
+            bio:
+              parsed.bio ||
+              'Dweller in midnight ambience, listening to darkwave acoustics and crystalline frequencies.',
+            membershipTier: parsed.membershipTier || 'Archon (24-bit / 96kHz Master FLAC)',
+            memberSince: parsed.memberSince || 'October 2024',
+          };
+        }
+      }
+    } catch {
+      // fallback
+    }
+    return {
+      name: 'Nocturne Wanderer',
+      username: 'nocturne_wanderer',
+      avatarUrl:
+        'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&q=80',
+      email: 'wanderer@nocturne.sanctum',
+      bio: 'Dweller in midnight ambience, listening to darkwave acoustics and crystalline frequencies.',
+      membershipTier: 'Archon (24-bit / 96kHz Master FLAC)',
+      memberSince: 'October 2024',
+    };
+  },
+
+  saveUserProfile(profile: UserAccountProfile): void {
+    try {
+      localStorage.setItem('nocturne_account_profile_v1', JSON.stringify(profile));
+    } catch (e) {
+      console.warn('[StorageService] Error saving user profile:', e);
+    }
+  },
+
+  getPrivacySettings(): PrivacySettings {
+    try {
+      const stored = localStorage.getItem('nocturne_privacy_settings_v1');
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (parsed && typeof parsed === 'object') {
+          return {
+            listeningHistoryEnabled: parsed.listeningHistoryEnabled ?? true,
+            activityVisibility: parsed.activityVisibility ?? false,
+            personalizedRecommendations: parsed.personalizedRecommendations ?? true,
+          };
+        }
+      }
+    } catch {
+      // fallback
+    }
+    return {
+      listeningHistoryEnabled: true,
+      activityVisibility: false,
+      personalizedRecommendations: true,
+    };
+  },
+
+  savePrivacySettings(settings: PrivacySettings): void {
+    try {
+      localStorage.setItem('nocturne_privacy_settings_v1', JSON.stringify(settings));
+    } catch (e) {
+      console.warn('[StorageService] Error saving privacy settings:', e);
     }
   },
 };

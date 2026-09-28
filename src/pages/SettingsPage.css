@@ -1,0 +1,321 @@
+.nocturne-settings-page {
+  max-width: 1080px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  padding-bottom: 60px;
+}
+
+.nocturne-settings-header {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.nocturne-settings-header__title-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.nocturne-settings-header__title {
+  font-size: 2.2rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin: 0;
+  color: var(--text-pure);
+}
+
+.nocturne-settings-header__desc {
+  font-size: 13.5px;
+  color: var(--text-medium);
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* Category Navigation Bar */
+.nocturne-settings-nav {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  overflow-x: auto;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+.nocturne-settings-nav::-webkit-scrollbar {
+  display: none;
+}
+
+.nocturne-settings-nav__btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--text-medium);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all var(--transition-snappy);
+}
+
+.nocturne-settings-nav__btn:hover {
+  color: var(--text-pure);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.nocturne-settings-nav__btn--active {
+  background: var(--bg-surface-elevated);
+  border-color: var(--border-medium);
+  color: var(--accent-primary);
+  font-weight: 600;
+  box-shadow: 0 0 12px var(--glow-primary, rgba(168, 85, 247, 0.2));
+}
+
+/* Setting Card Sections */
+.nocturne-settings-section {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.nocturne-settings-card {
+  padding: 24px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.nocturne-settings-card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.nocturne-settings-card__header-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.nocturne-settings-card__title {
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: var(--text-pure);
+  margin: 0;
+}
+
+.nocturne-settings-card__badge {
+  font-size: 11px;
+  font-family: var(--font-mono);
+  color: var(--text-low);
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border-subtle);
+}
+
+/* Setting Row Item */
+.nocturne-setting-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 12px 0;
+}
+
+.nocturne-setting-row + .nocturne-setting-row {
+  border-top: 1px solid var(--border-subtle);
+}
+
+.nocturne-setting-row__info {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  max-width: 65%;
+}
+
+.nocturne-setting-row__label {
+  font-size: 13.5px;
+  font-weight: 500;
+  color: var(--text-pure);
+}
+
+.nocturne-setting-row__desc {
+  font-size: 12px;
+  color: var(--text-medium);
+  line-height: 1.45;
+}
+
+.nocturne-setting-row__control {
+  flex-shrink: 0;
+}
+
+/* Profile Edit Grid */
+.nocturne-profile-grid {
+  display: grid;
+  grid-template-columns: 140px 1fr;
+  gap: 24px;
+  align-items: start;
+}
+
+.nocturne-profile-avatar-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.nocturne-profile-avatar-preview {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--accent-primary);
+  box-shadow: 0 0 16px var(--glow-primary, rgba(168, 85, 247, 0.25));
+}
+
+.nocturne-profile-avatar-presets {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.nocturne-profile-avatar-thumb {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  cursor: pointer;
+  border: 1.5px solid transparent;
+  transition: all var(--transition-snappy);
+}
+
+.nocturne-profile-avatar-thumb:hover {
+  transform: scale(1.1);
+}
+
+.nocturne-profile-avatar-thumb--active {
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 8px var(--accent-primary);
+}
+
+.nocturne-profile-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.nocturne-field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.nocturne-field-label {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-medium);
+}
+
+.nocturne-input {
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  background: var(--bg-surface-elevated);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-pure);
+  font-size: 13px;
+  outline: none;
+  transition: border-color var(--transition-snappy);
+  font-family: inherit;
+}
+
+.nocturne-input:focus {
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 0 2px var(--glow-primary, rgba(168, 85, 247, 0.2));
+}
+
+.nocturne-textarea {
+  min-height: 72px;
+  resize: vertical;
+}
+
+/* Account Info Table */
+.nocturne-account-info-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.nocturne-account-info-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  background: var(--bg-surface-elevated);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  font-size: 12.5px;
+}
+
+.nocturne-account-info-label {
+  color: var(--text-medium);
+}
+
+.nocturne-account-info-value {
+  color: var(--text-pure);
+  font-weight: 500;
+  font-family: var(--font-mono);
+}
+
+/* Destructive danger box */
+.nocturne-danger-box {
+  padding: 16px;
+  border-radius: var(--radius-sm);
+  background: rgba(239, 68, 68, 0.05);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 14px;
+}
+
+@media (max-width: 768px) {
+  .nocturne-profile-grid {
+    grid-template-columns: 1fr;
+    justify-items: center;
+  }
+
+  .nocturne-setting-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .nocturne-setting-row__info {
+    max-width: 100%;
+  }
+
+  .nocturne-setting-row__control {
+    width: 100%;
+    display: flex;
+    justify-content: flex-end;
+  }
+}

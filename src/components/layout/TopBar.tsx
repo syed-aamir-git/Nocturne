@@ -138,11 +138,11 @@ export const TopBar: React.FC = () => {
             <button
               type="button"
               style={{ background: 'transparent', border: 'none', padding: 0, cursor: 'pointer' }}
-              title={isConnected ? `Connected as ${userProfile?.name}` : 'Sign in / Connect Spotify'}
+              title={isConnected ? `Connected as ${userProfile?.name}` : `${storageService.getUserProfile().name} • Preferences`}
             >
               <Avatar
-                name={userProfile?.name || 'Nocturne Wanderer'}
-                src={userProfile?.avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&q=80'}
+                name={(isConnected && userProfile?.name) || storageService.getUserProfile().name}
+                src={(isConnected && userProfile?.avatarUrl) || storageService.getUserProfile().avatarUrl}
                 size="sm"
                 ring
               />
