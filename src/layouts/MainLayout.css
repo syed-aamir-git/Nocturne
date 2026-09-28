@@ -38,7 +38,7 @@
   background-size: cover;
   background-position: center;
   filter: blur(var(--bg-blur, 20px)) saturate(1.3) brightness(0.38);
-  opacity: calc(1.2 - (var(--interface-opacity, 0.85) * 0.7));
+  opacity: var(--bg-artwork-opacity, 0.65);
   transform: scale(1.08);
   transition: background-image 800ms ease, filter var(--transition-smooth), opacity var(--transition-smooth);
 }

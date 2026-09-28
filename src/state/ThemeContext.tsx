@@ -84,16 +84,56 @@ function hexToRgba(hex: string, alpha: number): string {
   return hex;
 }
 
+function getContrastColor(hex: string): string {
+  try {
+    const clean = hex.replace('#', '');
+    let r = 0, g = 0, b = 0;
+    if (clean.length === 3) {
+      r = parseInt(clean[0] + clean[0], 16);
+      g = parseInt(clean[1] + clean[1], 16);
+      b = parseInt(clean[2] + clean[2], 16);
+    } else if (clean.length === 6) {
+      r = parseInt(clean.substring(0, 2), 16);
+      g = parseInt(clean.substring(2, 4), 16);
+      b = parseInt(clean.substring(4, 6), 16);
+    }
+    const luminance = (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
+    return luminance > 0.55 ? '#000000' : '#ffffff';
+  } catch {
+    return '#ffffff';
+  }
+}
+
 function loadInitialSettings(): AppearanceSettings {
   if (typeof window === 'undefined') return DEFAULT_SETTINGS;
   try {
     const raw = localStorage.getItem(APPEARANCE_STORAGE_KEY);
     if (raw) {
       const parsed = JSON.parse(raw);
-      return {
+      const validated: AppearanceSettings = {
         ...DEFAULT_SETTINGS,
         ...parsed,
       };
+
+      if (!THEMES.some((t) => t.id === validated.themeId)) {
+        validated.themeId = DEFAULT_SETTINGS.themeId;
+      }
+      if (!['compact', 'comfortable', 'spacious'].includes(validated.layoutDensity)) {
+        validated.layoutDensity = DEFAULT_SETTINGS.layoutDensity;
+      }
+      if (!['expanded', 'compact', 'hidden'].includes(validated.sidebarMode)) {
+        validated.sidebarMode = DEFAULT_SETTINGS.sidebarMode;
+      }
+      if (!['minimal', 'standard', 'large'].includes(validated.playerSize)) {
+        validated.playerSize = DEFAULT_SETTINGS.playerSize;
+      }
+      if (!['solid', 'gradient', 'album_art', 'ambient'].includes(validated.backgroundMode)) {
+        validated.backgroundMode = DEFAULT_SETTINGS.backgroundMode;
+      }
+      if (!['full', 'reduced', 'off'].includes(validated.animationMode)) {
+        validated.animationMode = DEFAULT_SETTINGS.animationMode;
+      }
+      return validated;
     }
     // Check legacy key
     const legacy = localStorage.getItem('nocturne_selected_theme') as ThemeId;
@@ -129,6 +169,10 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     // CSS Variables for Blur and Opacity
     root.style.setProperty('--bg-blur', `${settings.backgroundBlur}px`);
     root.style.setProperty('--interface-opacity', `${settings.interfaceOpacity / 100}`);
+    root.style.setProperty(
+      '--bg-artwork-opacity',
+      `${Math.max(0.1, 1.2 - (settings.interfaceOpacity / 100) * 0.65).toFixed(2)}`
+    );
 
     // Accent Color Override
     if (settings.isCustomAccent && settings.accentColor) {
@@ -137,12 +181,14 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       root.style.setProperty('--accent-glow', hexToRgba(settings.accentColor, 0.25));
       root.style.setProperty('--accent-glow-strong', hexToRgba(settings.accentColor, 0.45));
       root.style.setProperty('--accent-border', hexToRgba(settings.accentColor, 0.3));
+      root.style.setProperty('--accent-contrast', getContrastColor(settings.accentColor));
     } else {
       root.style.removeProperty('--accent-primary');
       root.style.removeProperty('--accent-secondary');
       root.style.removeProperty('--accent-glow');
       root.style.removeProperty('--accent-glow-strong');
       root.style.removeProperty('--accent-border');
+      root.style.removeProperty('--accent-contrast');
     }
 
     try {

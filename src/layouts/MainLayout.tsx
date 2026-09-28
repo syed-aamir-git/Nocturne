@@ -56,7 +56,10 @@ export const MainLayout: React.FC = () => {
           <div
             className="nocturne-layout__bg-artwork"
             style={{
-              backgroundImage: currentTrack?.artwork ? `url(${currentTrack.artwork})` : undefined,
+              backgroundImage: `url(${
+                currentTrack?.artwork ||
+                'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=1800&q=80'
+              })`,
             }}
           >
             <div className="nocturne-layout__bg-artwork-overlay" />

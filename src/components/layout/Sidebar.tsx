@@ -39,13 +39,24 @@ interface NavGroupConfig {
 }
 
 export const Sidebar: React.FC = () => {
-  const { sidebarCollapsed, toggleSidebar, mobileMenuOpen, setMobileMenuOpen } = useUI();
-  const { sidebarMode } = useTheme();
+  const { sidebarCollapsed, setSidebarCollapsed, toggleSidebar, mobileMenuOpen, setMobileMenuOpen } = useUI();
+  const { sidebarMode, setSidebarMode } = useTheme();
   const { playlists, likedTrackIds } = useLibrary();
   const location = useLocation();
   const [timePhase, setTimePhase] = useState(() => getNocturnalHourPhase());
 
   const isEffectiveCollapsed = sidebarMode === 'compact' || sidebarCollapsed;
+
+  const handleToggleSidebar = () => {
+    if (sidebarMode === 'compact') {
+      setSidebarMode('expanded');
+      setSidebarCollapsed(false);
+    } else if (sidebarCollapsed) {
+      setSidebarCollapsed(false);
+    } else {
+      toggleSidebar();
+    }
+  };
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -130,7 +141,7 @@ export const Sidebar: React.FC = () => {
         <IconButton
           variant="ghost"
           size="sm"
-          onClick={toggleSidebar}
+          onClick={handleToggleSidebar}
           aria-label={isEffectiveCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
           className="desktop-only"
         >
