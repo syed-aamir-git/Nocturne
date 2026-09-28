@@ -122,12 +122,16 @@ export const TrackContextMenu: React.FC<TrackContextMenuProps> = ({
 
   const handleGoToArtist = () => {
     onClose();
-    navigate(`/artist/${track.artistId}`);
+    if (track.artistId) {
+      navigate(`/artist/${track.artistId}`);
+    }
   };
 
   const handleGoToAlbum = () => {
     onClose();
-    navigate(`/album/${track.albumId}`);
+    if (track.albumId) {
+      navigate(`/album/${track.albumId}`);
+    }
   };
 
   return (
@@ -247,20 +251,24 @@ export const TrackContextMenu: React.FC<TrackContextMenuProps> = ({
       <div className="nocturne-track-menu__divider" />
 
       {/* Go to Artist */}
-      <button type="button" className="nocturne-track-menu__item" onClick={handleGoToArtist}>
-        <div className="nocturne-track-menu__item-left">
-          <User size={14} />
-          <span>Go to Artist</span>
-        </div>
-      </button>
+      {track.artistId && (
+        <button type="button" className="nocturne-track-menu__item" onClick={handleGoToArtist}>
+          <div className="nocturne-track-menu__item-left">
+            <User size={14} />
+            <span>Go to Artist</span>
+          </div>
+        </button>
+      )}
 
       {/* Go to Album */}
-      <button type="button" className="nocturne-track-menu__item" onClick={handleGoToAlbum}>
-        <div className="nocturne-track-menu__item-left">
-          <Disc size={14} />
-          <span>Go to Album</span>
-        </div>
-      </button>
+      {track.albumId && (
+        <button type="button" className="nocturne-track-menu__item" onClick={handleGoToAlbum}>
+          <div className="nocturne-track-menu__item-left">
+            <Disc size={14} />
+            <span>Go to Album</span>
+          </div>
+        </button>
+      )}
 
       {/* Optional Remove button (e.g. from playlist or queue) */}
       {onRemove && (

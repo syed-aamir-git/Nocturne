@@ -47,9 +47,11 @@ export const ArtistDetailPage: React.FC = () => {
 
   const isFollowed = artist ? isArtistFollowed(artist.id) : false;
   const imgError = Boolean(artist && imgErrorArtistId === artist.id);
+  const isLoading = loading || (artist?.id !== id);
 
   useEffect(() => {
     let isCancelled = false;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
 
     Promise.all([
       musicService.getArtistById(id || ''),
@@ -80,9 +82,10 @@ export const ArtistDetailPage: React.FC = () => {
     const singles: Album[] = [];
 
     albums.forEach((alb) => {
-      if (alb.type === 'single' || alb.isSingle || (alb.tracksCount && alb.tracksCount === 1) || alb.tracks.length === 1) {
+      const tracksCount = alb.tracksCount ?? (alb.tracks ? alb.tracks.length : 0);
+      if (alb.type === 'single' || alb.isSingle || tracksCount === 1) {
         singles.push(alb);
-      } else if (alb.type === 'ep' || (alb.tracksCount && alb.tracksCount <= 3) || alb.tracks.length <= 3 || alb.title.toLowerCase().includes('ep')) {
+      } else if (alb.type === 'ep' || alb.title.toLowerCase().includes('ep') || tracksCount <= 3) {
         eps.push(alb);
       } else {
         fullAlbums.push(alb);
@@ -99,7 +102,7 @@ export const ArtistDetailPage: React.FC = () => {
     return albums;
   }, [releaseFilter, categorizedAlbums, albums]);
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="nocturne-artist-page">
         <Skeleton height={320} variant="rounded" />

@@ -10,7 +10,7 @@ export const AlbumsPage: React.FC = () => {
   const { playTrack } = usePlayer();
   const [albums, setAlbums] = useState<Album[]>([]);
   const [filterGenre, setFilterGenre] = useState<string>('All');
-  const [filterType, setFilterType] = useState<'all' | 'albums' | 'singles'>('all');
+  const [filterType, setFilterType] = useState<'all' | 'albums' | 'eps' | 'singles'>('all');
   const [genres, setGenres] = useState<string[]>(['All']);
 
   useEffect(() => {
@@ -34,10 +34,25 @@ export const AlbumsPage: React.FC = () => {
   const filteredAlbums = albums.filter((a) => {
     const matchesGenre =
       filterGenre === 'All' || a.genre.toLowerCase().includes(filterGenre.toLowerCase());
-    const matchesType =
-      filterType === 'all' ||
-      (filterType === 'singles' && a.isSingle) ||
-      (filterType === 'albums' && !a.isSingle);
+
+    const isSingle =
+      a.type === 'single' ||
+      a.isSingle ||
+      a.tracksCount === 1 ||
+      (a.tracks && a.tracks.length === 1);
+    const isEp =
+      !isSingle &&
+      (a.type === 'ep' ||
+        a.title.toLowerCase().includes('ep') ||
+        (a.tracksCount !== undefined && a.tracksCount <= 3) ||
+        (a.tracks && a.tracks.length <= 3));
+    const isAlbum = !isSingle && !isEp;
+
+    let matchesType = true;
+    if (filterType === 'singles') matchesType = isSingle;
+    else if (filterType === 'eps') matchesType = isEp;
+    else if (filterType === 'albums') matchesType = isAlbum;
+
     return matchesGenre && matchesType;
   });
 
@@ -59,9 +74,9 @@ export const AlbumsPage: React.FC = () => {
 
       {/* Filter Row */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-        {/* Type pills (All / Albums / Singles) */}
-        <div style={{ display: 'flex', gap: 8 }}>
-          {(['all', 'albums', 'singles'] as const).map((type) => (
+        {/* Type pills (All / Albums / EPs / Singles) */}
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          {(['all', 'albums', 'eps', 'singles'] as const).map((type) => (
             <button
               key={type}
               type="button"
@@ -74,7 +89,9 @@ export const AlbumsPage: React.FC = () => {
                 color: filterType === type ? '#ffffff' : 'var(--text-medium)',
                 fontSize: '12px',
                 cursor: 'pointer',
-                textTransform: 'capitalize',
+                textTransform: 'uppercase',
+                fontFamily: 'var(--font-mono)',
+                letterSpacing: '0.05em',
                 transition: 'all var(--transition-snappy)',
               }}
             >

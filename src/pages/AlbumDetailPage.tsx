@@ -42,9 +42,11 @@ export const AlbumDetailPage: React.FC = () => {
 
   const isSaved = album ? isAlbumSaved(album.id) : false;
   const imgError = Boolean(album && imgErrorAlbumId === album.id);
+  const isLoading = loading || (album?.id !== id);
 
   useEffect(() => {
     let isCancelled = false;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
 
     musicService.getAlbumById(id || '').then((alb) => {
       if (isCancelled) return;
@@ -85,7 +87,7 @@ export const AlbumDetailPage: React.FC = () => {
     return 'STUDIO ALBUM';
   }, [album, tracks.length]);
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="nocturne-album-page">
         <Skeleton height={300} variant="rounded" />

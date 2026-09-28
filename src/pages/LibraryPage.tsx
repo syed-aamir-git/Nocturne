@@ -23,7 +23,7 @@ export const LibraryPage: React.FC = () => {
   const [albums, setAlbums] = useState<Album[]>([]);
   const [artists, setArtists] = useState<Artist[]>([]);
 
-  const { playlists, getLikedTracks } = useLibrary();
+  const { playlists, getLikedTracks, isAlbumSaved, isArtistFollowed } = useLibrary();
   const { currentTrack, status, playTrack } = usePlayer();
   const { showToast } = useToast();
 
@@ -47,10 +47,13 @@ export const LibraryPage: React.FC = () => {
     };
   }, []);
 
+  const savedAlbums = albums.filter((alb) => isAlbumSaved(alb.id));
+  const followedArtists = artists.filter((art) => isArtistFollowed(art.id));
+
   const tabs = [
     { id: 'playlists', label: 'Playlists', badge: playlists.length },
-    { id: 'albums', label: 'Saved Albums', badge: albums.length },
-    { id: 'artists', label: 'Followed Artists', badge: artists.length },
+    { id: 'albums', label: 'Saved Albums', badge: savedAlbums.length },
+    { id: 'artists', label: 'Followed Artists', badge: followedArtists.length },
     { id: 'tracks', label: 'Preserved Tracks', badge: likedTracks.length },
   ];
 
@@ -143,31 +146,55 @@ export const LibraryPage: React.FC = () => {
           )}
 
           {activeTab === 'albums' && (
-            <div className="nocturne-grid-albums">
-              {albums.map((alb) => (
-                <AlbumCard
-                  key={alb.id}
-                  album={alb}
-                  onPlay={(a) => {
-                    if (a.tracks && a.tracks.length > 0) {
-                      playTrack(a.tracks[0], a.tracks, 0);
-                      showToast('Playing Album', alb.title, 'atmosphere');
-                    }
-                  }}
-                />
-              ))}
-            </div>
+            savedAlbums.length > 0 ? (
+              <div className="nocturne-grid-albums">
+                {savedAlbums.map((alb) => (
+                  <AlbumCard
+                    key={alb.id}
+                    album={alb}
+                    onPlay={(a) => {
+                      if (a.tracks && a.tracks.length > 0) {
+                        playTrack(a.tracks[0], a.tracks, 0);
+                        showToast('Playing Album', alb.title, 'atmosphere');
+                      }
+                    }}
+                  />
+                ))}
+              </div>
+            ) : (
+              <EmptyState
+                title="No Saved Albums Yet"
+                description="Anchor whole architectures of sound to your library from any album page."
+                action={
+                  <Button variant="primary" onClick={() => navigate('/albums')}>
+                    Browse Albums
+                  </Button>
+                }
+              />
+            )
           )}
 
           {activeTab === 'artists' && (
-            <div className="nocturne-grid-artists">
-              {artists.map((art) => (
-                <ArtistCard
-                  key={art.id}
-                  artist={art}
-                />
-              ))}
-            </div>
+            followedArtists.length > 0 ? (
+              <div className="nocturne-grid-artists">
+                {followedArtists.map((art) => (
+                  <ArtistCard
+                    key={art.id}
+                    artist={art}
+                  />
+                ))}
+              </div>
+            ) : (
+              <EmptyState
+                title="No Followed Artists Yet"
+                description="Follow sound architects and composers to preserve their work in your inner sanctum."
+                action={
+                  <Button variant="primary" onClick={() => navigate('/artists')}>
+                    Explore Artists
+                  </Button>
+                }
+              />
+            )
           )}
 
           {activeTab === 'tracks' && (
