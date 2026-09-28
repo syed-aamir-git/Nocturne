@@ -211,6 +211,19 @@ export const storageService = {
     }
   },
 
+  resetUserProfile(): UserAccountProfile {
+    try {
+      localStorage.removeItem('nocturne_account_profile_v1');
+    } catch {
+      // ignore
+    }
+    const def = this.getUserProfile();
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('nocturne:profile-updated', { detail: def }));
+    }
+    return def;
+  },
+
   getPrivacySettings(): PrivacySettings {
     try {
       const stored = localStorage.getItem('nocturne_privacy_settings_v1');

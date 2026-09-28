@@ -133,6 +133,7 @@ export const SettingsPage: React.FC = () => {
     openEqualizer,
     gains,
     setBandGain,
+    resetEQ,
   } = useAudioSettings();
 
   const { history, clearHistory } = useAnalytics();
@@ -287,13 +288,20 @@ export const SettingsPage: React.FC = () => {
 
   const handleExecuteResetPreferences = () => {
     resetToDefaults();
+    resetEQ();
     setAudioQuality('lossless');
     setVolumeNormalization(true);
     setPlaybackRate(1.0);
-    setCrossfadeDuration(2);
+    setCrossfadeDuration(4);
     setAutoplay(true);
     setShuffle(false);
     setRepeatMode('off');
+    setSpatialStereo(false);
+    try {
+      localStorage.removeItem('nocturne_spatial_stereo_v1');
+    } catch {
+      // ignore
+    }
     const defaultPrivacy: PrivacySettings = {
       listeningHistoryEnabled: true,
       activityVisibility: false,
@@ -529,7 +537,17 @@ export const SettingsPage: React.FC = () => {
                   />
                 </div>
 
-                <div style={{ display: 'flex', justifyContent: 'flex-end', paddingTop: 8 }}>
+                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, paddingTop: 8 }}>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      setProfile(storageService.getUserProfile());
+                      showToast('Profile Reverted', 'Reloaded saved identity', 'default');
+                    }}
+                  >
+                    Revert
+                  </Button>
                   <Button variant="primary" size="sm" onClick={handleSaveProfile}>
                     Save Profile Changes
                   </Button>
