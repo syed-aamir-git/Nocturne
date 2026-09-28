@@ -297,6 +297,92 @@
   gap: 14px;
 }
 
+/* Mini 7-Band Equalizer Deck */
+.nocturne-settings-eq-deck {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 16px;
+  border-radius: var(--radius-sm);
+  background: var(--bg-surface-elevated);
+  border: 1px solid var(--border-subtle);
+}
+
+.nocturne-settings-eq-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 12px;
+  align-items: end;
+}
+
+.nocturne-settings-eq-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.nocturne-settings-eq-val {
+  font-size: 11px;
+  font-family: var(--font-mono);
+  color: var(--accent-primary);
+  font-weight: 500;
+}
+
+.nocturne-settings-eq-slider-wrap {
+  height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.nocturne-settings-eq-slider {
+  writing-mode: vertical-lr;
+  direction: rtl;
+  width: 110px;
+  accent-color: var(--accent-primary);
+  cursor: pointer;
+}
+
+.nocturne-settings-eq-label {
+  font-size: 11px;
+  font-family: var(--font-mono);
+  color: var(--text-medium);
+  white-space: nowrap;
+}
+
+/* Crossfade Pills */
+.nocturne-settings-chip-row {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.nocturne-settings-chip {
+  padding: 5px 12px;
+  border-radius: var(--radius-xs);
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-medium);
+  font-size: 12px;
+  font-family: var(--font-mono);
+  cursor: pointer;
+  transition: all var(--transition-snappy);
+}
+
+.nocturne-settings-chip:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text-pure);
+}
+
+.nocturne-settings-chip--active {
+  background: var(--accent-primary);
+  border-color: var(--accent-primary);
+  color: #000000;
+  font-weight: 600;
+  box-shadow: 0 0 10px var(--glow-primary, rgba(168, 85, 247, 0.3));
+}
+
 @media (max-width: 768px) {
   .nocturne-profile-grid {
     grid-template-columns: 1fr;
@@ -317,5 +403,9 @@
     width: 100%;
     display: flex;
     justify-content: flex-end;
+  }
+
+  .nocturne-settings-eq-grid {
+    grid-template-columns: repeat(4, 1fr);
   }
 }

@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import {
   User,
   PlayCircle,
@@ -15,6 +16,7 @@ import {
   FileSpreadsheet,
   HardDrive,
   Cpu,
+  Upload,
 } from 'lucide-react';
 import { Button } from '../components/primitives/Button';
 import { Slider } from '../components/primitives/Slider';
@@ -29,7 +31,7 @@ import { useSpotify } from '../state/SpotifyContext';
 import { useAudioSettings } from '../state/AudioSettingsContext';
 import { useAnalytics } from '../state/AnalyticsContext';
 import { storageService } from '../services/storageService';
-import { BUILTIN_EQ_PRESETS, CROSSFADE_OPTIONS } from '../types/audio';
+import { BUILTIN_EQ_PRESETS, CROSSFADE_OPTIONS, EQ_BANDS } from '../types/audio';
 import type { AudioQuality, CrossfadeDuration } from '../types/audio';
 import type { UserAccountProfile, PrivacySettings } from '../types';
 import { ACCENT_COLOR_PRESETS } from '../utilities/constants';
@@ -67,8 +69,17 @@ const AVATAR_PRESETS = [
 
 export const SettingsPage: React.FC = () => {
   const { showToast } = useToast();
+  const [searchParams, setSearchParams] = useSearchParams();
 
-  const [activeCategory, setActiveCategory] = useState<SettingsCategory>('account');
+  const rawTab = searchParams.get('tab') as SettingsCategory | null;
+  const validTabs: SettingsCategory[] = ['account', 'playback', 'audio', 'appearance', 'privacy', 'data'];
+  const activeCategory: SettingsCategory = (rawTab && validTabs.includes(rawTab)) ? rawTab : 'account';
+
+  const handleSelectCategory = (category: SettingsCategory) => {
+    setSearchParams({ tab: category });
+  };
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Contexts
   const {
@@ -120,6 +131,8 @@ export const SettingsPage: React.FC = () => {
     selectPreset,
     savedPresets,
     openEqualizer,
+    gains,
+    setBandGain,
   } = useAudioSettings();
 
   const { history, clearHistory } = useAnalytics();
@@ -149,6 +162,29 @@ export const SettingsPage: React.FC = () => {
     }
   });
 
+  // Storage Footprint Metrics
+  let storageBytes = 0;
+  let storageKeysCount = 0;
+  try {
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && key.startsWith('nocturne')) {
+        storageKeysCount++;
+        const val = localStorage.getItem(key) || '';
+        storageBytes += (key.length + val.length) * 2;
+      }
+    }
+  } catch {
+    // ignore
+  }
+
+  const formatBytes = (bytes: number) => {
+    if (bytes === 0) return '0 KB';
+    const kb = bytes / 1024;
+    if (kb < 1024) return `${kb.toFixed(1)} KB`;
+    return `${(kb / 1024).toFixed(2)} MB`;
+  };
+
   // State: Confirmation Modals
   const [showClearHistoryConfirm, setShowClearHistoryConfirm] = useState(false);
   const [showResetPreferencesConfirm, setShowResetPreferencesConfirm] = useState(false);
@@ -157,6 +193,25 @@ export const SettingsPage: React.FC = () => {
   const handleSaveProfile = () => {
     storageService.saveUserProfile(profile);
     showToast('Sanctuary Profile Saved', `Updated identity for ${profile.name}`, 'default');
+  };
+
+  const handleAvatarFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 2 * 1024 * 1024) {
+        showToast('Image Too Large', 'Please select an image smaller than 2MB', 'atmosphere');
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const result = event.target?.result as string;
+        if (result) {
+          setProfile((prev) => ({ ...prev, avatarUrl: result }));
+          showToast('Sanctuary Portrait Staged', 'Click "Save Profile Changes" to persist', 'default');
+        }
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   // Handlers: Privacy
@@ -319,7 +374,7 @@ export const SettingsPage: React.FC = () => {
         <button
           type="button"
           className={`nocturne-settings-nav__btn ${activeCategory === 'account' ? 'nocturne-settings-nav__btn--active' : ''}`}
-          onClick={() => setActiveCategory('account')}
+          onClick={() => handleSelectCategory('account')}
         >
           <User size={15} />
           <span>Account</span>
@@ -328,7 +383,7 @@ export const SettingsPage: React.FC = () => {
         <button
           type="button"
           className={`nocturne-settings-nav__btn ${activeCategory === 'playback' ? 'nocturne-settings-nav__btn--active' : ''}`}
-          onClick={() => setActiveCategory('playback')}
+          onClick={() => handleSelectCategory('playback')}
         >
           <PlayCircle size={15} />
           <span>Playback</span>
@@ -337,7 +392,7 @@ export const SettingsPage: React.FC = () => {
         <button
           type="button"
           className={`nocturne-settings-nav__btn ${activeCategory === 'audio' ? 'nocturne-settings-nav__btn--active' : ''}`}
-          onClick={() => setActiveCategory('audio')}
+          onClick={() => handleSelectCategory('audio')}
         >
           <Volume2 size={15} />
           <span>Audio</span>
@@ -346,7 +401,7 @@ export const SettingsPage: React.FC = () => {
         <button
           type="button"
           className={`nocturne-settings-nav__btn ${activeCategory === 'appearance' ? 'nocturne-settings-nav__btn--active' : ''}`}
-          onClick={() => setActiveCategory('appearance')}
+          onClick={() => handleSelectCategory('appearance')}
         >
           <Palette size={15} />
           <span>Appearance</span>
@@ -355,7 +410,7 @@ export const SettingsPage: React.FC = () => {
         <button
           type="button"
           className={`nocturne-settings-nav__btn ${activeCategory === 'privacy' ? 'nocturne-settings-nav__btn--active' : ''}`}
-          onClick={() => setActiveCategory('privacy')}
+          onClick={() => handleSelectCategory('privacy')}
         >
           <Shield size={15} />
           <span>Privacy</span>
@@ -364,7 +419,7 @@ export const SettingsPage: React.FC = () => {
         <button
           type="button"
           className={`nocturne-settings-nav__btn ${activeCategory === 'data' ? 'nocturne-settings-nav__btn--active' : ''}`}
-          onClick={() => setActiveCategory('data')}
+          onClick={() => handleSelectCategory('data')}
         >
           <Database size={15} />
           <span>Data & Storage</span>
@@ -409,6 +464,24 @@ export const SettingsPage: React.FC = () => {
                     />
                   ))}
                 </div>
+
+                {/* Local Photo Upload */}
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  style={{ display: 'none' }}
+                  onChange={handleAvatarFileUpload}
+                />
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  leftIcon={<Upload size={13} />}
+                  onClick={() => fileInputRef.current?.click()}
+                  style={{ width: '100%', fontSize: '11.5px', marginTop: 4 }}
+                >
+                  Upload Photo
+                </Button>
               </div>
 
               {/* Text Fields */}
@@ -550,7 +623,7 @@ export const SettingsPage: React.FC = () => {
                   Seamlessly overlaps fading track into the incoming song via dual-channel Web Audio gain nodes.
                 </span>
               </div>
-              <div className="nocturne-setting-row__control">
+              <div className="nocturne-setting-row__control" style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 6 }}>
                 <SelectDropdown
                   value={String(crossfadeDuration)}
                   options={crossfadeSelectOptions}
@@ -561,6 +634,21 @@ export const SettingsPage: React.FC = () => {
                   }}
                   width={210}
                 />
+                <div className="nocturne-settings-chip-row">
+                  {CROSSFADE_OPTIONS.map((opt) => (
+                    <button
+                      key={opt.value}
+                      type="button"
+                      className={`nocturne-settings-chip ${crossfadeDuration === opt.value ? 'nocturne-settings-chip--active' : ''}`}
+                      onClick={() => {
+                        setCrossfadeDuration(opt.value);
+                        showToast('Crossfade Duration', opt.label, 'default');
+                      }}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
 
@@ -675,8 +763,8 @@ export const SettingsPage: React.FC = () => {
                   Time-stretch track tempo with automatic harmonic pitch preservation ({playbackRate}x speed).
                 </span>
               </div>
-              <div className="nocturne-setting-row__control">
-                <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+              <div className="nocturne-setting-row__control" style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 10 }}>
+                <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
                   {speedOptions.map((rate) => {
                     const isSelected = playbackRate === rate;
                     return (
@@ -704,6 +792,20 @@ export const SettingsPage: React.FC = () => {
                       </button>
                     );
                   })}
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, width: 220 }}>
+                  <span style={{ fontSize: '10px', color: 'var(--text-low)', fontFamily: 'var(--font-mono)' }}>FINE:</span>
+                  <Slider
+                    min={0.5}
+                    max={2.0}
+                    step={0.05}
+                    value={playbackRate}
+                    onChange={(val) => setPlaybackRate(Number(val.toFixed(2)))}
+                    aria-label="Playback Velocity Fine Tuning"
+                  />
+                  <span style={{ fontSize: '11px', fontFamily: 'var(--font-mono)', minWidth: '38px', color: 'var(--accent-primary)', textAlign: 'right' }}>
+                    {playbackRate.toFixed(2)}x
+                  </span>
                 </div>
               </div>
             </div>
@@ -769,6 +871,44 @@ export const SettingsPage: React.FC = () => {
                   }}
                   width={240}
                 />
+              </div>
+            </div>
+
+            {/* 7-Band Parametric Frequency Response Deck */}
+            <div className="nocturne-settings-eq-deck">
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-pure)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                  Direct Frequency Response Sculptor
+                </span>
+                <span style={{ fontSize: '11px', color: 'var(--text-low)', fontFamily: 'var(--font-mono)' }}>
+                  -12 dB to +12 dB
+                </span>
+              </div>
+              <div className="nocturne-settings-eq-grid">
+                {EQ_BANDS.map((band, idx) => {
+                  const gainVal = gains[idx] ?? 0;
+                  return (
+                    <div key={band.frequency} className="nocturne-settings-eq-col">
+                      <span className="nocturne-settings-eq-val">
+                        {gainVal > 0 ? `+${gainVal.toFixed(1)}` : gainVal.toFixed(1)} dB
+                      </span>
+                      <div className="nocturne-settings-eq-slider-wrap">
+                        <input
+                          type="range"
+                          className="nocturne-settings-eq-slider"
+                          min={-12}
+                          max={12}
+                          step={0.5}
+                          value={gainVal}
+                          onChange={(e) => setBandGain(idx, parseFloat(e.target.value))}
+                          aria-label={`${band.label} Gain`}
+                          disabled={!equalizerEnabled}
+                        />
+                      </div>
+                      <span className="nocturne-settings-eq-label">{band.label}</span>
+                    </div>
+                  );
+                })}
               </div>
             </div>
 
@@ -1291,14 +1431,39 @@ export const SettingsPage: React.FC = () => {
             </div>
           </div>
 
-          {/* Stream Cache */}
-          <div className="nocturne-settings-card" style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+          {/* Local State & Sanctuary Storage Footprint */}
+          <div className="nocturne-settings-card" style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 14 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-              <HardDrive size={22} color="var(--text-medium)" />
+              <HardDrive size={22} color="var(--accent-primary)" />
               <div>
-                <div style={{ fontWeight: 500, color: 'var(--text-pure)', fontSize: '13.5px' }}>Nocturnal Stream Cache</div>
-                <div style={{ fontSize: '11.5px', color: 'var(--text-medium)' }}>
-                  428 MB of lossless FLAC segments cached in IndexedDB
+                <div style={{ fontWeight: 500, color: 'var(--text-pure)', fontSize: '13.5px' }}>
+                  Client Sanctuary Local Storage
+                </div>
+                <div style={{ fontSize: '11.5px', color: 'var(--text-medium)', marginTop: 2 }}>
+                  {formatBytes(storageBytes)} utilized across {storageKeysCount} persistent state stores (Profiles, Audio, Themes, Listening History)
+                </div>
+              </div>
+            </div>
+
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => {
+                showToast('Storage Inspected', `Active footprint: ${formatBytes(storageBytes)} across ${storageKeysCount} keys`, 'default');
+              }}
+            >
+              Analyze Footprint
+            </Button>
+          </div>
+
+          {/* Stream Cache */}
+          <div className="nocturne-settings-card" style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 14 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+              <Cpu size={22} color="var(--text-medium)" />
+              <div>
+                <div style={{ fontWeight: 500, color: 'var(--text-pure)', fontSize: '13.5px' }}>Nocturnal Stream Buffer Cache</div>
+                <div style={{ fontSize: '11.5px', color: 'var(--text-medium)', marginTop: 2 }}>
+                  Audio segment buffer and transient Web Audio node state
                 </div>
               </div>
             </div>
@@ -1307,9 +1472,9 @@ export const SettingsPage: React.FC = () => {
               variant="secondary"
               size="sm"
               leftIcon={<Trash2 size={14} />}
-              onClick={() => showToast('Cache Cleansed', '428 MB stream cache cleared', 'default')}
+              onClick={() => showToast('Buffer Flushed', 'Audio memory buffer purged successfully', 'default')}
             >
-              Purge Cache
+              Purge Audio Buffer
             </Button>
           </div>
         </section>
