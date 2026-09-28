@@ -21,6 +21,20 @@ export const TopBar: React.FC = () => {
   const location = useLocation();
   const inputRef = useRef<HTMLInputElement>(null);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [localProfile, setLocalProfile] = useState(() => storageService.getUserProfile());
+
+  useEffect(() => {
+    const handleProfileUpdated = (e: Event) => {
+      const custom = e as CustomEvent;
+      if (custom.detail) {
+        setLocalProfile(custom.detail);
+      } else {
+        setLocalProfile(storageService.getUserProfile());
+      }
+    };
+    window.addEventListener('nocturne:profile-updated', handleProfileUpdated);
+    return () => window.removeEventListener('nocturne:profile-updated', handleProfileUpdated);
+  }, []);
 
   // Global search keyboard shortcut Cmd+K or Ctrl+K
   useEffect(() => {
@@ -138,11 +152,11 @@ export const TopBar: React.FC = () => {
             <button
               type="button"
               style={{ background: 'transparent', border: 'none', padding: 0, cursor: 'pointer' }}
-              title={isConnected ? `Connected as ${userProfile?.name}` : `${storageService.getUserProfile().name} • Preferences`}
+              title={isConnected ? `Connected as ${userProfile?.name}` : `${localProfile.name} • Preferences`}
             >
               <Avatar
-                name={(isConnected && userProfile?.name) || storageService.getUserProfile().name}
-                src={(isConnected && userProfile?.avatarUrl) || storageService.getUserProfile().avatarUrl}
+                name={(isConnected && userProfile?.name) || localProfile.name}
+                src={(isConnected && userProfile?.avatarUrl) || localProfile.avatarUrl}
                 size="sm"
                 ring
               />

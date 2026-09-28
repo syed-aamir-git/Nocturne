@@ -203,6 +203,9 @@ export const storageService = {
   saveUserProfile(profile: UserAccountProfile): void {
     try {
       localStorage.setItem('nocturne_account_profile_v1', JSON.stringify(profile));
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('nocturne:profile-updated', { detail: profile }));
+      }
     } catch (e) {
       console.warn('[StorageService] Error saving user profile:', e);
     }

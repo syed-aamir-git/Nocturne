@@ -18,6 +18,7 @@ export interface SelectDropdownProps {
   disabled?: boolean;
   className?: string;
   width?: string | number;
+  align?: 'left' | 'right';
   'aria-label'?: string;
 }
 
@@ -29,6 +30,7 @@ export const SelectDropdown: React.FC<SelectDropdownProps> = ({
   disabled = false,
   className = '',
   width,
+  align = 'right',
   'aria-label': ariaLabel,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -78,7 +80,7 @@ export const SelectDropdown: React.FC<SelectDropdownProps> = ({
       </button>
 
       {isOpen && (
-        <div className="nocturne-select-menu" role="listbox">
+        <div className={`nocturne-select-menu nocturne-select-menu--${align}`} role="listbox">
           {options.map((option) => {
             const isSelected = option.value === value;
             return (

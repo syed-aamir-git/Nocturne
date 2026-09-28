@@ -56,7 +56,7 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
             {cancelLabel}
           </Button>
           <Button
-            variant={variant === 'danger' ? 'primary' : 'primary'}
+            variant="primary"
             size="sm"
             onClick={onConfirm}
             disabled={isLoading}
@@ -66,6 +66,13 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
                     background: 'var(--indicator-error, #ef4444)',
                     borderColor: 'var(--indicator-error, #ef4444)',
                     color: '#ffffff',
+                  }
+                : variant === 'warning'
+                ? {
+                    background: 'var(--indicator-warning, #f59e0b)',
+                    borderColor: 'var(--indicator-warning, #f59e0b)',
+                    color: '#000000',
+                    fontWeight: 600,
                   }
                 : undefined
             }

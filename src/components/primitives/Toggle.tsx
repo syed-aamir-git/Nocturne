@@ -57,7 +57,7 @@ export const Toggle: React.FC<ToggleProps> = ({
   }
 
   return (
-    <label
+    <div
       className={`nocturne-toggle-wrapper ${disabled ? 'nocturne-toggle-wrapper--disabled' : ''} ${className}`}
       onClick={handleClick}
     >
@@ -66,6 +66,6 @@ export const Toggle: React.FC<ToggleProps> = ({
         {label && <span className="nocturne-toggle-label">{label}</span>}
         {description && <span className="nocturne-toggle-description">{description}</span>}
       </div>
-    </label>
+    </div>
   );
 };
