@@ -1,7 +1,9 @@
 .nocturne-player-bar {
   height: var(--player-height);
   width: 100%;
-  background: var(--bg-surface);
+  background: var(--bg-glass, var(--bg-surface));
+  backdrop-filter: blur(var(--bg-blur, 20px));
+  -webkit-backdrop-filter: blur(var(--bg-blur, 20px));
   border-top: 1px solid var(--border-medium);
   padding: 0 24px;
   display: grid;
@@ -13,6 +15,67 @@
   right: 0;
   z-index: 200;
   box-shadow: 0 -8px 30px rgba(0, 0, 0, 0.7);
+  transition: height var(--transition-smooth), padding var(--transition-smooth);
+}
+
+/* Minimal Player Size Variant */
+[data-player-size="minimal"] .nocturne-player-bar {
+  padding: 0 16px;
+  grid-template-columns: 220px 1fr 180px;
+}
+[data-player-size="minimal"] .nocturne-player__cover-wrap {
+  width: 36px;
+  height: 36px;
+}
+[data-player-size="minimal"] .nocturne-player__title {
+  font-size: 12px;
+}
+[data-player-size="minimal"] .nocturne-player__artist {
+  font-size: 10.5px;
+}
+[data-player-size="minimal"] .nocturne-player__badge {
+  display: none;
+}
+[data-player-size="minimal"] .nocturne-player__play-btn {
+  width: 32px;
+  height: 32px;
+}
+[data-player-size="minimal"] .nocturne-player__controls {
+  gap: 10px;
+}
+[data-player-size="minimal"] .nocturne-player__volume {
+  width: 80px;
+}
+
+/* Large Player Size Variant */
+[data-player-size="large"] .nocturne-player-bar {
+  padding: 0 32px;
+  grid-template-columns: 340px 1fr 300px;
+}
+[data-player-size="large"] .nocturne-player__cover-wrap {
+  width: 76px;
+  height: 76px;
+  border-radius: var(--radius-md);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5);
+}
+[data-player-size="large"] .nocturne-player__title {
+  font-size: 15.5px;
+}
+[data-player-size="large"] .nocturne-player__artist {
+  font-size: 13px;
+}
+[data-player-size="large"] .nocturne-player__badge {
+  font-size: 10px;
+}
+[data-player-size="large"] .nocturne-player__play-btn {
+  width: 48px;
+  height: 48px;
+}
+[data-player-size="large"] .nocturne-player__controls {
+  gap: 18px;
+}
+[data-player-size="large"] .nocturne-player__volume {
+  width: 140px;
 }
 
 /* Left: Track Information */

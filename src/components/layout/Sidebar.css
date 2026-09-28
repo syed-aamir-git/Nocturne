@@ -1,7 +1,9 @@
 .nocturne-sidebar {
   width: var(--sidebar-width);
   height: 100%;
-  background: var(--bg-surface);
+  background: var(--bg-glass, var(--bg-surface));
+  backdrop-filter: blur(calc(var(--bg-blur, 20px) * 0.7));
+  -webkit-backdrop-filter: blur(calc(var(--bg-blur, 20px) * 0.7));
   border-right: 1px solid var(--border-subtle);
   display: flex;
   flex-direction: column;
@@ -10,6 +12,20 @@
   position: relative;
   z-index: 100;
   overflow: hidden;
+}
+
+[data-sidebar-mode="hidden"] .nocturne-sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: var(--player-height);
+  transform: translateX(-100%);
+  width: 250px;
+  box-shadow: var(--shadow-floating);
+}
+
+[data-sidebar-mode="hidden"] .nocturne-sidebar--open {
+  transform: translateX(0);
 }
 
 .nocturne-sidebar--collapsed {

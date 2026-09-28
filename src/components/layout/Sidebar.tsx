@@ -19,6 +19,7 @@ import {
   Download,
 } from 'lucide-react';
 import { useUI } from '../../state/UIContext';
+import { useTheme } from '../../state/ThemeContext';
 import { useLibrary } from '../../state/LibraryContext';
 import { IconButton } from '../primitives/IconButton';
 import { Tooltip } from '../primitives/Tooltip';
@@ -39,9 +40,12 @@ interface NavGroupConfig {
 
 export const Sidebar: React.FC = () => {
   const { sidebarCollapsed, toggleSidebar, mobileMenuOpen, setMobileMenuOpen } = useUI();
+  const { sidebarMode } = useTheme();
   const { playlists, likedTrackIds } = useLibrary();
   const location = useLocation();
   const [timePhase, setTimePhase] = useState(() => getNocturnalHourPhase());
+
+  const isEffectiveCollapsed = sidebarMode === 'compact' || sidebarCollapsed;
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -104,7 +108,7 @@ export const Sidebar: React.FC = () => {
 
   return (
     <aside
-      className={`nocturne-sidebar ${sidebarCollapsed ? 'nocturne-sidebar--collapsed' : ''} ${
+      className={`nocturne-sidebar ${isEffectiveCollapsed ? 'nocturne-sidebar--collapsed' : ''} ${
         mobileMenuOpen ? 'nocturne-sidebar--open' : ''
       }`}
       aria-label="Primary Navigation"
@@ -115,7 +119,7 @@ export const Sidebar: React.FC = () => {
           <div className="nocturne-sidebar__logo-icon">
             <Sparkles size={16} />
           </div>
-          {!sidebarCollapsed && (
+          {!isEffectiveCollapsed && (
             <div className="nocturne-sidebar__logo-text">
               <span className="nocturne-sidebar__title">NOCTURNE</span>
               <span className="nocturne-sidebar__tagline">Music for the hours that belong to you.</span>
@@ -127,10 +131,10 @@ export const Sidebar: React.FC = () => {
           variant="ghost"
           size="sm"
           onClick={toggleSidebar}
-          aria-label={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+          aria-label={isEffectiveCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
           className="desktop-only"
         >
-          {sidebarCollapsed ? <ChevronRight size={15} /> : <ChevronLeft size={15} />}
+          {isEffectiveCollapsed ? <ChevronRight size={15} /> : <ChevronLeft size={15} />}
         </IconButton>
       </div>
 
@@ -138,7 +142,7 @@ export const Sidebar: React.FC = () => {
       <div className="nocturne-sidebar__scroll-area">
         {navGroups.map((group) => (
           <div key={group.label} className="nocturne-sidebar__group">
-            {!sidebarCollapsed && (
+            {!isEffectiveCollapsed && (
               <span className="nocturne-sidebar__group-label">{group.label}</span>
             )}
             {group.items.map((item) => {
@@ -152,14 +156,14 @@ export const Sidebar: React.FC = () => {
                   }`}
                 >
                   {item.icon}
-                  {!sidebarCollapsed && <span>{item.label}</span>}
-                  {!sidebarCollapsed && item.badge && (
+                  {!isEffectiveCollapsed && <span>{item.label}</span>}
+                  {!isEffectiveCollapsed && item.badge && (
                     <span className="nocturne-sidebar__badge">{item.badge}</span>
                   )}
                 </NavLink>
               );
 
-              if (sidebarCollapsed) {
+              if (isEffectiveCollapsed) {
                 return (
                   <Tooltip key={item.to} content={item.label} position="right">
                     {linkElement}
@@ -177,9 +181,9 @@ export const Sidebar: React.FC = () => {
       <div className="nocturne-sidebar__footer">
         <div className="nocturne-sidebar__phase-badge">
           <span className="nocturne-sidebar__phase-dot" />
-          {!sidebarCollapsed && <span>{timePhase.label}</span>}
+          {!isEffectiveCollapsed && <span>{timePhase.label}</span>}
         </div>
-        {!sidebarCollapsed && (
+        {!isEffectiveCollapsed && (
           <span style={{ fontSize: '10.5px', color: 'var(--text-low)', fontFamily: 'var(--font-mono)' }}>
             24-BIT
           </span>

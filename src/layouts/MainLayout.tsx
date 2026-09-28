@@ -11,12 +11,16 @@ import { EqualizerModal } from '../components/audio/EqualizerModal';
 import { useUI } from '../state/UIContext';
 import { useAudioSettings } from '../state/AudioSettingsContext';
 import { useToast } from '../state/ToastContext';
+import { useTheme } from '../state/ThemeContext';
+import { usePlayer } from '../state/PlayerContext';
 import './MainLayout.css';
 
 export const MainLayout: React.FC = () => {
   const { mobileMenuOpen, setMobileMenuOpen, toggleLyrics } = useUI();
   const { toggleEqualizer } = useAudioSettings();
   const { toasts, removeToast } = useToast();
+  const { backgroundMode } = useTheme();
+  const { currentTrack } = usePlayer();
 
   // Global key shortcuts: 'L' toggles lyrics view, 'E' toggles equalizer
   useEffect(() => {
@@ -46,6 +50,26 @@ export const MainLayout: React.FC = () => {
 
   return (
     <div className="nocturne-layout">
+      {/* Dynamic Background Atmosphere Layer */}
+      <div className={`nocturne-layout__bg-layer nocturne-layout__bg-${backgroundMode}`}>
+        {backgroundMode === 'album_art' && (
+          <div
+            className="nocturne-layout__bg-artwork"
+            style={{
+              backgroundImage: currentTrack?.artwork ? `url(${currentTrack.artwork})` : undefined,
+            }}
+          >
+            <div className="nocturne-layout__bg-artwork-overlay" />
+          </div>
+        )}
+        {backgroundMode === 'ambient' && (
+          <div className="nocturne-layout__bg-ambient">
+            <div className="nocturne-layout__bg-ambient-orb-1" />
+            <div className="nocturne-layout__bg-ambient-orb-2" />
+          </div>
+        )}
+      </div>
+
       {/* Mobile drawer backdrop */}
       {mobileMenuOpen && (
         <div

@@ -14,7 +14,7 @@ import './TopBar.css';
 
 export const TopBar: React.FC = () => {
   const { mobileMenuOpen, setMobileMenuOpen, searchQuery, setSearchQuery } = useUI();
-  const { currentTheme, availableThemes, setThemeId } = useTheme();
+  const { currentTheme, availableThemes, setThemeId, sidebarMode } = useTheme();
   const { showToast } = useToast();
   const { isConnected, userProfile, disconnect } = useSpotify();
   const navigate = useNavigate();
@@ -74,7 +74,9 @@ export const TopBar: React.FC = () => {
         <IconButton
           variant="ghost"
           size="md"
-          className="nocturne-topbar__mobile-toggle"
+          className={`nocturne-topbar__mobile-toggle ${
+            sidebarMode === 'hidden' ? 'nocturne-topbar__mobile-toggle--force' : ''
+          }`}
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
           aria-label="Toggle navigation menu"
         >

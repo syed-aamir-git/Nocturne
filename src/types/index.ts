@@ -1,13 +1,4 @@
-export type ThemeId = 'obsidian' | 'amber' | 'crimson' | 'mist';
-
-export interface ThemeConfig {
-  id: ThemeId;
-  name: string;
-  description: string;
-  accent: string;
-  glow: string;
-  bgDark: string;
-}
+export * from './appearance';
 
 export interface SyncedLyricLine {
   time: number; // in seconds

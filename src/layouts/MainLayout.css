@@ -8,6 +8,91 @@
   color: var(--text-high);
 }
 
+/* Background Atmosphere Layers */
+.nocturne-layout__bg-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 0;
+  transition: opacity var(--transition-flow);
+}
+
+.nocturne-layout__bg-solid {
+  background: var(--bg-canvas);
+}
+
+.nocturne-layout__bg-gradient {
+  background: var(--ambient-gradient, radial-gradient(circle at 14% 18%, rgba(120, 50, 180, 0.12) 0%, transparent 60%));
+  opacity: 0.9;
+}
+
+.nocturne-layout__bg-album_art {
+  position: absolute;
+  inset: 0;
+}
+
+.nocturne-layout__bg-artwork {
+  position: absolute;
+  inset: -60px;
+  background-size: cover;
+  background-position: center;
+  filter: blur(var(--bg-blur, 20px)) saturate(1.3) brightness(0.38);
+  opacity: calc(1.2 - (var(--interface-opacity, 0.85) * 0.7));
+  transform: scale(1.08);
+  transition: background-image 800ms ease, filter var(--transition-smooth), opacity var(--transition-smooth);
+}
+
+.nocturne-layout__bg-artwork-overlay {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at center, rgba(0, 0, 0, 0.35) 0%, var(--bg-canvas) 85%);
+  backdrop-filter: blur(calc(var(--bg-blur, 20px) * 0.4));
+}
+
+.nocturne-layout__bg-ambient {
+  position: absolute;
+  inset: 0;
+}
+
+.nocturne-layout__bg-ambient-orb-1 {
+  position: absolute;
+  top: -12%;
+  left: 12%;
+  width: 65vw;
+  height: 65vw;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--accent-glow-strong) 0%, transparent 70%);
+  filter: blur(calc(var(--bg-blur, 20px) + 25px));
+  opacity: 0.42;
+  animation: ambientFloat1 22s ease-in-out infinite alternate;
+}
+
+.nocturne-layout__bg-ambient-orb-2 {
+  position: absolute;
+  bottom: -15%;
+  right: 8%;
+  width: 55vw;
+  height: 55vw;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%);
+  filter: blur(calc(var(--bg-blur, 20px) + 25px));
+  opacity: 0.38;
+  animation: ambientFloat2 26s ease-in-out infinite alternate;
+}
+
+@keyframes ambientFloat1 {
+  0% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(5vw, 6vh) scale(1.08); }
+  100% { transform: translate(-4vw, 3vh) scale(0.94); }
+}
+
+@keyframes ambientFloat2 {
+  0% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(-5vw, -6vh) scale(1.1); }
+  100% { transform: translate(4vw, -2vh) scale(0.92); }
+}
+
 .nocturne-layout__body {
   flex: 1;
   display: flex;
@@ -16,6 +101,7 @@
   overflow: hidden;
   position: relative;
   padding-bottom: var(--player-height);
+  z-index: 10;
 }
 
 .nocturne-layout__center-split {
@@ -30,7 +116,7 @@
   flex: 1;
   overflow-y: auto;
   overflow-x: hidden;
-  padding: 32px 40px 60px;
+  padding: var(--layout-content-padding, 32px 40px 60px);
   position: relative;
   z-index: 10;
 }
@@ -55,6 +141,6 @@
     padding-bottom: calc(var(--player-height) + var(--bottom-nav-height));
   }
   .nocturne-layout__content {
-    padding: 20px 16px 40px;
+    padding: calc(var(--layout-content-padding, 20px 16px 40px) * 0.7);
   }
 }

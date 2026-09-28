@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import {
   Settings as SettingsIcon,
   Radio,
-  Sparkles,
   Volume2,
   HardDrive,
   Trash2,
@@ -11,6 +10,8 @@ import {
   XCircle,
   Download,
   Sliders,
+  Palette,
+  RotateCcw,
 } from 'lucide-react';
 import { Card } from '../components/primitives/Card';
 import { Button } from '../components/primitives/Button';
@@ -20,9 +21,33 @@ import { useSpotify } from '../state/SpotifyContext';
 import { useAudioSettings } from '../state/AudioSettingsContext';
 import { BUILTIN_EQ_PRESETS, CROSSFADE_OPTIONS } from '../types/audio';
 import type { AudioQuality } from '../types/audio';
+import { ACCENT_COLOR_PRESETS } from '../utilities/constants';
 
 export const SettingsPage: React.FC = () => {
-  const { currentTheme, availableThemes, setThemeId } = useTheme();
+  const {
+    currentTheme,
+    availableThemes,
+    setThemeId,
+    accentColor,
+    isCustomAccent,
+    setAccentColor,
+    resetAccentColor,
+    layoutDensity,
+    setLayoutDensity,
+    sidebarMode,
+    setSidebarMode,
+    playerSize,
+    setPlayerSize,
+    backgroundMode,
+    setBackgroundMode,
+    backgroundBlur,
+    setBackgroundBlur,
+    interfaceOpacity,
+    setInterfaceOpacity,
+    animationMode,
+    setAnimationMode,
+    resetToDefaults,
+  } = useTheme();
   const { showToast } = useToast();
   const navigate = useNavigate();
   const {
@@ -417,43 +442,691 @@ export const SettingsPage: React.FC = () => {
         </div>
       </Card>
 
-      {/* 3. Nocturnal Theme Palette */}
-      <Card variant="flat" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: 18 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <Sparkles size={18} color="var(--accent-primary)" />
-          <h3 style={{ fontSize: '1.2rem', margin: 0 }}>Atmospheric Theme Matrix</h3>
+      {/* 3. Deep Interface Customization & Aesthetics */}
+      <Card variant="flat" style={{ padding: '28px', display: 'flex', flexDirection: 'column', gap: 28 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <Palette size={20} color="var(--accent-primary)" />
+            <div>
+              <h3 style={{ fontSize: '1.25rem', margin: 0 }}>Interface Customization & Aesthetics</h3>
+              <p style={{ margin: '4px 0 0', fontSize: '12.5px', color: 'var(--text-medium)' }}>
+                Sculpt the nocturnal visual identity, geometry, luminescence, and atmospheric textures
+              </p>
+            </div>
+          </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            leftIcon={<RotateCcw size={13} />}
+            onClick={() => {
+              resetToDefaults();
+              showToast('Aesthetics Reset', 'Restored default Nocturne visual identity', 'atmosphere');
+            }}
+          >
+            Reset to Defaults
+          </Button>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12 }}>
-          {availableThemes.map((thm) => {
-            const isSelected = thm.id === currentTheme.id;
-            return (
-              <div
-                key={thm.id}
+        {/* 3.1. Primary Atmospheric Themes */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-pure)' }}>
+              Atmospheric Theme
+            </span>
+            <span style={{ fontSize: '11px', fontFamily: 'var(--font-mono)', color: 'var(--text-low)' }}>
+              6 SIGNATURE NOIRS
+            </span>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: 12 }}>
+            {availableThemes.map((thm) => {
+              const isSelected = thm.id === currentTheme.id;
+              return (
+                <div
+                  key={thm.id}
+                  onClick={() => {
+                    setThemeId(thm.id);
+                    showToast('Atmosphere Altered', `Activated ${thm.name}`, 'atmosphere');
+                  }}
+                  style={{
+                    padding: '16px',
+                    borderRadius: 'var(--radius-sm)',
+                    background: isSelected ? 'var(--bg-surface-elevated)' : 'rgba(255, 255, 255, 0.02)',
+                    border: `1.5px solid ${isSelected ? thm.accent : 'var(--border-subtle)'}`,
+                    boxShadow: isSelected ? `0 0 18px ${thm.glow}` : 'none',
+                    cursor: 'pointer',
+                    transition: 'all var(--transition-snappy)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 8,
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <span
+                        style={{
+                          width: 14,
+                          height: 14,
+                          borderRadius: '50%',
+                          background: thm.accent,
+                          boxShadow: `0 0 8px ${thm.accent}`,
+                        }}
+                      />
+                      <span style={{ fontWeight: 600, color: 'var(--text-pure)', fontSize: '13.5px' }}>
+                        {thm.name}
+                      </span>
+                    </div>
+                    {isSelected && (
+                      <span
+                        style={{
+                          fontSize: '10px',
+                          fontFamily: 'var(--font-mono)',
+                          color: thm.accent,
+                          padding: '1px 6px',
+                          borderRadius: 'var(--radius-full)',
+                          background: 'rgba(255, 255, 255, 0.06)',
+                        }}
+                      >
+                        ACTIVE
+                      </span>
+                    )}
+                  </div>
+                  <div style={{ fontSize: '11px', color: 'var(--text-low)', lineHeight: 1.45 }}>
+                    {thm.description}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* 3.2. Accent Color Luminescence */}
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 14,
+            paddingTop: 18,
+            borderTop: '1px solid var(--border-subtle)',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 10 }}>
+            <div>
+              <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-pure)' }}>
+                Accent Color Luminescence
+              </span>
+              <p style={{ margin: '2px 0 0', fontSize: '11.5px', color: 'var(--text-medium)' }}>
+                Pervades play controls, illuminated borders, equalizer bars, and glowing interactive states
+              </p>
+            </div>
+            {isCustomAccent && (
+              <Button
+                variant="ghost"
+                size="sm"
                 onClick={() => {
-                  setThemeId(thm.id);
-                  showToast('Atmosphere Altered', `Activated ${thm.name}`, 'atmosphere');
-                }}
-                style={{
-                  padding: '14px',
-                  borderRadius: 'var(--radius-sm)',
-                  background: isSelected ? 'var(--bg-surface-elevated)' : 'rgba(255, 255, 255, 0.02)',
-                  border: `1.5px solid ${isSelected ? thm.accent : 'var(--border-subtle)'}`,
-                  boxShadow: isSelected ? `0 0 16px ${thm.glow}` : 'none',
-                  cursor: 'pointer',
-                  transition: 'all var(--transition-snappy)',
+                  resetAccentColor();
+                  showToast('Accent Reset', `Restored ${currentTheme.name} default`, 'default');
                 }}
               >
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
-                  <span style={{ width: 12, height: 12, borderRadius: '50%', background: thm.accent }} />
-                  <span style={{ fontWeight: 600, color: 'var(--text-pure)' }}>{thm.name}</span>
+                Use Theme Accent ({currentTheme.accent})
+              </Button>
+            )}
+          </div>
+
+          {/* Preset Swatches */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+            {ACCENT_COLOR_PRESETS.map((preset) => {
+              const isSelected = accentColor.toLowerCase() === preset.color.toLowerCase();
+              return (
+                <button
+                  key={preset.id}
+                  type="button"
+                  title={preset.name}
+                  onClick={() => {
+                    setAccentColor(preset.color, true);
+                    showToast('Accent Calibrated', preset.name, 'atmosphere');
+                  }}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 8,
+                    padding: '6px 12px',
+                    borderRadius: 'var(--radius-full)',
+                    background: isSelected ? 'var(--bg-surface-elevated)' : 'rgba(255, 255, 255, 0.03)',
+                    border: `1.5px solid ${isSelected ? preset.color : 'var(--border-subtle)'}`,
+                    boxShadow: isSelected ? `0 0 12px ${preset.color}66` : 'none',
+                    cursor: 'pointer',
+                    transition: 'all var(--transition-snappy)',
+                  }}
+                >
+                  <span
+                    style={{
+                      width: 12,
+                      height: 12,
+                      borderRadius: '50%',
+                      background: preset.color,
+                      boxShadow: `0 0 6px ${preset.color}`,
+                    }}
+                  />
+                  <span
+                    style={{
+                      fontSize: '11.5px',
+                      color: isSelected ? 'var(--text-pure)' : 'var(--text-medium)',
+                      fontWeight: isSelected ? 600 : 400,
+                    }}
+                  >
+                    {preset.name}
+                  </span>
+                </button>
+              );
+            })}
+
+            {/* Custom Color Input */}
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
+                padding: '4px 10px',
+                borderRadius: 'var(--radius-full)',
+                background: 'rgba(255, 255, 255, 0.03)',
+                border: '1px solid var(--border-subtle)',
+              }}
+            >
+              <input
+                type="color"
+                value={accentColor}
+                onChange={(e) => setAccentColor(e.target.value, true)}
+                title="Choose custom accent color"
+                style={{
+                  width: 22,
+                  height: 22,
+                  border: 'none',
+                  borderRadius: '50%',
+                  cursor: 'pointer',
+                  background: 'none',
+                  padding: 0,
+                }}
+              />
+              <span style={{ fontSize: '11px', fontFamily: 'var(--font-mono)', color: 'var(--text-low)' }}>
+                {accentColor.toUpperCase()}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* 3.3. Spatial Layout Density */}
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 12,
+            paddingTop: 18,
+            borderTop: '1px solid var(--border-subtle)',
+          }}
+        >
+          <div>
+            <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-pure)' }}>
+              Layout Density
+            </span>
+            <p style={{ margin: '2px 0 0', fontSize: '11.5px', color: 'var(--text-medium)' }}>
+              Controls vertical compactness across track listings, card spacing, and viewport margins
+            </p>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 10 }}>
+            {(
+              [
+                {
+                  id: 'compact',
+                  name: 'Compact',
+                  desc: 'Tight information density with condensed rows and reduced padding',
+                },
+                {
+                  id: 'comfortable',
+                  name: 'Comfortable',
+                  desc: 'Balanced late-night acoustics & legibility (Default standard)',
+                },
+                {
+                  id: 'spacious',
+                  name: 'Spacious',
+                  desc: 'Generous margins, roomier track rows, and expansive breathing room',
+                },
+              ] as const
+            ).map((item) => {
+              const isSelected = layoutDensity === item.id;
+              return (
+                <div
+                  key={item.id}
+                  onClick={() => {
+                    setLayoutDensity(item.id);
+                    showToast('Layout Density Adjusted', item.name, 'default');
+                  }}
+                  style={{
+                    padding: '14px',
+                    borderRadius: 'var(--radius-sm)',
+                    background: isSelected ? 'var(--bg-surface-elevated)' : 'rgba(255, 255, 255, 0.02)',
+                    border: `1.5px solid ${isSelected ? 'var(--accent-primary)' : 'var(--border-subtle)'}`,
+                    cursor: 'pointer',
+                    transition: 'all var(--transition-snappy)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 4,
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <span style={{ fontWeight: 600, color: isSelected ? 'var(--text-pure)' : 'var(--text-high)', fontSize: '13px' }}>
+                      {item.name}
+                    </span>
+                    {isSelected && (
+                      <span style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--accent-primary)' }} />
+                    )}
+                  </div>
+                  <span style={{ fontSize: '11px', color: 'var(--text-low)', lineHeight: 1.4 }}>
+                    {item.desc}
+                  </span>
                 </div>
-                <div style={{ fontSize: '11px', color: 'var(--text-low)', lineHeight: 1.4 }}>
-                  {thm.description}
+              );
+            })}
+          </div>
+        </div>
+
+        {/* 3.4. Sidebar Navigation Geometry */}
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 12,
+            paddingTop: 18,
+            borderTop: '1px solid var(--border-subtle)',
+          }}
+        >
+          <div>
+            <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-pure)' }}>
+              Sidebar Navigation Mode
+            </span>
+            <p style={{ margin: '2px 0 0', fontSize: '11.5px', color: 'var(--text-medium)' }}>
+              Calibrate the primary navigation rail geometry or hide it for full-screen immersion
+            </p>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 10 }}>
+            {(
+              [
+                {
+                  id: 'expanded',
+                  name: 'Expanded',
+                  desc: 'Full navigation panel with category titles, labels & dynamic badges',
+                },
+                {
+                  id: 'compact',
+                  name: 'Compact',
+                  desc: '72px icon rail maximizing horizontal browsing width for content',
+                },
+                {
+                  id: 'hidden',
+                  name: 'Hidden',
+                  desc: 'Distraction-free canvas with floating drawer menu in the top bar',
+                },
+              ] as const
+            ).map((item) => {
+              const isSelected = sidebarMode === item.id;
+              return (
+                <div
+                  key={item.id}
+                  onClick={() => {
+                    setSidebarMode(item.id);
+                    showToast('Sidebar Mode Changed', item.name, 'default');
+                  }}
+                  style={{
+                    padding: '14px',
+                    borderRadius: 'var(--radius-sm)',
+                    background: isSelected ? 'var(--bg-surface-elevated)' : 'rgba(255, 255, 255, 0.02)',
+                    border: `1.5px solid ${isSelected ? 'var(--accent-primary)' : 'var(--border-subtle)'}`,
+                    cursor: 'pointer',
+                    transition: 'all var(--transition-snappy)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 4,
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <span style={{ fontWeight: 600, color: isSelected ? 'var(--text-pure)' : 'var(--text-high)', fontSize: '13px' }}>
+                      {item.name}
+                    </span>
+                    {isSelected && (
+                      <span style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--accent-primary)' }} />
+                    )}
+                  </div>
+                  <span style={{ fontSize: '11px', color: 'var(--text-low)', lineHeight: 1.4 }}>
+                    {item.desc}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* 3.5. Player Bar Size */}
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 12,
+            paddingTop: 18,
+            borderTop: '1px solid var(--border-subtle)',
+          }}
+        >
+          <div>
+            <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-pure)' }}>
+              Audio Player Scale
+            </span>
+            <p style={{ margin: '2px 0 0', fontSize: '11.5px', color: 'var(--text-medium)' }}>
+              Adjust bottom transport bar height, artwork resolution, and control presence
+            </p>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 10 }}>
+            {(
+              [
+                {
+                  id: 'minimal',
+                  name: 'Minimal',
+                  desc: 'Slim 60px transport bar with condensed essential controls',
+                },
+                {
+                  id: 'standard',
+                  name: 'Standard',
+                  desc: '90px balanced master bar with waveform metrics & scrubber (Default)',
+                },
+                {
+                  id: 'large',
+                  name: 'Large',
+                  desc: '124px expansive showcase bar with high-res artwork & roomier controls',
+                },
+              ] as const
+            ).map((item) => {
+              const isSelected = playerSize === item.id;
+              return (
+                <div
+                  key={item.id}
+                  onClick={() => {
+                    setPlayerSize(item.id);
+                    showToast('Player Scale Adjusted', item.name, 'default');
+                  }}
+                  style={{
+                    padding: '14px',
+                    borderRadius: 'var(--radius-sm)',
+                    background: isSelected ? 'var(--bg-surface-elevated)' : 'rgba(255, 255, 255, 0.02)',
+                    border: `1.5px solid ${isSelected ? 'var(--accent-primary)' : 'var(--border-subtle)'}`,
+                    cursor: 'pointer',
+                    transition: 'all var(--transition-snappy)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 4,
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <span style={{ fontWeight: 600, color: isSelected ? 'var(--text-pure)' : 'var(--text-high)', fontSize: '13px' }}>
+                      {item.name}
+                    </span>
+                    {isSelected && (
+                      <span style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--accent-primary)' }} />
+                    )}
+                  </div>
+                  <span style={{ fontSize: '11px', color: 'var(--text-low)', lineHeight: 1.4 }}>
+                    {item.desc}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* 3.6. Background Mode */}
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 12,
+            paddingTop: 18,
+            borderTop: '1px solid var(--border-subtle)',
+          }}
+        >
+          <div>
+            <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-pure)' }}>
+              Atmospheric Background Mode
+            </span>
+            <p style={{ margin: '2px 0 0', fontSize: '11.5px', color: 'var(--text-medium)' }}>
+              Choose the foundational canvas texture and acoustic luminescence backdrop
+            </p>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 10 }}>
+            {(
+              [
+                {
+                  id: 'solid',
+                  name: 'Solid',
+                  desc: 'Pure opaque dark canvas with zero ambient lighting for minimalist focus',
+                },
+                {
+                  id: 'gradient',
+                  name: 'Gradient',
+                  desc: 'Deep nocturnal radial gradients harmonic to the active theme palette',
+                },
+                {
+                  id: 'album_art',
+                  name: 'Album Artwork',
+                  desc: 'Dynamic frosted artwork extracted from the currently playing hymn',
+                },
+                {
+                  id: 'ambient',
+                  name: 'Ambient',
+                  desc: 'Living nocturnal energy auras with drifting celestial glow',
+                },
+              ] as const
+            ).map((item) => {
+              const isSelected = backgroundMode === item.id;
+              return (
+                <div
+                  key={item.id}
+                  onClick={() => {
+                    setBackgroundMode(item.id);
+                    showToast('Background Altered', item.name, 'atmosphere');
+                  }}
+                  style={{
+                    padding: '14px',
+                    borderRadius: 'var(--radius-sm)',
+                    background: isSelected ? 'var(--bg-surface-elevated)' : 'rgba(255, 255, 255, 0.02)',
+                    border: `1.5px solid ${isSelected ? 'var(--accent-primary)' : 'var(--border-subtle)'}`,
+                    cursor: 'pointer',
+                    transition: 'all var(--transition-snappy)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 4,
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <span style={{ fontWeight: 600, color: isSelected ? 'var(--text-pure)' : 'var(--text-high)', fontSize: '13px' }}>
+                      {item.name}
+                    </span>
+                    {isSelected && (
+                      <span style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--accent-primary)' }} />
+                    )}
+                  </div>
+                  <span style={{ fontSize: '11px', color: 'var(--text-low)', lineHeight: 1.4 }}>
+                    {item.desc}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* 3.7. Adjustable Blur & Opacity Sliders */}
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+            gap: 20,
+            paddingTop: 18,
+            borderTop: '1px solid var(--border-subtle)',
+          }}
+        >
+          {/* Background Blur */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div>
+                <div style={{ fontWeight: 500, color: 'var(--text-pure)', fontSize: '13px' }}>
+                  Atmospheric Blur Depth
+                </div>
+                <div style={{ fontSize: '11px', color: 'var(--text-medium)' }}>
+                  Diffuses backdrop layers and album art reflections
                 </div>
               </div>
-            );
-          })}
+              <span
+                style={{
+                  fontFamily: 'var(--font-mono)',
+                  fontSize: '12px',
+                  color: 'var(--accent-primary)',
+                  background: 'rgba(255, 255, 255, 0.05)',
+                  padding: '2px 8px',
+                  borderRadius: 4,
+                }}
+              >
+                {backgroundBlur}px
+              </span>
+            </div>
+            <input
+              type="range"
+              min={0}
+              max={40}
+              step={2}
+              value={backgroundBlur}
+              onChange={(e) => setBackgroundBlur(Number(e.target.value))}
+              style={{
+                width: '100%',
+                accentColor: 'var(--accent-primary)',
+                cursor: 'pointer',
+              }}
+            />
+          </div>
+
+          {/* Interface Opacity */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div>
+                <div style={{ fontWeight: 500, color: 'var(--text-pure)', fontSize: '13px' }}>
+                  Interface Surface Opacity
+                </div>
+                <div style={{ fontSize: '11px', color: 'var(--text-medium)' }}>
+                  Calibrates glass density across sidebars, cards & panels
+                </div>
+              </div>
+              <span
+                style={{
+                  fontFamily: 'var(--font-mono)',
+                  fontSize: '12px',
+                  color: 'var(--accent-primary)',
+                  background: 'rgba(255, 255, 255, 0.05)',
+                  padding: '2px 8px',
+                  borderRadius: 4,
+                }}
+              >
+                {interfaceOpacity}%
+              </span>
+            </div>
+            <input
+              type="range"
+              min={50}
+              max={100}
+              step={5}
+              value={interfaceOpacity}
+              onChange={(e) => setInterfaceOpacity(Number(e.target.value))}
+              style={{
+                width: '100%',
+                accentColor: 'var(--accent-primary)',
+                cursor: 'pointer',
+              }}
+            />
+          </div>
+        </div>
+
+        {/* 3.8. Animation Intensity Modes */}
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 12,
+            paddingTop: 18,
+            borderTop: '1px solid var(--border-subtle)',
+          }}
+        >
+          <div>
+            <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-pure)' }}>
+              Motion & Animation Intensity
+            </span>
+            <p style={{ margin: '2px 0 0', fontSize: '11.5px', color: 'var(--text-medium)' }}>
+              Control kinetic responsiveness, pulsing glows, and page transitions
+            </p>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 10 }}>
+            {(
+              [
+                {
+                  id: 'full',
+                  name: 'Full',
+                  desc: 'Fluid kinetic micro-animations, glowing pulses & liquid transitions',
+                },
+                {
+                  id: 'reduced',
+                  name: 'Reduced',
+                  desc: 'Subdued snappy transitions with minimal motion for battery saving',
+                },
+                {
+                  id: 'off',
+                  name: 'Off',
+                  desc: 'Zero transition motion; immediate instantaneous state switching',
+                },
+              ] as const
+            ).map((item) => {
+              const isSelected = animationMode === item.id;
+              return (
+                <div
+                  key={item.id}
+                  onClick={() => {
+                    setAnimationMode(item.id);
+                    showToast('Motion Intensity Altered', `${item.name} animations active`, 'default');
+                  }}
+                  style={{
+                    padding: '14px',
+                    borderRadius: 'var(--radius-sm)',
+                    background: isSelected ? 'var(--bg-surface-elevated)' : 'rgba(255, 255, 255, 0.02)',
+                    border: `1.5px solid ${isSelected ? 'var(--accent-primary)' : 'var(--border-subtle)'}`,
+                    cursor: 'pointer',
+                    transition: 'all var(--transition-snappy)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 4,
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <span style={{ fontWeight: 600, color: isSelected ? 'var(--text-pure)' : 'var(--text-high)', fontSize: '13px' }}>
+                      {item.name}
+                    </span>
+                    {isSelected && (
+                      <span style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--accent-primary)' }} />
+                    )}
+                  </div>
+                  <span style={{ fontSize: '11px', color: 'var(--text-low)', lineHeight: 1.4 }}>
+                    {item.desc}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
         </div>
       </Card>
 
