@@ -7,15 +7,18 @@ import { RightPanel } from '../components/layout/RightPanel';
 import { MobileNav } from '../components/layout/MobileNav';
 import { ToastContainer } from '../components/primitives/Toast';
 import { LyricsModal } from '../components/lyrics/LyricsModal';
+import { EqualizerModal } from '../components/audio/EqualizerModal';
 import { useUI } from '../state/UIContext';
+import { useAudioSettings } from '../state/AudioSettingsContext';
 import { useToast } from '../state/ToastContext';
 import './MainLayout.css';
 
 export const MainLayout: React.FC = () => {
   const { mobileMenuOpen, setMobileMenuOpen, toggleLyrics } = useUI();
+  const { toggleEqualizer } = useAudioSettings();
   const { toasts, removeToast } = useToast();
 
-  // Global key shortcut: 'L' toggles lyrics view
+  // Global key shortcuts: 'L' toggles lyrics view, 'E' toggles equalizer
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       const target = e.target as HTMLElement;
@@ -31,12 +34,15 @@ export const MainLayout: React.FC = () => {
       if ((e.key === 'l' || e.key === 'L') && !e.metaKey && !e.ctrlKey && !e.altKey) {
         e.preventDefault();
         toggleLyrics();
+      } else if ((e.key === 'e' || e.key === 'E') && !e.metaKey && !e.ctrlKey && !e.altKey) {
+        e.preventDefault();
+        toggleEqualizer();
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [toggleLyrics]);
+  }, [toggleLyrics, toggleEqualizer]);
 
   return (
     <div className="nocturne-layout">
@@ -71,6 +77,9 @@ export const MainLayout: React.FC = () => {
 
       {/* Dedicated Immersive Lyrics & Lore Screen */}
       <LyricsModal />
+
+      {/* 7-Band Equalizer & Audio Processing Console */}
+      <EqualizerModal />
 
       {/* Global Notifications & Toasts */}
       <ToastContainer toasts={toasts} onDismiss={removeToast} />

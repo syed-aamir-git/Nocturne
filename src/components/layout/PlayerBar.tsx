@@ -17,10 +17,12 @@ import {
   Loader2,
   AlertCircle,
   Mic2,
+  Sliders,
 } from 'lucide-react';
 import { usePlayer } from '../../state/PlayerContext';
 import { useLibrary } from '../../state/LibraryContext';
 import { useUI } from '../../state/UIContext';
+import { useAudioSettings } from '../../state/AudioSettingsContext';
 import { useToast } from '../../state/ToastContext';
 import { formatDuration } from '../../utilities/formatters';
 import { Slider } from '../primitives/Slider';
@@ -52,6 +54,7 @@ export const PlayerBar: React.FC = () => {
   } = usePlayer();
 
   const { rightPanelOpen, toggleRightPanel, openRightPanel, isLyricsOpen, toggleLyrics } = useUI();
+  const { isEqualizerOpen, toggleEqualizer } = useAudioSettings();
   const { isLiked, toggleLike } = useLibrary();
   const { showToast } = useToast();
   const [imgError, setImgError] = useState(false);
@@ -285,6 +288,22 @@ export const PlayerBar: React.FC = () => {
             disabled={!currentTrack}
           >
             <Mic2 size={16} />
+          </IconButton>
+        </Tooltip>
+
+        {/* Equalizer & Audio Processing Button */}
+        <Tooltip
+          content={isEqualizerOpen ? 'Close Equalizer (Press E)' : 'Equalizer & DSP (Press E)'}
+          position="top"
+        >
+          <IconButton
+            variant="ghost"
+            size="sm"
+            active={isEqualizerOpen}
+            onClick={toggleEqualizer}
+            aria-label="Toggle Equalizer"
+          >
+            <Sliders size={16} />
           </IconButton>
         </Tooltip>
 

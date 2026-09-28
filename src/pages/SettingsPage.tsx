@@ -10,6 +10,7 @@ import {
   CheckCircle,
   XCircle,
   Download,
+  Sliders,
 } from 'lucide-react';
 import { Card } from '../components/primitives/Card';
 import { Button } from '../components/primitives/Button';
@@ -17,6 +18,9 @@ import { Slider } from '../components/primitives/Slider';
 import { useTheme } from '../state/ThemeContext';
 import { useToast } from '../state/ToastContext';
 import { useSpotify } from '../state/SpotifyContext';
+import { useAudioSettings } from '../state/AudioSettingsContext';
+import { BUILTIN_EQ_PRESETS } from '../types/audio';
+import type { AudioQuality } from '../types/audio';
 
 export const SettingsPage: React.FC = () => {
   const { currentTheme, availableThemes, setThemeId } = useTheme();
@@ -34,29 +38,51 @@ export const SettingsPage: React.FC = () => {
     setCustomClientId,
   } = useSpotify();
 
-  const [streamQuality, setStreamQuality] = useState('flac-96');
+  const {
+    audioQuality,
+    setAudioQuality,
+    volumeNormalization,
+    setVolumeNormalization,
+    playbackRate,
+    setPlaybackRate,
+    equalizerEnabled,
+    toggleEqualizerEnabled,
+    currentPresetId,
+    savedPresets,
+    openEqualizer,
+  } = useAudioSettings();
+
   const [crossfade, setCrossfade] = useState(4);
-  const [normalizeAudio, setNormalizeAudio] = useState(true);
   const [showConfig, setShowConfig] = useState(false);
   const [tempId, setTempId] = useState(clientId);
 
-  const qualityOptions = [
+  const qualityOptions: { id: AudioQuality; title: string; spec: string }[] = [
     {
-      id: 'flac-96',
+      id: 'lossless',
       title: 'Lossless Hi-Res (Recommended)',
-      spec: '24-bit / 96kHz FLAC • Bit-perfect master reproduction',
+      spec: '24-bit / 96kHz FLAC • Bit-perfect master reproduction without dynamic compression',
     },
     {
-      id: 'mqa-192',
-      title: 'Studio Master MQA',
-      spec: '24-bit / 192kHz • Uncompressed analog transfer',
+      id: 'high',
+      title: 'Studio High Fidelity (320 kbps)',
+      spec: '320 kbps AAC / Vorbis • Studio monitoring acoustic fidelity',
     },
     {
-      id: 'wav-44',
-      title: 'Standard CD Quality',
-      spec: '16-bit / 44.1kHz WAV • Reduced bandwidth usage',
+      id: 'standard',
+      title: 'Standard Broadcast (192 kbps)',
+      spec: '192 kbps MP3 / AAC • Balanced bandwidth usage and pristine acoustics',
+    },
+    {
+      id: 'saver',
+      title: 'Data Saver (96 kbps)',
+      spec: '96 kbps AAC+ • Optimized for low-bandwidth cellular connections',
     },
   ];
+
+  const currentPresetName =
+    currentPresetId === 'custom'
+      ? 'Custom EQ'
+      : [...BUILTIN_EQ_PRESETS, ...savedPresets].find((p) => p.id === currentPresetId)?.name || 'Custom';
 
   return (
     <div style={{ maxWidth: 1000, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 36 }}>
@@ -261,13 +287,13 @@ export const SettingsPage: React.FC = () => {
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
           {qualityOptions.map((opt) => {
-            const isSelected = streamQuality === opt.id;
+            const isSelected = audioQuality === opt.id;
             return (
               <div
                 key={opt.id}
                 onClick={() => {
-                  setStreamQuality(opt.id);
-                  showToast('Stream Pipeline Adjusted', opt.title, 'atmosphere');
+                  setAudioQuality(opt.id);
+                  showToast('Pipeline Calibrated', opt.title, 'atmosphere');
                 }}
                 style={{
                   display: 'flex',
@@ -307,6 +333,85 @@ export const SettingsPage: React.FC = () => {
               </div>
             );
           })}
+        </div>
+      </Card>
+
+      {/* 2.5. Equalizer & Acoustic Sculpting */}
+      <Card variant="flat" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: 18 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <Sliders size={18} color="var(--accent-primary)" />
+            <h3 style={{ fontSize: '1.2rem', margin: 0 }}>7-Band Parametric Equalizer</h3>
+          </div>
+          <span
+            style={{
+              fontSize: '11px',
+              fontFamily: 'var(--font-mono)',
+              padding: '2px 8px',
+              borderRadius: '9999px',
+              background: equalizerEnabled ? 'rgba(52, 211, 153, 0.12)' : 'rgba(255, 255, 255, 0.05)',
+              color: equalizerEnabled ? 'var(--indicator-success)' : 'var(--text-low)',
+              border: `1px solid ${equalizerEnabled ? 'rgba(52, 211, 153, 0.3)' : 'var(--border-subtle)'}`,
+            }}
+          >
+            {equalizerEnabled ? 'DSP ACTIVE' : 'BYPASS'}
+          </span>
+        </div>
+
+        <p style={{ color: 'var(--text-medium)', fontSize: '12.5px', margin: 0, lineHeight: 1.5 }}>
+          Shape the acoustic frequency response from 60 Hz sub-bass to 15 kHz crystalline air.
+          Equipped with 10 master presets, custom user profiles, and real-time Web Audio biquad filtering.
+        </p>
+
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            flexWrap: 'wrap',
+            gap: 16,
+            padding: '16px',
+            borderRadius: 'var(--radius-sm)',
+            background: 'var(--bg-surface-elevated)',
+            border: '1px solid var(--border-subtle)',
+          }}
+        >
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span style={{ fontSize: '13px', color: 'var(--text-medium)' }}>Active Acoustic Preset:</span>
+              <span
+                style={{
+                  fontWeight: 600,
+                  fontSize: '13.5px',
+                  color: 'var(--accent-primary)',
+                  fontFamily: 'var(--font-mono)',
+                }}
+              >
+                {currentPresetName}
+              </span>
+            </div>
+            <span style={{ fontSize: '11px', color: 'var(--text-low)' }}>
+              Press <kbd style={{ padding: '1px 5px', borderRadius: 4, background: 'rgba(255,255,255,0.08)', border: '1px solid var(--border-subtle)' }}>E</kbd> anywhere to summon the live visualizer console
+            </span>
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <Button
+              variant={equalizerEnabled ? 'primary' : 'secondary'}
+              size="sm"
+              onClick={toggleEqualizerEnabled}
+            >
+              {equalizerEnabled ? 'Enabled' : 'Bypass'}
+            </Button>
+            <Button
+              variant="secondary"
+              size="sm"
+              leftIcon={<Sliders size={14} />}
+              onClick={openEqualizer}
+            >
+              Open Equalizer Console
+            </Button>
+          </div>
         </div>
       </Card>
 
@@ -350,14 +455,113 @@ export const SettingsPage: React.FC = () => {
         </div>
       </Card>
 
-      {/* 4. Audio Dynamics & Crossfade */}
+      {/* 4. Audio Dynamics & Playback Engine */}
       <Card variant="flat" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: 20 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <Volume2 size={18} color="var(--accent-primary)" />
-          <h3 style={{ fontSize: '1.2rem', margin: 0 }}>Playback & Crossfade</h3>
+          <h3 style={{ fontSize: '1.2rem', margin: 0 }}>Playback Dynamics & Speed</h3>
         </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 8, maxWidth: 420 }}>
+        {/* Playback Speed */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div>
+              <div style={{ fontWeight: 500, color: 'var(--text-pure)', fontSize: '13.5px' }}>
+                Playback Speed Velocity
+              </div>
+              <div style={{ fontSize: '11.5px', color: 'var(--text-medium)' }}>
+                Time-stretch acoustic tempo with pitch-correction preservation
+              </div>
+            </div>
+            <span
+              style={{
+                fontFamily: 'var(--font-mono)',
+                fontSize: '12px',
+                color: 'var(--accent-primary)',
+                background: 'rgba(255, 255, 255, 0.05)',
+                padding: '2px 8px',
+                borderRadius: 4,
+              }}
+            >
+              {playbackRate}x
+            </span>
+          </div>
+
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+            {[0.5, 0.75, 1.0, 1.25, 1.5, 2.0].map((rate) => {
+              const isSelected = playbackRate === rate;
+              return (
+                <button
+                  key={rate}
+                  type="button"
+                  onClick={() => {
+                    setPlaybackRate(rate);
+                    showToast('Playback Velocity Updated', `${rate}x speed active`, 'default');
+                  }}
+                  style={{
+                    padding: '6px 14px',
+                    borderRadius: 'var(--radius-sm)',
+                    background: isSelected ? 'var(--accent-primary)' : 'rgba(255, 255, 255, 0.04)',
+                    color: isSelected ? '#000000' : 'var(--text-high)',
+                    border: `1px solid ${isSelected ? 'var(--accent-primary)' : 'var(--border-subtle)'}`,
+                    fontSize: '12px',
+                    fontFamily: 'var(--font-mono)',
+                    fontWeight: isSelected ? 600 : 400,
+                    cursor: 'pointer',
+                    transition: 'all var(--transition-snappy)',
+                  }}
+                >
+                  {rate}x
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Volume Normalization */}
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            paddingTop: 14,
+            borderTop: '1px solid var(--border-subtle)',
+          }}
+        >
+          <div>
+            <div style={{ fontWeight: 500, color: 'var(--text-pure)' }}>Volume Normalization (Compressor)</div>
+            <div style={{ fontSize: '11.5px', color: 'var(--text-medium)' }}>
+              Studio dynamics leveling prevents abrupt acoustic volume spikes across differing masters
+            </div>
+          </div>
+          <Button
+            variant={volumeNormalization ? 'primary' : 'secondary'}
+            size="sm"
+            onClick={() => {
+              const next = !volumeNormalization;
+              setVolumeNormalization(next);
+              showToast(
+                next ? 'Volume Normalization Engaged' : 'Volume Normalization Bypassed',
+                next ? 'Studio dynamics compressor active' : 'Raw track mastering output',
+                'default'
+              );
+            }}
+          >
+            {volumeNormalization ? 'Active' : 'Disabled'}
+          </Button>
+        </div>
+
+        {/* Crossfade */}
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 8,
+            maxWidth: 420,
+            paddingTop: 14,
+            borderTop: '1px solid var(--border-subtle)',
+          }}
+        >
           <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12.5px' }}>
             <span>Acoustic Crossfade Decay</span>
             <span className="font-mono">{crossfade}s</span>
@@ -373,22 +577,6 @@ export const SettingsPage: React.FC = () => {
           <span style={{ fontSize: '11px', color: 'var(--text-low)' }}>
             Gradually dissolves fading tracks into upcoming sequences
           </span>
-        </div>
-
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: 12, borderTop: '1px solid var(--border-subtle)' }}>
-          <div>
-            <div style={{ fontWeight: 500, color: 'var(--text-pure)' }}>Dynamic Volume Preservation</div>
-            <div style={{ fontSize: '11.5px', color: 'var(--text-medium)' }}>
-              Prevents sudden volume spikes across different master tapes
-            </div>
-          </div>
-          <Button
-            variant={normalizeAudio ? 'primary' : 'secondary'}
-            size="sm"
-            onClick={() => setNormalizeAudio(!normalizeAudio)}
-          >
-            {normalizeAudio ? 'Active' : 'Disabled'}
-          </Button>
         </div>
       </Card>
 
