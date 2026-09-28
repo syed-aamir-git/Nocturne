@@ -32,6 +32,16 @@
   /* Adjustable Interface Variables */
   --bg-blur: 20px;
   --interface-opacity: 0.85;
+
+  /* Layer Z-Indices */
+  --z-base: 1;
+  --z-sidebar: 100;
+  --z-player: 200;
+  --z-dropdown: 500;
+  --z-tooltip: 1000;
+  --z-fullscreen: 1100;
+  --z-modal: 1300;
+  --z-toast: 2000;
 }
 
 @media (max-width: 900px) {

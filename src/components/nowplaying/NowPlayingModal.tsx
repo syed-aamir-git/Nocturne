@@ -67,6 +67,7 @@ export const NowPlayingModal: React.FC = () => {
   const { isNowPlayingOpen, closeNowPlaying, nowPlayingTab, setNowPlayingTab } = useUI();
   const {
     openEqualizer,
+    isEqualizerOpen,
     audioQuality,
     setAudioQuality,
     volumeNormalization,
@@ -83,13 +84,61 @@ export const NowPlayingModal: React.FC = () => {
   const [displayTime, setDisplayTime] = useState<number | null>(null);
   const [showAudioSettings, setShowAudioSettings] = useState(false);
   const [isUserScrollingLyrics, setIsUserScrollingLyrics] = useState(false);
-  const [imgError, setImgError] = useState(false);
+  const [imgErrorTrackId, setImgErrorTrackId] = useState<string | null>(null);
+  const imgError = Boolean(currentTrack && imgErrorTrackId === currentTrack.id);
+
+  const coverSrc = currentTrack?.artwork || currentTrack?.coverUrl || '';
+  const [bgCurrent, setBgCurrent] = useState<string>(coverSrc);
+  const [bgPrevious, setBgPrevious] = useState<string | null>(null);
+  const [isCrossfadingBg, setIsCrossfadingBg] = useState(false);
 
   const activeLyricRef = useRef<HTMLDivElement | null>(null);
   const userScrollTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const touchStartX = useRef<number | null>(null);
   const touchStartY = useRef<number | null>(null);
   const headerTouchStartY = useRef<number | null>(null);
+  const audioDrawerRef = useRef<HTMLDivElement | null>(null);
+  const settingsBtnRef = useRef<HTMLDivElement | null>(null);
+
+  // Smooth atmospheric background crossfade when song changes
+  useEffect(() => {
+    if (coverSrc && coverSrc !== bgCurrent) {
+      const raf = requestAnimationFrame(() => {
+        setBgPrevious(bgCurrent);
+        setBgCurrent(coverSrc);
+        setIsCrossfadingBg(true);
+      });
+      const timer = setTimeout(() => {
+        setIsCrossfadingBg(false);
+        setBgPrevious(null);
+      }, 700);
+      return () => {
+        cancelAnimationFrame(raf);
+        clearTimeout(timer);
+      };
+    } else if (!bgCurrent && coverSrc) {
+      const raf = requestAnimationFrame(() => setBgCurrent(coverSrc));
+      return () => cancelAnimationFrame(raf);
+    }
+  }, [coverSrc, bgCurrent]);
+
+  // Click outside to dismiss audio settings popover
+  useEffect(() => {
+    if (!showAudioSettings) return;
+    const handleClickOutside = (e: MouseEvent) => {
+      const target = e.target as Node;
+      if (
+        audioDrawerRef.current &&
+        !audioDrawerRef.current.contains(target) &&
+        settingsBtnRef.current &&
+        !settingsBtnRef.current.contains(target)
+      ) {
+        setShowAudioSettings(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [showAudioSettings]);
 
   // Synced lyrics extraction & active line calculation
   const syncedLyrics: SyncedLyricLine[] = useMemo(() => {
@@ -131,6 +180,15 @@ export const NowPlayingModal: React.FC = () => {
       }
 
       if (e.key === 'Escape') {
+        if (isEqualizerOpen) {
+          // Let EqualizerModal close itself
+          return;
+        }
+        if (showAudioSettings) {
+          e.preventDefault();
+          setShowAudioSettings(false);
+          return;
+        }
         e.preventDefault();
         closeNowPlaying();
       } else if (e.code === 'Space') {
@@ -142,12 +200,56 @@ export const NowPlayingModal: React.FC = () => {
       } else if (e.key === 'ArrowLeft' && (e.metaKey || e.ctrlKey)) {
         e.preventDefault();
         previousTrack();
+      } else if (e.key === 'ArrowRight' && !e.metaKey && !e.ctrlKey && !e.altKey) {
+        e.preventDefault();
+        seek(Math.min(duration, currentTime + 5));
+      } else if (e.key === 'ArrowLeft' && !e.metaKey && !e.ctrlKey && !e.altKey) {
+        e.preventDefault();
+        seek(Math.max(0, currentTime - 5));
+      } else if (e.key === 'ArrowUp' && !e.metaKey && !e.ctrlKey) {
+        e.preventDefault();
+        setVolume(Math.min(1, volume + 0.05));
+      } else if (e.key === 'ArrowDown' && !e.metaKey && !e.ctrlKey) {
+        e.preventDefault();
+        setVolume(Math.max(0, volume - 0.05));
+      } else if (!e.metaKey && !e.ctrlKey && !e.altKey) {
+        if (e.key === 'l' || e.key === 'L') {
+          e.preventDefault();
+          setNowPlayingTab(nowPlayingTab === 'lyrics' ? 'artwork' : 'lyrics');
+        } else if (e.key === 'q' || e.key === 'Q') {
+          e.preventDefault();
+          setNowPlayingTab(nowPlayingTab === 'queue' ? 'artwork' : 'queue');
+        } else if (e.key === 'i' || e.key === 'I') {
+          e.preventDefault();
+          setNowPlayingTab(nowPlayingTab === 'info' ? 'artwork' : 'info');
+        } else if (e.key === 'c' || e.key === 'C') {
+          e.preventDefault();
+          setNowPlayingTab(nowPlayingTab === 'credits' ? 'artwork' : 'credits');
+        } else if (e.key === 'a' || e.key === 'A') {
+          e.preventDefault();
+          setNowPlayingTab('artwork');
+        }
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isNowPlayingOpen, closeNowPlaying, togglePlayPause, nextTrack, previousTrack]);
+  }, [
+    isNowPlayingOpen,
+    isEqualizerOpen,
+    showAudioSettings,
+    closeNowPlaying,
+    togglePlayPause,
+    nextTrack,
+    previousTrack,
+    seek,
+    currentTime,
+    duration,
+    volume,
+    setVolume,
+    nowPlayingTab,
+    setNowPlayingTab,
+  ]);
 
   // Mobile swipe gestures
   const handleArtworkTouchStart = (e: React.TouchEvent) => {
@@ -160,7 +262,7 @@ export const NowPlayingModal: React.FC = () => {
     const deltaX = e.changedTouches[0].clientX - touchStartX.current;
     const deltaY = e.changedTouches[0].clientY - touchStartY.current;
 
-    // Horizontal swipe on artwork
+    // Horizontal swipe on artwork to skip tracks
     if (Math.abs(deltaX) > 45 && Math.abs(deltaX) > Math.abs(deltaY) * 1.4) {
       if (deltaX < 0) {
         nextTrack();
@@ -169,6 +271,9 @@ export const NowPlayingModal: React.FC = () => {
         previousTrack();
         showToast('Previous Track', '', 'default');
       }
+    } else if (deltaY > 60 && Math.abs(deltaY) > Math.abs(deltaX) * 1.4) {
+      // Vertical swipe down on artwork to dismiss Now Playing
+      closeNowPlaying();
     }
     touchStartX.current = null;
     touchStartY.current = null;
@@ -190,7 +295,6 @@ export const NowPlayingModal: React.FC = () => {
   if (!isNowPlayingOpen || !currentTrack) return null;
 
   const effectiveTime = displayTime !== null ? displayTime : currentTime;
-  const coverSrc = currentTrack.artwork || currentTrack.coverUrl || '';
   const currentLyricSnippet =
     activeLineIndex >= 0 && syncedLyrics[activeLineIndex]
       ? syncedLyrics[activeLineIndex].text
@@ -203,11 +307,19 @@ export const NowPlayingModal: React.FC = () => {
       aria-modal="true"
       aria-label="Now Playing Centerpiece"
     >
-      {/* Subtle Visual Atmosphere Backdrop Layer */}
+      {/* Subtle Visual Atmosphere Backdrop Layer (Dual layer crossfade) */}
+      {bgPrevious && !imgError && (
+        <div
+          className="nocturne-nowplaying__backdrop"
+          style={{ backgroundImage: `url(${bgPrevious})` }}
+        />
+      )}
       <div
-        className="nocturne-nowplaying__backdrop"
+        className={`nocturne-nowplaying__backdrop ${
+          isCrossfadingBg ? 'nocturne-nowplaying__backdrop--crossfade' : ''
+        }`}
         style={{
-          backgroundImage: coverSrc ? `url(${coverSrc})` : undefined,
+          backgroundImage: !imgError && bgCurrent ? `url(${bgCurrent})` : undefined,
         }}
       />
       <div className="nocturne-nowplaying__vignette" />
@@ -252,23 +364,25 @@ export const NowPlayingModal: React.FC = () => {
               </IconButton>
             </Tooltip>
 
-            <Tooltip content="Audio Pipeline Settings" position="bottom">
-              <IconButton
-                variant="ghost"
-                size="md"
-                active={showAudioSettings}
-                onClick={() => setShowAudioSettings(!showAudioSettings)}
-                aria-label="Toggle Audio Settings"
-              >
-                <SettingsIcon size={18} />
-              </IconButton>
-            </Tooltip>
+            <div ref={settingsBtnRef}>
+              <Tooltip content="Audio Pipeline Settings" position="bottom">
+                <IconButton
+                  variant="ghost"
+                  size="md"
+                  active={showAudioSettings}
+                  onClick={() => setShowAudioSettings(!showAudioSettings)}
+                  aria-label="Toggle Audio Settings"
+                >
+                  <SettingsIcon size={18} />
+                </IconButton>
+              </Tooltip>
+            </div>
           </div>
         </header>
 
         {/* Audio Settings Popover/Drawer */}
         {showAudioSettings && (
-          <div className="nocturne-nowplaying__audio-drawer">
+          <div ref={audioDrawerRef} className="nocturne-nowplaying__audio-drawer">
             <div className="nocturne-nowplaying__audio-drawer-header">
               <span>Audio Pipeline Controls</span>
               <IconButton
@@ -483,10 +597,11 @@ export const NowPlayingModal: React.FC = () => {
               <div className="nocturne-nowplaying__hero-art-wrap">
                 {!imgError && coverSrc ? (
                   <img
+                    key={currentTrack.id}
                     src={coverSrc}
                     alt={currentTrack.title}
                     className="nocturne-nowplaying__hero-art"
-                    onError={() => setImgError(true)}
+                    onError={() => setImgErrorTrackId(currentTrack.id)}
                   />
                 ) : (
                   <div

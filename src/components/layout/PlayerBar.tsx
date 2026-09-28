@@ -73,10 +73,18 @@ export const PlayerBar: React.FC = () => {
     const target = e.target as HTMLElement;
     if (
       target.closest('button') ||
-      target.closest('a') ||
       target.closest('input') ||
       target.closest('.nocturne-slider')
     ) {
+      return;
+    }
+    // On mobile viewports, tapping anywhere on the player bar including track title opens Now Playing
+    if (window.innerWidth <= 768 && target.closest('a')) {
+      e.preventDefault();
+      openNowPlaying('artwork');
+      return;
+    }
+    if (target.closest('a')) {
       return;
     }
     openNowPlaying('artwork');
