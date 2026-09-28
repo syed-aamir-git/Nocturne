@@ -77,6 +77,17 @@ export const BUILTIN_EQ_PRESETS: readonly EQPreset[] = [
   },
 ] as const;
 
+export type CrossfadeDuration = 0 | 2 | 4 | 6 | 8 | 10;
+
+export const CROSSFADE_OPTIONS: readonly { value: CrossfadeDuration; label: string }[] = [
+  { value: 0, label: 'Off' },
+  { value: 2, label: '2 seconds' },
+  { value: 4, label: '4 seconds' },
+  { value: 6, label: '6 seconds' },
+  { value: 8, label: '8 seconds' },
+  { value: 10, label: '10 seconds' },
+] as const;
+
 export interface AudioSettings {
   equalizerEnabled: boolean;
   currentPresetId: string;
@@ -85,4 +96,6 @@ export interface AudioSettings {
   volumeNormalization: boolean;
   audioQuality: AudioQuality;
   playbackRate: number; // 0.5 to 2.0
+  crossfadeDuration: CrossfadeDuration;
+  autoplay: boolean;
 }

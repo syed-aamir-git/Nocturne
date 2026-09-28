@@ -51,6 +51,7 @@ export const PlayerBar: React.FC = () => {
     toggleMute,
     toggleShuffle,
     cycleRepeatMode,
+    isCrossfading,
   } = usePlayer();
 
   const { rightPanelOpen, toggleRightPanel, openRightPanel, isLyricsOpen, toggleLyrics } = useUI();
@@ -141,6 +142,18 @@ export const PlayerBar: React.FC = () => {
             <span className="nocturne-player__badge">
               {currentTrack.bitrate || '24-bit / 96kHz FLAC'}
             </span>
+            {isCrossfading && (
+              <span
+                className="nocturne-player__badge"
+                style={{
+                  background: 'rgba(147, 51, 234, 0.25)',
+                  color: 'var(--accent-secondary)',
+                  border: '1px solid var(--accent-primary)',
+                }}
+              >
+                Crossfading
+              </span>
+            )}
             {error && (
               <span
                 style={{

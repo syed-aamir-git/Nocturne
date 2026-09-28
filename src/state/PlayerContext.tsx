@@ -7,10 +7,20 @@ import React, {
   useRef,
 } from 'react';
 import type { Track, Album, Playlist, PlayerState, PlaybackStatus } from '../types';
+import type { CrossfadeDuration } from '../types/audio';
 import { audioEngine } from '../audio/AudioEngine';
+import { useAudioSettings } from './AudioSettingsContext';
 import { MOCK_TRACKS } from '../data/mockData';
 
+const QUEUE_STORAGE_KEY = 'nocturne_queue_state_v1';
+const PLAYBACK_SESSION_KEY = 'nocturne_playback_session_v1';
+
 export interface PlayerContextType extends PlayerState {
+  isCrossfading: boolean;
+  autoplay: boolean;
+  toggleAutoplay: () => void;
+  crossfadeDuration: CrossfadeDuration;
+  setCrossfadeDuration: (duration: CrossfadeDuration) => void;
   playTrack: (track: Track, newQueue?: Track[], startIndex?: number) => void;
   playAlbum: (album: Album) => void;
   playPlaylist: (playlist: Playlist) => void;
@@ -36,22 +46,109 @@ export interface PlayerContextType extends PlayerState {
 
 const PlayerContext = createContext<PlayerContextType | undefined>(undefined);
 
+interface StoredPlaybackSession {
+  trackId: string;
+  position: number;
+  duration: number;
+  volume: number;
+  muted: boolean;
+  shuffle: boolean;
+  repeatMode: 'off' | 'all' | 'one';
+}
+
+function loadInitialQueue(): { queue: Track[]; queueIndex: number } {
+  if (typeof window === 'undefined') return { queue: MOCK_TRACKS, queueIndex: 0 };
+  try {
+    const raw = localStorage.getItem(QUEUE_STORAGE_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed.queue) && parsed.queue.length > 0) {
+        const safeIdx = Math.max(0, Math.min(parsed.queueIndex || 0, parsed.queue.length - 1));
+        return { queue: parsed.queue, queueIndex: safeIdx };
+      }
+    }
+  } catch (e) {
+    console.warn('[PlayerContext] Failed to load stored queue:', e);
+  }
+  return { queue: MOCK_TRACKS, queueIndex: 0 };
+}
+
+function loadInitialPlaybackSession(): StoredPlaybackSession | null {
+  if (typeof window === 'undefined') return null;
+  try {
+    const raw = localStorage.getItem(PLAYBACK_SESSION_KEY);
+    if (raw) return JSON.parse(raw);
+  } catch (e) {
+    console.warn('[PlayerContext] Failed to load stored playback session:', e);
+  }
+  return null;
+}
+
+function pickAutoplayTrack(currentQueue: Track[]): Track | null {
+  const currentTrack = currentQueue[currentQueue.length - 1];
+  const queueIds = new Set(currentQueue.map((t) => t.id));
+
+  // Try to find a track with matching vibe/genre not in queue
+  const matched = MOCK_TRACKS.find(
+    (t) => !queueIds.has(t.id) && t.genre === currentTrack?.genre && !t.isUnavailable && t.audioUrl
+  );
+  if (matched) return matched;
+
+  // Otherwise, find any track not currently in queue
+  const anyUnused = MOCK_TRACKS.find((t) => !queueIds.has(t.id) && !t.isUnavailable && t.audioUrl);
+  if (anyUnused) return anyUnused;
+
+  // If all tracks are already in queue, pick random from MOCK_TRACKS
+  const playable = MOCK_TRACKS.filter((t) => !t.isUnavailable && t.audioUrl);
+  return playable[Math.floor(Math.random() * playable.length)] || null;
+}
+
 export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [currentTrack, setCurrentTrack] = useState<Track | null>(MOCK_TRACKS[0]);
+  const { crossfadeDuration, setCrossfadeDuration, autoplay, toggleAutoplay } =
+    useAudioSettings();
+
+  const [queue, setQueue] = useState<Track[]>(() => loadInitialQueue().queue);
+  const [queueIndex, setQueueIndex] = useState<number>(() => loadInitialQueue().queueIndex);
+
+  const [currentTrack, setCurrentTrack] = useState<Track | null>(() => {
+    const session = loadInitialPlaybackSession();
+    const initialQ = loadInitialQueue();
+    if (session?.trackId) {
+      const match = initialQ.queue.find((t) => t.id === session.trackId);
+      if (match) return match;
+    }
+    return initialQ.queue[initialQ.queueIndex] || MOCK_TRACKS[0];
+  });
+
   const [status, setStatus] = useState<PlaybackStatus>('idle');
-  const [currentTime, setCurrentTime] = useState<number>(0);
-  const [duration, setDuration] = useState<number>(MOCK_TRACKS[0]?.duration || 0);
-  const [volume, setVolumeState] = useState<number>(0.8);
-  const [muted, setMutedState] = useState<boolean>(false);
-  const [shuffle, setShuffleState] = useState<boolean>(false);
-  const [repeatMode, setRepeatMode] = useState<'off' | 'all' | 'one'>('off');
-  const [queue, setQueue] = useState<Track[]>(MOCK_TRACKS);
-  const [queueIndex, setQueueIndex] = useState<number>(0);
+  const [currentTime, setCurrentTime] = useState<number>(() => loadInitialPlaybackSession()?.position || 0);
+  const [duration, setDuration] = useState<number>(() => {
+    const session = loadInitialPlaybackSession();
+    if (session?.duration) return session.duration;
+    return MOCK_TRACKS[0]?.duration || 0;
+  });
+  const [volume, setVolumeState] = useState<number>(() => {
+    const session = loadInitialPlaybackSession();
+    return session?.volume !== undefined ? session.volume : 0.8;
+  });
+  const [muted, setMutedState] = useState<boolean>(() => {
+    const session = loadInitialPlaybackSession();
+    return session?.muted !== undefined ? session.muted : false;
+  });
+  const [shuffle, setShuffleState] = useState<boolean>(() => {
+    const session = loadInitialPlaybackSession();
+    return session?.shuffle !== undefined ? session.shuffle : false;
+  });
+  const [repeatMode, setRepeatMode] = useState<'off' | 'all' | 'one'>(() => {
+    const session = loadInitialPlaybackSession();
+    return session?.repeatMode || 'off';
+  });
   const [history, setHistory] = useState<Track[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [playbackError, setPlaybackError] = useState<string | null>(null);
+  const [isCrossfading, setIsCrossfading] = useState<boolean>(false);
 
-  // References for up-to-date values inside event listeners and keyboard shortcuts
+  // References for up-to-date state inside event callbacks
   const stateRef = useRef({
     currentTrack,
     status,
@@ -62,6 +159,8 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     shuffle,
     repeatMode,
     history,
+    crossfadeDuration,
+    autoplay,
   });
 
   useEffect(() => {
@@ -75,6 +174,8 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       shuffle,
       repeatMode,
       history,
+      crossfadeDuration,
+      autoplay,
     };
   }, [
     currentTrack,
@@ -86,7 +187,109 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     shuffle,
     repeatMode,
     history,
+    crossfadeDuration,
+    autoplay,
   ]);
+
+  // Preload remembered track position on mount without autoplay
+  useEffect(() => {
+    const session = loadInitialPlaybackSession();
+    const initialQ = loadInitialQueue();
+    const track =
+      (session?.trackId && initialQ.queue.find((t) => t.id === session.trackId)) ||
+      initialQ.queue[initialQ.queueIndex] ||
+      MOCK_TRACKS[0];
+
+    if (track && track.audioUrl) {
+      const initialVol = session?.volume !== undefined ? session.volume : 0.8;
+      const initialMuted = session?.muted !== undefined ? session.muted : false;
+      audioEngine.setVolume(initialVol);
+      audioEngine.setMuted(initialMuted);
+      audioEngine.loadTrack(track.audioUrl, false, session?.position || 0);
+    }
+  }, []);
+
+  // Persist queue and queueIndex
+  useEffect(() => {
+    try {
+      localStorage.setItem(
+        QUEUE_STORAGE_KEY,
+        JSON.stringify({ queue, queueIndex })
+      );
+    } catch (e) {
+      console.warn('[PlayerContext] Failed to persist queue:', e);
+    }
+  }, [queue, queueIndex]);
+
+  // Persist playback session (throttled)
+  const lastSavedPositionRef = useRef<number>(0);
+  useEffect(() => {
+    if (!currentTrack) return;
+    if (Math.abs(currentTime - lastSavedPositionRef.current) < 2) return;
+    lastSavedPositionRef.current = currentTime;
+
+    try {
+      localStorage.setItem(
+        PLAYBACK_SESSION_KEY,
+        JSON.stringify({
+          trackId: currentTrack.id,
+          position: Math.floor(currentTime),
+          duration: Math.floor(duration),
+          volume,
+          muted,
+          shuffle,
+          repeatMode,
+        })
+      );
+    } catch (e) {
+      console.warn('[PlayerContext] Failed to persist playback session:', e);
+    }
+  }, [currentTrack, currentTime, duration, volume, muted, shuffle, repeatMode]);
+
+  // Calculates the next track in queue with shuffle, repeat, and autoplay support
+  const getNextPlayableTrack = useCallback((): { track: Track; index: number } | null => {
+    const { queue: currQ, queueIndex: currIdx, shuffle: isShuff, repeatMode: repMode, autoplay: isAuto } =
+      stateRef.current;
+    if (currQ.length === 0) return null;
+
+    if (isShuff && currQ.length > 1) {
+      const candidates = currQ
+        .map((t, idx) => (!t.isUnavailable && Boolean(t.audioUrl) && idx !== currIdx ? idx : -1))
+        .filter((i) => i !== -1);
+      if (candidates.length > 0) {
+        const randIdx = candidates[Math.floor(Math.random() * candidates.length)];
+        return { track: currQ[randIdx], index: randIdx };
+      }
+    }
+
+    let nextIdx = currIdx + 1;
+    while (nextIdx < currQ.length && (currQ[nextIdx].isUnavailable || !currQ[nextIdx].audioUrl)) {
+      nextIdx++;
+    }
+
+    if (nextIdx < currQ.length) {
+      return { track: currQ[nextIdx], index: nextIdx };
+    }
+
+    if (repMode === 'all') {
+      const firstPlayable = currQ.findIndex((t) => !t.isUnavailable && Boolean(t.audioUrl));
+      if (firstPlayable !== -1) {
+        return { track: currQ[firstPlayable], index: firstPlayable };
+      }
+    }
+
+    if (isAuto) {
+      const autoTrack = pickAutoplayTrack(currQ);
+      if (autoTrack) {
+        const newQueue = [...currQ, autoTrack];
+        const newIdx = currQ.length;
+        setQueue(newQueue);
+        return { track: autoTrack, index: newIdx };
+      }
+    }
+
+    return null;
+  }, []);
 
   // Load and play a specific track
   const playTrack = useCallback(
@@ -153,58 +356,36 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     [playTrack]
   );
 
-  // Transition to next track in queue with shuffle / repeat support
+  // Transition to next track in queue
   const nextTrack = useCallback(() => {
-    const { queue: currentQ, queueIndex: currentIdx, shuffle: isShuff, repeatMode: currentRep, currentTrack: currTrk } =
-      stateRef.current;
-
-    if (currentQ.length === 0) return;
-
-    if (isShuff && currentQ.length > 1) {
-      const playableIndices = currentQ
-        .map((t, idx) => (!t.isUnavailable && Boolean(t.audioUrl) ? idx : -1))
-        .filter((idx) => idx !== -1);
-
-      if (playableIndices.length > 0) {
-        let randomIdx = playableIndices[Math.floor(Math.random() * playableIndices.length)];
-        if (randomIdx === currentIdx && playableIndices.length > 1) {
-          const others = playableIndices.filter((i) => i !== currentIdx);
-          randomIdx = others[Math.floor(Math.random() * others.length)];
-        }
-        playTrack(currentQ[randomIdx], currentQ, randomIdx);
-        return;
-      }
-    }
-
-    let nextIdx = currentIdx + 1;
-    while (nextIdx < currentQ.length && (currentQ[nextIdx].isUnavailable || !currentQ[nextIdx].audioUrl)) {
-      nextIdx++;
-    }
-
-    if (nextIdx < currentQ.length) {
-      playTrack(currentQ[nextIdx], currentQ, nextIdx);
-    } else if (currentRep === 'all') {
-      const firstPlayableIdx = currentQ.findIndex((t) => !t.isUnavailable && Boolean(t.audioUrl));
-      if (firstPlayableIdx !== -1) {
-        playTrack(currentQ[firstPlayableIdx], currentQ, firstPlayableIdx);
-      }
+    const nextItem = getNextPlayableTrack();
+    if (nextItem) {
+      playTrack(nextItem.track, undefined, nextItem.index);
     } else {
       audioEngine.pause();
       setStatus('idle');
       setCurrentTime(0);
-      if (currTrk) {
+      if (stateRef.current.currentTrack) {
         audioEngine.seek(0);
       }
     }
-  }, [playTrack]);
+  }, [getNextPlayableTrack, playTrack]);
 
   // Transition to previous track
   const previousTrack = useCallback(() => {
-    const { queue: currentQ, queueIndex: currentIdx, currentTime: currTime } = stateRef.current;
+    const { queue: currentQ, queueIndex: currentIdx, currentTime: currTime, history: hist } = stateRef.current;
 
     if (currTime > 3) {
       audioEngine.seek(0);
       setCurrentTime(0);
+      return;
+    }
+
+    if (hist.length > 0) {
+      const lastPlayed = hist[hist.length - 1];
+      setHistory((prev) => prev.slice(0, -1));
+      const idxInQueue = currentQ.findIndex((t) => t.id === lastPlayed.id);
+      playTrack(lastPlayed, undefined, idxInQueue !== -1 ? idxInQueue : currentIdx);
       return;
     }
 
@@ -390,6 +571,9 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     });
   }, []);
 
+  // Track ID guard to avoid triggering crossfade multiple times on the same ending track
+  const crossfadeTriggeredTrackId = useRef<string | null>(null);
+
   // Subscribe to persistent AudioEngine events
   useEffect(() => {
     const unsubscribe = audioEngine.subscribe({
@@ -405,6 +589,35 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         if (dur && dur > 0) {
           setDuration(dur);
         }
+
+        // Automatic Acoustic Crossfade detection
+        const xfadeSec = stateRef.current.crossfadeDuration;
+        const currentTrk = stateRef.current.currentTrack;
+
+        if (
+          xfadeSec > 0 &&
+          dur > xfadeSec * 1.5 &&
+          dur - curr <= xfadeSec &&
+          !audioEngine.isCrossfading() &&
+          stateRef.current.repeatMode !== 'one' &&
+          currentTrk &&
+          crossfadeTriggeredTrackId.current !== currentTrk.id
+        ) {
+          const upcoming = getNextPlayableTrack();
+          if (upcoming && upcoming.track.audioUrl) {
+            crossfadeTriggeredTrackId.current = currentTrk.id;
+            setIsCrossfading(true);
+
+            audioEngine.startCrossfade(upcoming.track.audioUrl, xfadeSec, () => {
+              setCurrentTrack(upcoming.track);
+              setQueueIndex(upcoming.index);
+              setCurrentTime(0);
+              setDuration(upcoming.track.duration);
+              setIsCrossfading(false);
+              crossfadeTriggeredTrackId.current = null;
+            });
+          }
+        }
       },
       onLoading: (loading) => {
         setIsLoading(loading);
@@ -418,6 +631,12 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       onEnded: () => {
         handleTrackEnded();
       },
+      onCrossfadeStart: () => {
+        setIsCrossfading(true);
+      },
+      onCrossfadeEnd: () => {
+        setIsCrossfading(false);
+      },
       onError: (err) => {
         console.warn('[PlayerContext] Audio playback warning:', err.message);
         setIsLoading(false);
@@ -429,12 +648,11 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     return () => {
       unsubscribe();
     };
-  }, [handleTrackEnded]);
+  }, [handleTrackEnded, getNextPlayableTrack]);
 
   // Global Keyboard Shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Do not trigger shortcuts when user is interacting with text inputs or controls
       const target = e.target as HTMLElement | null;
       if (
         target &&
@@ -517,6 +735,11 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         history,
         isLoading,
         error: playbackError,
+        isCrossfading,
+        autoplay,
+        toggleAutoplay,
+        crossfadeDuration,
+        setCrossfadeDuration,
         playTrack,
         playAlbum,
         playPlaylist,

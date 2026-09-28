@@ -8,10 +8,11 @@ import {
   Volume2,
   Gauge,
   Sparkles,
+  Shuffle,
 } from 'lucide-react';
 import { useAudioSettings } from '../../state/AudioSettingsContext';
 import { useToast } from '../../state/ToastContext';
-import { EQ_BANDS, BUILTIN_EQ_PRESETS } from '../../types/audio';
+import { EQ_BANDS, BUILTIN_EQ_PRESETS, CROSSFADE_OPTIONS } from '../../types/audio';
 import type { AudioQuality } from '../../types/audio';
 import { AudioVisualizer } from './AudioVisualizer';
 import { IconButton } from '../primitives/IconButton';
@@ -38,6 +39,10 @@ export const EqualizerModal: React.FC = () => {
     setAudioQuality,
     playbackRate,
     setPlaybackRate,
+    crossfadeDuration,
+    setCrossfadeDuration,
+    autoplay,
+    setAutoplay,
   } = useAudioSettings();
 
   const { showToast } = useToast();
@@ -334,6 +339,51 @@ export const EqualizerModal: React.FC = () => {
               </div>
               <span className="nocturne-eq-setting-card__desc">
                 {qualityOptions.find((o) => o.id === audioQuality)?.desc || 'Lossless stream'}
+              </span>
+            </div>
+
+            {/* Acoustic Crossfade */}
+            <div className="nocturne-eq-setting-card">
+              <div className="nocturne-eq-setting-card__header">
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <Shuffle size={16} color="var(--accent-secondary)" />
+                  <span className="nocturne-eq-setting-card__title">Acoustic Crossfade</span>
+                </div>
+                <select
+                  className="nocturne-eq-select"
+                  value={crossfadeDuration}
+                  onChange={(e) => setCrossfadeDuration(parseInt(e.target.value, 10) as any)}
+                >
+                  {CROSSFADE_OPTIONS.map((opt) => (
+                    <option key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <span className="nocturne-eq-setting-card__desc">
+                Dual-channel opposing volume blend as tracks approach completion.
+              </span>
+            </div>
+
+            {/* Continuous Autoplay */}
+            <div className="nocturne-eq-setting-card">
+              <div className="nocturne-eq-setting-card__header">
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <Sparkles size={16} color="var(--accent-secondary)" />
+                  <span className="nocturne-eq-setting-card__title">Continuous Autoplay</span>
+                </div>
+                <div className="nocturne-toggle-switch">
+                  <input
+                    type="checkbox"
+                    checked={autoplay}
+                    onChange={(e) => setAutoplay(e.target.checked)}
+                  />
+                  <span className="nocturne-toggle-switch__slider" />
+                </div>
+              </div>
+              <span className="nocturne-eq-setting-card__desc">
+                Auto-generates harmonious queue continuations when playback reaches the end.
               </span>
             </div>
           </div>

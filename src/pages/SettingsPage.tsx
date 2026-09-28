@@ -14,12 +14,11 @@ import {
 } from 'lucide-react';
 import { Card } from '../components/primitives/Card';
 import { Button } from '../components/primitives/Button';
-import { Slider } from '../components/primitives/Slider';
 import { useTheme } from '../state/ThemeContext';
 import { useToast } from '../state/ToastContext';
 import { useSpotify } from '../state/SpotifyContext';
 import { useAudioSettings } from '../state/AudioSettingsContext';
-import { BUILTIN_EQ_PRESETS } from '../types/audio';
+import { BUILTIN_EQ_PRESETS, CROSSFADE_OPTIONS } from '../types/audio';
 import type { AudioQuality } from '../types/audio';
 
 export const SettingsPage: React.FC = () => {
@@ -45,6 +44,10 @@ export const SettingsPage: React.FC = () => {
     setVolumeNormalization,
     playbackRate,
     setPlaybackRate,
+    crossfadeDuration,
+    setCrossfadeDuration,
+    autoplay,
+    setAutoplay,
     equalizerEnabled,
     toggleEqualizerEnabled,
     currentPresetId,
@@ -52,7 +55,6 @@ export const SettingsPage: React.FC = () => {
     openEqualizer,
   } = useAudioSettings();
 
-  const [crossfade, setCrossfade] = useState(4);
   const [showConfig, setShowConfig] = useState(false);
   const [tempId, setTempId] = useState(clientId);
 
@@ -551,32 +553,105 @@ export const SettingsPage: React.FC = () => {
           </Button>
         </div>
 
-        {/* Crossfade */}
+        {/* Crossfade Transitions */}
         <div
           style={{
             display: 'flex',
             flexDirection: 'column',
-            gap: 8,
-            maxWidth: 420,
+            gap: 10,
             paddingTop: 14,
             borderTop: '1px solid var(--border-subtle)',
           }}
         >
-          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12.5px' }}>
-            <span>Acoustic Crossfade Decay</span>
-            <span className="font-mono">{crossfade}s</span>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div>
+              <div style={{ fontWeight: 500, color: 'var(--text-pure)', fontSize: '13.5px' }}>
+                Acoustic Crossfade Duration
+              </div>
+              <div style={{ fontSize: '11.5px', color: 'var(--text-medium)' }}>
+                Smoothly blends fading tracks into upcoming sequences via dual-channel Web Audio volume ramps
+              </div>
+            </div>
+            <span
+              style={{
+                fontFamily: 'var(--font-mono)',
+                fontSize: '12px',
+                color: 'var(--accent-primary)',
+                background: 'rgba(255, 255, 255, 0.05)',
+                padding: '2px 8px',
+                borderRadius: 4,
+              }}
+            >
+              {crossfadeDuration === 0 ? 'Off' : `${crossfadeDuration}s`}
+            </span>
           </div>
-          <Slider
-            value={crossfade}
-            min={0}
-            max={12}
-            step={1}
-            onChange={setCrossfade}
-            aria-label="Crossfade slider"
-          />
-          <span style={{ fontSize: '11px', color: 'var(--text-low)' }}>
-            Gradually dissolves fading tracks into upcoming sequences
-          </span>
+
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+            {CROSSFADE_OPTIONS.map((opt) => {
+              const isSelected = crossfadeDuration === opt.value;
+              return (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => {
+                    setCrossfadeDuration(opt.value);
+                    showToast(
+                      'Crossfade Updated',
+                      opt.value === 0 ? 'Crossfade disabled' : `${opt.label} acoustic crossfade active`,
+                      'default'
+                    );
+                  }}
+                  style={{
+                    padding: '6px 14px',
+                    borderRadius: 'var(--radius-sm)',
+                    background: isSelected ? 'var(--accent-primary)' : 'rgba(255, 255, 255, 0.04)',
+                    color: isSelected ? '#000000' : 'var(--text-high)',
+                    border: `1px solid ${isSelected ? 'var(--accent-primary)' : 'var(--border-subtle)'}`,
+                    fontSize: '12px',
+                    fontFamily: 'var(--font-mono)',
+                    fontWeight: isSelected ? 600 : 400,
+                    cursor: 'pointer',
+                    transition: 'all var(--transition-snappy)',
+                  }}
+                >
+                  {opt.label}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Autoplay Toggle */}
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            paddingTop: 14,
+            borderTop: '1px solid var(--border-subtle)',
+          }}
+        >
+          <div>
+            <div style={{ fontWeight: 500, color: 'var(--text-pure)' }}>Continuous Autoplay</div>
+            <div style={{ fontSize: '11.5px', color: 'var(--text-medium)' }}>
+              Automatically discovers and queues matching nocturnal tracks when your queue finishes
+            </div>
+          </div>
+          <Button
+            variant={autoplay ? 'primary' : 'secondary'}
+            size="sm"
+            onClick={() => {
+              const next = !autoplay;
+              setAutoplay(next);
+              showToast(
+                next ? 'Autoplay Active' : 'Autoplay Disabled',
+                next ? 'Continuous listening session enabled' : 'Playback stops when queue ends',
+                'default'
+              );
+            }}
+          >
+            {autoplay ? 'Active' : 'Disabled'}
+          </Button>
         </div>
       </Card>
 

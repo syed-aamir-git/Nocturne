@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { BUILTIN_EQ_PRESETS } from '../types/audio';
-import type { AudioQuality, EQPreset, AudioSettings } from '../types/audio';
+import type { AudioQuality, EQPreset, AudioSettings, CrossfadeDuration } from '../types/audio';
 import { audioEngine } from '../audio/AudioEngine';
 
 const STORAGE_KEY = 'nocturne_audio_settings_v1';
@@ -13,6 +13,8 @@ const DEFAULT_SETTINGS: AudioSettings = {
   volumeNormalization: true,
   audioQuality: 'lossless',
   playbackRate: 1.0,
+  crossfadeDuration: 4,
+  autoplay: true,
 };
 
 function loadStoredSettings(): AudioSettings {
@@ -61,6 +63,11 @@ export interface AudioSettingsContextType {
   setAudioQuality: (quality: AudioQuality) => void;
   playbackRate: number;
   setPlaybackRate: (rate: number) => void;
+  crossfadeDuration: CrossfadeDuration;
+  setCrossfadeDuration: (duration: CrossfadeDuration) => void;
+  autoplay: boolean;
+  setAutoplay: (enabled: boolean) => void;
+  toggleAutoplay: () => void;
   isEqualizerOpen: boolean;
   openEqualizer: () => void;
   closeEqualizer: () => void;
@@ -248,6 +255,24 @@ export const AudioSettingsProvider: React.FC<{ children: React.ReactNode }> = ({
     [updateSettings]
   );
 
+  const setCrossfadeDuration = useCallback(
+    (duration: CrossfadeDuration) => {
+      updateSettings((prev) => ({ ...prev, crossfadeDuration: duration }));
+    },
+    [updateSettings]
+  );
+
+  const setAutoplay = useCallback(
+    (enabled: boolean) => {
+      updateSettings((prev) => ({ ...prev, autoplay: enabled }));
+    },
+    [updateSettings]
+  );
+
+  const toggleAutoplay = useCallback(() => {
+    updateSettings((prev) => ({ ...prev, autoplay: !prev.autoplay }));
+  }, [updateSettings]);
+
   const openEqualizer = useCallback(() => setIsEqualizerOpen(true), []);
   const closeEqualizer = useCallback(() => setIsEqualizerOpen(false), []);
   const toggleEqualizer = useCallback(() => setIsEqualizerOpen((prev) => !prev), []);
@@ -273,6 +298,11 @@ export const AudioSettingsProvider: React.FC<{ children: React.ReactNode }> = ({
         setAudioQuality,
         playbackRate: settings.playbackRate,
         setPlaybackRate,
+        crossfadeDuration: settings.crossfadeDuration,
+        setCrossfadeDuration,
+        autoplay: settings.autoplay,
+        setAutoplay,
+        toggleAutoplay,
         isEqualizerOpen,
         openEqualizer,
         closeEqualizer,
