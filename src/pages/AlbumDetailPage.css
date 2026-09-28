@@ -366,7 +366,19 @@
   }
 
   .nocturne-album-page__more-grid {
-    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-    gap: 14px;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
   }
 }
+
+@media (max-width: 480px) {
+  .nocturne-album-page__cover-wrap {
+    width: 130px;
+    height: 130px;
+  }
+
+  .nocturne-album-page__hero {
+    padding: 20px 14px;
+  }
+}
+

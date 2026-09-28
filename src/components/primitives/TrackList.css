@@ -66,14 +66,15 @@
   background: rgba(255, 255, 255, 0.01);
 }
 
-@media (max-width: 768px) {
+@media (min-width: 641px) and (max-width: 1024px) {
   .nocturne-tracklist__header {
-    grid-template-columns: 36px 1fr 60px;
-    padding: 8px 8px;
+    grid-template-columns: 44px 1fr 140px 60px 48px;
+    padding: 8px 12px;
   }
+}
 
-  .nocturne-tracklist__header-album,
-  .nocturne-tracklist__header-actions {
+@media (max-width: 640px) {
+  .nocturne-tracklist__header {
     display: none;
   }
 }

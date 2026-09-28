@@ -2,7 +2,7 @@
   display: none;
 }
 
-@media (max-width: 900px) {
+@media (max-width: 640px) {
   .nocturne-mobile-nav {
     display: flex;
     align-items: center;
@@ -11,12 +11,16 @@
     bottom: 0;
     left: 0;
     right: 0;
-    height: var(--bottom-nav-height);
-    background: var(--bg-surface);
+    height: calc(var(--bottom-nav-height, 58px) + env(safe-area-inset-bottom, 0px));
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    background: var(--bg-glass-heavy, rgba(16, 15, 22, 0.96));
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
     border-top: 1px solid var(--border-subtle);
     z-index: 190;
-    padding: 0 8px;
-    box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.7);
+    padding-left: 8px;
+    padding-right: 8px;
+    box-shadow: 0 -6px 20px rgba(0, 0, 0, 0.7);
   }
 
   .nocturne-mobile-nav__item {
@@ -24,15 +28,17 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 4px;
+    gap: 3px;
     flex: 1;
+    min-height: 48px;
     height: 100%;
     color: var(--text-medium);
     text-decoration: none;
     font-size: 10px;
     font-weight: 500;
     letter-spacing: 0.02em;
-    transition: color var(--transition-snappy);
+    transition: color var(--transition-snappy), transform var(--transition-snappy);
+    touch-action: manipulation;
   }
 
   .nocturne-mobile-nav__item:hover,
@@ -42,5 +48,7 @@
 
   .nocturne-mobile-nav__item--active svg {
     color: var(--accent-primary);
+    filter: drop-shadow(0 0 8px var(--accent-glow));
+    transform: scale(1.08);
   }
 }

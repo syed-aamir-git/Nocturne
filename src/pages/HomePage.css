@@ -248,10 +248,10 @@
 
 @media (max-width: 768px) {
   .nocturne-home {
-    gap: 36px;
+    gap: 32px;
   }
   .nocturne-home__greeting-title {
-    font-size: 1.85rem;
+    font-size: clamp(1.6rem, 5vw, 2.2rem);
   }
   .nocturne-home__continue-grid {
     grid-template-columns: 1fr;
@@ -263,4 +263,9 @@
     grid-template-columns: repeat(2, 1fr);
     gap: 12px;
   }
+  .nocturne-home__grid-artists {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
 }
+

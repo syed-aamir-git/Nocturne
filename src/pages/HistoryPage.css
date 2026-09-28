@@ -32,12 +32,13 @@
 }
 
 .nocturne-history-title {
-  font-size: 2rem;
+  font-size: clamp(1.6rem, 5vw, 2.2rem);
   font-weight: 700;
   margin: 0;
   color: var(--text-pure);
   font-family: var(--font-serif, 'Playfair Display', serif);
 }
+
 
 .nocturne-history-subtitle {
   font-size: 13.5px;
@@ -337,8 +338,20 @@
 }
 
 @media (max-width: 900px) {
+  .nocturne-history-page {
+    gap: 20px;
+    padding-bottom: 40px;
+  }
+
   .nocturne-history-row {
-    grid-template-columns: 1fr 90px 40px;
+    grid-template-columns: 1fr 85px 44px;
+    padding: 10px 8px;
+  }
+
+  .nocturne-history-delete-btn {
+    opacity: 0.75;
+    min-width: 44px;
+    min-height: 44px;
   }
 
   .nocturne-history-col--album,
@@ -347,3 +360,4 @@
     display: none;
   }
 }
+

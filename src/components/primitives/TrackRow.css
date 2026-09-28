@@ -177,15 +177,34 @@
   gap: 2px;
 }
 
-/* Responsive adjustment */
-@media (max-width: 768px) {
+/* Tablet adjustment (641px - 1024px) */
+@media (min-width: 641px) and (max-width: 1024px) {
   .nocturne-track-row {
-    grid-template-columns: 44px 1fr 45px 56px;
-    gap: 8px;
+    grid-template-columns: 44px 1fr 140px 60px 48px;
+    gap: 10px;
+    padding: 8px 10px;
+  }
+  .nocturne-track-row__index,
+  .nocturne-track-row__badge-col {
+    display: none !important;
+  }
+}
+
+/* Mobile adjustment (<= 640px) */
+@media (max-width: 640px) {
+  .nocturne-track-row {
+    grid-template-columns: 44px 1fr auto;
+    gap: 12px;
+    padding: 10px 8px;
+    min-height: 56px;
   }
   .nocturne-track-row__index,
   .nocturne-track-row__album,
-  .nocturne-track-row__badge-col {
+  .nocturne-track-row__badge-col,
+  .nocturne-track-row__duration {
     display: none !important;
+  }
+  .nocturne-track-row__actions {
+    gap: 6px;
   }
 }

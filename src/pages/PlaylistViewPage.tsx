@@ -28,6 +28,7 @@ import { PlaylistModal } from '../components/modals/PlaylistModal';
 import { AddTracksModal } from '../components/modals/AddTracksModal';
 import { formatNumber } from '../utilities/formatters';
 import type { Track } from '../types';
+import './PlaylistViewPage.css';
 
 export const PlaylistViewPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -146,76 +147,36 @@ export const PlaylistViewPage: React.FC = () => {
   };
 
   return (
-    <div style={{ maxWidth: 1200, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 32 }}>
+    <div className="nocturne-playlist-page">
       {/* Return link */}
       <Link
         to="/playlists"
-        style={{
-          display: 'inline-flex',
-          alignItems: 'center',
-          gap: 8,
-          color: 'var(--text-medium)',
-          fontSize: '13px',
-          textDecoration: 'none',
-        }}
+        className="nocturne-playlist-back-link"
       >
         <ArrowLeft size={16} />
         <span>Return to Playlists</span>
       </Link>
 
       {/* Playlist Hero Banner */}
-      <div
-        style={{
-          display: 'flex',
-          gap: 28,
-          alignItems: 'flex-end',
-          padding: '28px',
-          borderRadius: 'var(--radius-lg)',
-          background: 'var(--bg-surface)',
-          border: '1px solid var(--border-subtle)',
-          boxShadow: 'var(--shadow-md)',
-          position: 'relative',
-          overflow: 'hidden',
-          flexWrap: 'wrap',
-        }}
-      >
+      <div className="nocturne-playlist-hero">
         {/* Artwork */}
-        <div
-          style={{
-            width: 190,
-            height: 190,
-            borderRadius: 'var(--radius-md)',
-            overflow: 'hidden',
-            flexShrink: 0,
-            background: 'var(--bg-surface-elevated)',
-            boxShadow: 'var(--shadow-lg), 0 0 20px var(--accent-glow)',
-            position: 'relative',
-          }}
-        >
+        <div className="nocturne-playlist-art-wrap">
           {!imgError && coverSrc ? (
             <img
               src={coverSrc}
               alt={playlist.title}
-              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+              className="nocturne-playlist-art"
               onError={() => setImgError(true)}
             />
           ) : (
-            <div
-              style={{
-                width: '100%',
-                height: '100%',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
+            <div className="nocturne-playlist-art-fallback">
               <Music size={54} color="var(--accent-primary)" />
             </div>
           )}
         </div>
 
         {/* Metadata & Actions */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 8, flex: 1, minWidth: 260 }}>
+        <div className="nocturne-playlist-meta">
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <span
               style={{
@@ -264,7 +225,7 @@ export const PlaylistViewPage: React.FC = () => {
             ) : null}
           </div>
 
-          <h1 style={{ fontSize: '2.4rem', margin: 0, letterSpacing: '-0.02em' }}>
+          <h1 className="nocturne-playlist-title">
             {playlist.title}
           </h1>
 
@@ -285,7 +246,7 @@ export const PlaylistViewPage: React.FC = () => {
           </div>
 
           {/* Action Buttons */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 12, flexWrap: 'wrap' }}>
+          <div className="nocturne-playlist-actions">
             <Button
               variant="primary"
               size="md"

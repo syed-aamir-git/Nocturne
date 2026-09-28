@@ -193,8 +193,27 @@
   box-shadow: 0 0 6px var(--accent-primary);
 }
 
-/* Desktop Collapse Button */
-@media (max-width: 900px) {
+/* Tablet Collapsible Sidebar (641px - 1024px) */
+@media (min-width: 641px) and (max-width: 1024px) {
+  .nocturne-sidebar {
+    width: var(--sidebar-collapsed-width);
+    position: relative;
+    transform: none;
+  }
+
+  .nocturne-sidebar--expanded {
+    width: var(--sidebar-width);
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: var(--player-height);
+    box-shadow: var(--shadow-floating);
+    z-index: 105;
+  }
+}
+
+/* Mobile Off-Canvas Drawer (<= 640px) */
+@media (max-width: 640px) {
   .desktop-only {
     display: none !important;
   }
@@ -203,12 +222,20 @@
     position: fixed;
     top: 0;
     left: 0;
-    bottom: var(--player-height);
+    bottom: 0;
+    width: 280px;
+    max-width: 85vw;
     transform: translateX(-100%);
     box-shadow: var(--shadow-floating);
+    z-index: 250;
+    border-right: 1px solid var(--border-medium);
   }
 
   .nocturne-sidebar--open {
     transform: translateX(0);
+  }
+
+  .nocturne-sidebar__footer {
+    padding-bottom: calc(14px + env(safe-area-inset-bottom, 0px));
   }
 }

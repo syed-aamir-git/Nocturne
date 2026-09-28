@@ -219,23 +219,112 @@
   width: 110px;
 }
 
-/* Responsive adjustment for Mobile Compact Player */
-@media (max-width: 900px) {
+/* Top Slim Progress Bar for Mobile Mini-Player */
+.nocturne-player__mini-progress-bar {
+  display: none;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2.5px;
+  background: rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+  z-index: 5;
+}
+
+.nocturne-player__mini-progress-fill {
+  height: 100%;
+  background: var(--accent-primary);
+  box-shadow: 0 0 8px var(--accent-glow);
+  transition: width 200ms linear;
+}
+
+/* Tablet Tier: 641px - 1024px */
+@media (min-width: 641px) and (max-width: 1024px) {
+  .nocturne-player-bar {
+    grid-template-columns: minmax(180px, 240px) 1fr minmax(140px, 200px);
+    padding: 0 16px;
+    height: var(--player-height, 80px);
+  }
+  .nocturne-player__volume {
+    width: 80px;
+  }
+  .nocturne-player__controls {
+    gap: 10px;
+  }
+  .nocturne-player__badge {
+    display: none;
+  }
+}
+
+/* Mobile Tier: <= 640px (Compact Mini-Player above Bottom Nav) */
+@media (max-width: 640px) {
   .nocturne-player-bar {
     grid-template-columns: 1fr auto;
     padding: 0 14px;
-    height: var(--player-height);
-    bottom: var(--bottom-nav-height);
+    height: var(--player-height, 60px);
+    bottom: calc(var(--bottom-nav-height, 58px) + env(safe-area-inset-bottom, 0px));
     border-bottom: 1px solid var(--border-subtle);
+    background: var(--bg-glass-heavy, rgba(16, 15, 22, 0.96));
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    cursor: pointer;
   }
-  .nocturne-player__right {
+
+  .nocturne-player__mini-progress-bar {
+    display: block;
+  }
+
+  .nocturne-player__track {
+    gap: 10px;
+    min-width: 0;
+  }
+
+  .nocturne-player__cover-wrap {
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius-xs);
+  }
+
+  .nocturne-player__title {
+    font-size: 13px;
+    max-width: 190px;
+  }
+
+  .nocturne-player__artist {
+    font-size: 11px;
+    max-width: 190px;
+  }
+
+  .nocturne-player__badge {
     display: none;
   }
+
   .nocturne-player__scrubber {
     display: none;
   }
+
+  .nocturne-player__right {
+    display: none;
+  }
+
   .nocturne-player__center {
     width: auto;
     margin: 0;
+  }
+
+  .nocturne-player__controls {
+    gap: 6px;
+  }
+
+  .nocturne-player__btn-shuffle,
+  .nocturne-player__btn-repeat {
+    display: none !important;
+  }
+
+  .nocturne-player__play-btn {
+    width: 38px;
+    height: 38px;
+    box-shadow: 0 0 10px var(--accent-glow);
   }
 }

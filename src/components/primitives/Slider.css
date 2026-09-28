@@ -56,3 +56,21 @@
 .nocturne-slider-container--dragging .nocturne-slider-thumb {
   transform: translate(-50%, -50%) scale(1);
 }
+
+/* Touch Device Optimization */
+@media (pointer: coarse), (max-width: 768px) {
+  .nocturne-slider-container {
+    min-height: var(--touch-target-min, 44px);
+  }
+
+  .nocturne-slider-track {
+    height: 6px;
+  }
+
+  .nocturne-slider-thumb {
+    width: 16px;
+    height: 16px;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+

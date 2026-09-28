@@ -121,6 +121,7 @@ export const PlayerBar: React.FC = () => {
 
   const effectiveTime = displayTime !== null ? displayTime : currentTime;
   const coverSrc = currentTrack.artwork || currentTrack.coverUrl || '';
+  const progressPercentage = duration > 0 ? (effectiveTime / duration) * 100 : 0;
 
   return (
     <div
@@ -129,6 +130,14 @@ export const PlayerBar: React.FC = () => {
       aria-label="Audio Player"
       onClick={handlePlayerBarClick}
     >
+      {/* Mobile Top Slim Progress Indicator */}
+      <div className="nocturne-player__mini-progress-bar" aria-hidden="true">
+        <div
+          className="nocturne-player__mini-progress-fill"
+          style={{ width: `${progressPercentage}%` }}
+        />
+      </div>
+
       {/* Left: Track Information */}
       <div className="nocturne-player__track">
         <div
@@ -246,6 +255,7 @@ export const PlayerBar: React.FC = () => {
               active={shuffle}
               onClick={toggleShuffle}
               aria-label="Toggle shuffle"
+              className="nocturne-player__btn-shuffle"
             >
               <Shuffle size={15} />
             </IconButton>
@@ -257,6 +267,7 @@ export const PlayerBar: React.FC = () => {
               size="sm"
               onClick={previousTrack}
               aria-label="Previous track"
+              className="nocturne-player__btn-prev"
             >
               <SkipBack size={17} />
             </IconButton>
@@ -284,6 +295,7 @@ export const PlayerBar: React.FC = () => {
               size="sm"
               onClick={nextTrack}
               aria-label="Next track"
+              className="nocturne-player__btn-next"
             >
               <SkipForward size={17} />
             </IconButton>
@@ -296,6 +308,7 @@ export const PlayerBar: React.FC = () => {
               active={repeatMode !== 'off'}
               onClick={cycleRepeatMode}
               aria-label="Cycle repeat mode"
+              className="nocturne-player__btn-repeat"
             >
               {repeatMode === 'one' ? <Repeat1 size={15} /> : <Repeat size={15} />}
             </IconButton>

@@ -20,12 +20,13 @@
 }
 
 .nocturne-settings-header__title {
-  font-size: 2.2rem;
+  font-size: clamp(1.6rem, 5vw, 2.2rem);
   font-weight: 700;
   letter-spacing: -0.02em;
   margin: 0;
   color: var(--text-pure);
 }
+
 
 .nocturne-settings-header__desc {
   font-size: 13.5px;
@@ -384,6 +385,26 @@
 }
 
 @media (max-width: 768px) {
+  .nocturne-settings-page {
+    gap: 20px;
+    padding-bottom: 40px;
+  }
+
+  .nocturne-settings-card {
+    padding: 18px 16px;
+    gap: 16px;
+  }
+
+  .nocturne-settings-nav__btn {
+    min-height: var(--touch-target-min, 44px);
+    padding: 8px 14px;
+    font-size: 13px;
+  }
+
+  .nocturne-input {
+    font-size: 16px; /* Prevents auto-zoom on iOS */
+  }
+
   .nocturne-profile-grid {
     grid-template-columns: 1fr;
     justify-items: center;
@@ -406,6 +427,22 @@
   }
 
   .nocturne-settings-eq-grid {
-    grid-template-columns: repeat(4, 1fr);
+    display: flex;
+    overflow-x: auto;
+    gap: 16px;
+    padding-bottom: 8px;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    justify-content: space-between;
+  }
+
+  .nocturne-settings-eq-grid::-webkit-scrollbar {
+    display: none;
+  }
+
+  .nocturne-settings-eq-col {
+    min-width: 44px;
+    flex-shrink: 0;
   }
 }
+

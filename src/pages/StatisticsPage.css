@@ -32,7 +32,7 @@
 }
 
 .nocturne-stats-title {
-  font-size: 2rem;
+  font-size: clamp(1.6rem, 4.5vw, 2.2rem);
   font-weight: 700;
   margin: 0;
   color: var(--text-pure);
@@ -54,8 +54,17 @@
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-full, 9999px);
   padding: 4px;
-  flex-wrap: wrap;
+  overflow-x: auto;
+  flex-wrap: nowrap;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  max-width: 100%;
 }
+
+.nocturne-stats-time-filters::-webkit-scrollbar {
+  display: none;
+}
+
 
 .nocturne-stats-time-pill {
   background: transparent;
@@ -292,4 +301,43 @@
   .nocturne-stats-charts-grid {
     grid-template-columns: 1fr;
   }
+
+  .nocturne-stats-highlights-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .nocturne-stats-time-pill {
+    padding: 8px 16px;
+    font-size: 13px;
+    min-height: var(--touch-target-min, 44px);
+    display: inline-flex;
+    align-items: center;
+  }
 }
+
+@media (max-width: 640px) {
+  .nocturne-stats-page {
+    gap: 20px;
+    padding-bottom: 40px;
+  }
+
+  .nocturne-stats-overview-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+
+  .nocturne-stats-metric-card {
+    padding: 14px;
+  }
+
+  .nocturne-metric-card__val {
+    font-size: 1.6rem;
+  }
+}
+
+@media (max-width: 420px) {
+  .nocturne-stats-overview-grid {
+    grid-template-columns: 1fr;
+  }
+}
+

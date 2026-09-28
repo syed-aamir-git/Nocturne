@@ -13,7 +13,7 @@ import { AuthModal } from '../modals/AuthModal';
 import './TopBar.css';
 
 export const TopBar: React.FC = () => {
-  const { mobileMenuOpen, setMobileMenuOpen, searchQuery, setSearchQuery } = useUI();
+  const { mobileMenuOpen, setMobileMenuOpen, toggleSidebar, searchQuery, setSearchQuery } = useUI();
   const { currentTheme, availableThemes, setThemeId, sidebarMode } = useTheme();
   const { showToast } = useToast();
   const { isConnected, userProfile, disconnect } = useSpotify();
@@ -91,7 +91,13 @@ export const TopBar: React.FC = () => {
           className={`nocturne-topbar__mobile-toggle ${
             sidebarMode === 'hidden' ? 'nocturne-topbar__mobile-toggle--force' : ''
           }`}
-          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          onClick={() => {
+            if (window.innerWidth <= 640) {
+              setMobileMenuOpen(!mobileMenuOpen);
+            } else {
+              toggleSidebar();
+            }
+          }}
           aria-label="Toggle navigation menu"
         >
           <Menu size={20} />

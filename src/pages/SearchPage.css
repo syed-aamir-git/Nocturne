@@ -42,8 +42,15 @@
   align-items: center;
   gap: 8px;
   overflow-x: auto;
-  padding-bottom: 4px;
+  padding-bottom: 6px;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
 }
+
+.nocturne-search__filter-bar::-webkit-scrollbar {
+  display: none;
+}
+
 
 .nocturne-search__filter-pill {
   padding: 6px 14px;
@@ -128,3 +135,36 @@
   border-color: var(--accent-primary, #9d72ff);
   box-shadow: 0 4px 16px var(--accent-glow, rgba(157, 114, 255, 0.15));
 }
+
+@media (max-width: 640px) {
+  .nocturne-search {
+    gap: 20px;
+  }
+
+  .nocturne-search__input-wrap {
+    padding: 10px 14px;
+  }
+
+  .nocturne-search__input {
+    font-size: 16px; /* Prevents auto-zoom on iOS */
+  }
+
+  .nocturne-search__filter-pill {
+    padding: 8px 16px;
+    font-size: 13px;
+    min-height: var(--touch-target-min, 44px);
+    display: inline-flex;
+    align-items: center;
+  }
+
+  .nocturne-search__recent-item {
+    min-height: var(--touch-target-min, 44px);
+    padding: 8px 14px;
+    font-size: 13px;
+  }
+
+  .nocturne-search__recent-remove {
+    padding: 6px;
+  }
+}
+

@@ -75,3 +75,24 @@
   color: var(--text-low);
   border: 1px solid var(--border-subtle);
 }
+
+@media (max-width: 640px) {
+  .nocturne-artist-card {
+    padding: 14px 10px;
+  }
+
+  .nocturne-artist-card__avatar-wrap {
+    width: 88px;
+    height: 88px;
+    margin-bottom: 10px;
+  }
+
+  .nocturne-artist-card__name {
+    font-size: 13.5px;
+  }
+
+  .nocturne-artist-card__listeners {
+    font-size: 11px;
+  }
+}
+

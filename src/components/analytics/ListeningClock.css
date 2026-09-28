@@ -239,3 +239,19 @@
   font-size: 11.5px;
   color: var(--text-medium);
 }
+
+@media (max-width: 640px) {
+  .nocturne-listening-clock {
+    padding: 16px 14px;
+    gap: 16px;
+  }
+
+  .nocturne-listening-clock__svg {
+    max-width: min(300px, 80vw);
+  }
+
+  .nocturne-listening-clock__container {
+    gap: 20px;
+  }
+}
+

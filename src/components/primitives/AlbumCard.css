@@ -101,3 +101,31 @@
   color: var(--text-low);
   margin-top: 4px;
 }
+
+@media (max-width: 640px) {
+  .nocturne-album-card {
+    padding: 10px;
+  }
+
+  .nocturne-album-card__cover-wrap {
+    margin-bottom: 8px;
+  }
+
+  .nocturne-album-card__title {
+    font-size: 13.5px;
+  }
+
+  .nocturne-album-card__artist {
+    font-size: 12px;
+  }
+
+  .nocturne-album-card__play-btn {
+    opacity: 0.95;
+    transform: translateY(0) scale(0.85);
+    right: 8px;
+    bottom: 8px;
+    width: 38px;
+    height: 38px;
+  }
+}
+

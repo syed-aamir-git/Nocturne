@@ -167,7 +167,7 @@ export const SearchPage: React.FC = () => {
     <div className="nocturne-search">
       {/* Header */}
       <div>
-        <h1 style={{ fontSize: '2.4rem', margin: '0 0 6px 0', letterSpacing: '-0.02em' }}>
+        <h1 style={{ fontSize: 'clamp(1.65rem, 4.5vw, 2.4rem)', margin: '0 0 6px 0', letterSpacing: '-0.02em' }}>
           Search & Resonance
         </h1>
         <p style={{ color: 'var(--text-medium)', fontSize: '14px', margin: 0 }}>

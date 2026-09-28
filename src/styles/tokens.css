@@ -42,11 +42,25 @@
   --z-fullscreen: 1100;
   --z-modal: 1300;
   --z-toast: 2000;
+  /* Touch Target Minimum (Accessibility standard) */
+  --touch-target-min: 44px;
 }
 
-@media (max-width: 900px) {
+/* Tablet (641px - 1024px) */
+@media (min-width: 641px) and (max-width: 1024px) {
   :root {
-    --player-height: 76px;
+    --player-height: 80px;
+    --topbar-height: 64px;
+    --sidebar-width: 220px;
+  }
+}
+
+/* Mobile (<= 640px) */
+@media (max-width: 640px) {
+  :root {
+    --player-height: 60px;
+    --bottom-nav-height: 58px;
+    --topbar-height: 58px;
   }
 }
 

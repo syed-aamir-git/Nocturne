@@ -113,3 +113,27 @@
   color: var(--text-low);
   margin-top: auto;
 }
+
+@media (max-width: 640px) {
+  .nocturne-playlist-card {
+    padding: 10px;
+  }
+
+  .nocturne-playlist-card__cover-wrap {
+    margin-bottom: 8px;
+  }
+
+  .nocturne-playlist-card__play-btn {
+    opacity: 0.95;
+    transform: translateY(0) scale(0.85);
+    right: 8px;
+    bottom: 8px;
+    width: 38px;
+    height: 38px;
+  }
+
+  .nocturne-playlist-card__title {
+    font-size: 13.5px;
+  }
+}
+

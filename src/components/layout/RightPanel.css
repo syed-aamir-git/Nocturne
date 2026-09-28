@@ -356,3 +356,49 @@
   background: rgba(255, 255, 255, 0.1);
 }
 
+/* Tablet Overlay Drawer (641px - 1024px) */
+@media (min-width: 641px) and (max-width: 1024px) {
+  .nocturne-right-panel {
+    position: fixed;
+    top: var(--topbar-height);
+    right: 0;
+    bottom: var(--player-height);
+    width: 320px;
+    max-width: 85vw;
+    box-shadow: var(--shadow-floating);
+    z-index: 120;
+    background: var(--bg-surface-elevated);
+    border-left: 1px solid var(--border-medium);
+    transform: translateX(100%);
+    transition: transform var(--transition-smooth);
+  }
+
+  .nocturne-right-panel:not(.nocturne-right-panel--hidden) {
+    transform: translateX(0);
+    display: flex;
+  }
+}
+
+/* Mobile Full-Screen Overlay Drawer (<= 640px) */
+@media (max-width: 640px) {
+  .nocturne-right-panel {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: calc(var(--player-height, 60px) + var(--bottom-nav-height, 58px) + env(safe-area-inset-bottom, 0px));
+    width: 100vw;
+    max-width: 100vw;
+    border-left: none;
+    z-index: 180;
+    background: var(--bg-surface);
+    transform: translateY(100%);
+    transition: transform var(--transition-smooth);
+  }
+
+  .nocturne-right-panel:not(.nocturne-right-panel--hidden) {
+    transform: translateY(0);
+    display: flex;
+  }
+}
+

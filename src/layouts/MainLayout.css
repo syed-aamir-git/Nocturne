@@ -136,11 +136,23 @@
   to { opacity: 1; }
 }
 
-@media (max-width: 900px) {
+/* Tablet (641px - 1024px) */
+@media (min-width: 641px) and (max-width: 1024px) {
   .nocturne-layout__body {
-    padding-bottom: calc(var(--player-height) + var(--bottom-nav-height));
+    padding-bottom: var(--player-height);
   }
   .nocturne-layout__content {
-    padding: calc(var(--layout-content-padding, 20px 16px 40px) * 0.7);
+    padding: 24px 28px 48px;
+  }
+}
+
+/* Mobile (<= 640px) */
+@media (max-width: 640px) {
+  .nocturne-layout__body {
+    padding-bottom: calc(var(--player-height) + var(--bottom-nav-height) + env(safe-area-inset-bottom, 0px));
+  }
+  .nocturne-layout__content {
+    padding: 16px 14px 40px;
+    -webkit-overflow-scrolling: touch;
   }
 }

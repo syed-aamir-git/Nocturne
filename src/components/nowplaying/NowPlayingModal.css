@@ -637,29 +637,49 @@
 /* Responsive Mobile Layout */
 @media (max-width: 768px) {
   .nocturne-nowplaying__container {
-    padding: 16px 18px 24px;
+    padding: calc(12px + env(safe-area-inset-top, 0px)) 16px calc(18px + env(safe-area-inset-bottom, 0px));
   }
 
   .nocturne-nowplaying__swipe-handle {
     display: block;
   }
 
+  .nocturne-nowplaying__tabs {
+    overflow-x: auto;
+    max-width: 100%;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    justify-content: flex-start;
+    padding: 0 4px 4px;
+  }
+
+  .nocturne-nowplaying__tabs::-webkit-scrollbar {
+    display: none;
+  }
+
+  .nocturne-nowplaying__tab-btn {
+    padding: 6px 12px;
+    font-size: 12px;
+    white-space: nowrap;
+    min-height: 38px;
+  }
+
   .nocturne-nowplaying__hero-art-wrap {
-    width: min(300px, 36vh);
-    height: min(300px, 36vh);
+    width: min(270px, 32vh);
+    height: min(270px, 32vh);
   }
 
   .nocturne-nowplaying__song-title {
-    font-size: 1.25rem;
+    font-size: clamp(1.15rem, 4vw, 1.35rem);
   }
 
   .nocturne-nowplaying__controls-row {
-    gap: 16px;
+    gap: 18px;
   }
 
   .nocturne-nowplaying__play-btn {
-    width: 54px;
-    height: 54px;
+    width: 56px;
+    height: 56px;
   }
 
   .nocturne-nowplaying__util-row {
@@ -670,11 +690,6 @@
     width: 140px;
   }
 
-  .nocturne-nowplaying__tab-btn {
-    padding: 5px 10px;
-    font-size: 11.5px;
-  }
-
   .nocturne-nowplaying__audio-drawer {
     left: 16px;
     right: 16px;
@@ -682,3 +697,19 @@
     top: 60px;
   }
 }
+
+@media (max-width: 480px), (max-height: 700px) {
+  .nocturne-nowplaying__hero-art-wrap {
+    width: min(230px, 28vh);
+    height: min(230px, 28vh);
+  }
+
+  .nocturne-nowplaying__artwork-panel {
+    gap: 12px;
+  }
+
+  .nocturne-nowplaying__bottom {
+    gap: 10px;
+  }
+}
+

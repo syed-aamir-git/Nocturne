@@ -126,14 +126,47 @@
   box-shadow: 0 0 6px currentColor;
 }
 
-@media (max-width: 900px) {
+@media (max-width: 1024px) {
   .nocturne-topbar {
-    padding: 0 16px;
+    padding: 0 18px;
   }
   .nocturne-topbar__mobile-toggle {
     display: flex;
   }
   .nocturne-topbar__hires-badge {
+    display: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .nocturne-topbar {
+    padding: 0 12px;
+    gap: 8px;
+  }
+  .nocturne-topbar__left {
+    gap: 8px;
+  }
+  .nocturne-topbar__search-input {
+    height: 38px;
+    font-size: 16px; /* Prevents auto-zoom on mobile iOS */
+    padding: 0 12px 0 36px;
+  }
+  .nocturne-topbar__search-icon {
+    left: 10px;
+  }
+  .nocturne-topbar__search-shortcut {
+    display: none;
+  }
+  .nocturne-topbar__right {
+    gap: 8px;
+  }
+  .nocturne-topbar__theme-btn {
+    padding: 8px;
+    width: 36px;
+    height: 36px;
+    justify-content: center;
+  }
+  .nocturne-topbar__theme-btn span:not(.nocturne-topbar__theme-dot) {
     display: none;
   }
 }
