@@ -11,6 +11,7 @@ import {
   Users,
   ListMusic,
   Compass,
+  AlertCircle,
 } from 'lucide-react';
 import { musicService, type SearchResult } from '../services/musicService';
 import { storageService } from '../services/storageService';
@@ -45,6 +46,7 @@ export const SearchPage: React.FC = () => {
 
   const [activeFilter, setActiveFilter] = useState<SearchFilter>('all');
   const [isLoading, setIsLoading] = useState(false);
+  const [searchError, setSearchError] = useState<string | null>(null);
   const [results, setResults] = useState<SearchResult>({
     tracks: [],
     albums: [],
@@ -76,18 +78,29 @@ export const SearchPage: React.FC = () => {
       if (!trimmed) {
         if (!isCancelled) {
           setResults({ tracks: [], albums: [], artists: [], playlists: [], genres: [] });
+          setSearchError(null);
           setIsLoading(false);
         }
         return;
       }
 
       setIsLoading(true);
-      musicService.search(trimmed).then((res) => {
-        if (!isCancelled) {
-          setResults(res);
-          setIsLoading(false);
-        }
-      });
+      setSearchError(null);
+      musicService
+        .search(trimmed)
+        .then((res) => {
+          if (!isCancelled) {
+            setResults(res);
+            setIsLoading(false);
+          }
+        })
+        .catch((err) => {
+          if (!isCancelled) {
+            console.warn('[SearchPage] Search error:', err);
+            setSearchError(err instanceof Error ? err.message : 'Inquest interrupted');
+            setIsLoading(false);
+          }
+        });
     }, trimmed ? 120 : 0);
 
     return () => {
@@ -377,8 +390,40 @@ export const SearchPage: React.FC = () => {
         </div>
       )}
 
+      {/* SEARCH ERROR STATE */}
+      {!isLoading && searchError && (
+        <EmptyState
+          title="Inquest Interrupted"
+          description={`The archives could not be reached: ${searchError}. Please verify your connection or try again.`}
+          icon={<AlertCircle size={32} color="var(--indicator-error)" />}
+          action={
+            <Button
+              variant="primary"
+              onClick={() => {
+                const trimmed = searchQuery.trim();
+                if (!trimmed) return;
+                setIsLoading(true);
+                setSearchError(null);
+                musicService
+                  .search(trimmed)
+                  .then((res) => {
+                    setResults(res);
+                    setIsLoading(false);
+                  })
+                  .catch((err) => {
+                    setSearchError(err instanceof Error ? err.message : 'Inquest interrupted');
+                    setIsLoading(false);
+                  });
+              }}
+            >
+              Retry Inquest
+            </Button>
+          }
+        />
+      )}
+
       {/* NO-RESULT STATE */}
-      {!isLoading && searchQuery.trim() && !hasResults && (
+      {!isLoading && !searchError && searchQuery.trim() && !hasResults && (
         <EmptyState
           title="No Resonances Detected"
           description={`The nocturnal void returns no frequencies for "${searchQuery}". Check your spelling or explore by genre.`}
