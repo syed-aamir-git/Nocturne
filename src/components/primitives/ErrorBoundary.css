@@ -1,0 +1,78 @@
+.nocturne-error-boundary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  width: 100%;
+  padding: 40px 20px;
+}
+
+.nocturne-error-boundary__card {
+  max-width: 520px;
+  width: 100%;
+  background: var(--bg-surface-elevated);
+  border: 1px solid rgba(239, 68, 68, 0.25);
+  border-radius: var(--radius-lg);
+  padding: 36px 30px;
+  text-align: center;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.7), 0 0 20px rgba(239, 68, 68, 0.1);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+.nocturne-error-boundary__icon-wrap {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: rgba(239, 68, 68, 0.12);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 20px;
+}
+
+.nocturne-error-boundary__icon {
+  color: #f87171;
+}
+
+.nocturne-error-boundary__title {
+  font-size: 1.35rem;
+  font-family: var(--font-serif);
+  font-weight: 600;
+  color: var(--text-pure);
+  margin: 0 0 10px;
+  letter-spacing: -0.01em;
+}
+
+.nocturne-error-boundary__desc {
+  font-size: 13.5px;
+  color: var(--text-medium);
+  line-height: 1.6;
+  margin: 0 0 18px;
+}
+
+.nocturne-error-boundary__details {
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+  margin-bottom: 24px;
+  max-height: 100px;
+  overflow-y: auto;
+  text-align: left;
+}
+
+.nocturne-error-boundary__details code {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: #fca5a5;
+  word-break: break-word;
+}
+
+.nocturne-error-boundary__actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}

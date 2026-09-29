@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AppProvider } from './state';
 import { MainLayout } from './layouts/MainLayout';
 import { HomePage } from './pages/HomePage';
+import { ErrorBoundary } from './components/primitives/ErrorBoundary';
 import './styles/index.css';
 
 // Route Code Splitting: Lazy-load secondary pages to dramatically optimize initial page load bundle
@@ -65,152 +66,154 @@ const RouteLoadingFallback: React.FC = () => (
 
 export const App: React.FC = () => {
   return (
-    <AppProvider>
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<MainLayout />}>
-            <Route index element={<HomePage />} />
-            <Route
-              path="discover"
-              element={
-                <Suspense fallback={<RouteLoadingFallback />}>
-                  <DiscoverPage />
-                </Suspense>
-              }
-            />
-            <Route
-              path="search"
-              element={
-                <Suspense fallback={<RouteLoadingFallback />}>
-                  <SearchPage />
-                </Suspense>
-              }
-            />
-            <Route
-              path="library"
-              element={
-                <Suspense fallback={<RouteLoadingFallback />}>
-                  <LibraryPage />
-                </Suspense>
-              }
-            />
-            <Route
-              path="import"
-              element={
-                <Suspense fallback={<RouteLoadingFallback />}>
-                  <ImportMusicPage />
-                </Suspense>
-              }
-            />
-            <Route
-              path="callback"
-              element={
-                <Suspense fallback={<RouteLoadingFallback />}>
-                  <CallbackPage />
-                </Suspense>
-              }
-            />
-            <Route
-              path="playlists"
-              element={
-                <Suspense fallback={<RouteLoadingFallback />}>
-                  <PlaylistsPage />
-                </Suspense>
-              }
-            />
-            <Route
-              path="playlist/:id"
-              element={
-                <Suspense fallback={<RouteLoadingFallback />}>
-                  <PlaylistViewPage />
-                </Suspense>
-              }
-            />
-            <Route
-              path="albums"
-              element={
-                <Suspense fallback={<RouteLoadingFallback />}>
-                  <AlbumsPage />
-                </Suspense>
-              }
-            />
-            <Route
-              path="album/:id"
-              element={
-                <Suspense fallback={<RouteLoadingFallback />}>
-                  <AlbumDetailPage />
-                </Suspense>
-              }
-            />
-            <Route
-              path="artists"
-              element={
-                <Suspense fallback={<RouteLoadingFallback />}>
-                  <ArtistsPage />
-                </Suspense>
-              }
-            />
-            <Route
-              path="artist/:id"
-              element={
-                <Suspense fallback={<RouteLoadingFallback />}>
-                  <ArtistDetailPage />
-                </Suspense>
-              }
-            />
-            <Route
-              path="liked"
-              element={
-                <Suspense fallback={<RouteLoadingFallback />}>
-                  <LikedSongsPage />
-                </Suspense>
-              }
-            />
-            <Route
-              path="recently-played"
-              element={
-                <Suspense fallback={<RouteLoadingFallback />}>
-                  <RecentlyPlayedPage />
-                </Suspense>
-              }
-            />
-            <Route
-              path="history"
-              element={
-                <Suspense fallback={<RouteLoadingFallback />}>
-                  <HistoryPage />
-                </Suspense>
-              }
-            />
-            <Route
-              path="statistics"
-              element={
-                <Suspense fallback={<RouteLoadingFallback />}>
-                  <StatisticsPage />
-                </Suspense>
-              }
-            />
-            <Route
-              path="settings"
-              element={
-                <Suspense fallback={<RouteLoadingFallback />}>
-                  <SettingsPage />
-                </Suspense>
-              }
-            />
-            <Route
-              path="design-system"
-              element={
-                <Suspense fallback={<RouteLoadingFallback />}>
-                  <DesignSystemPage />
-                </Suspense>
-              }
-            />
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Route>
-        </Routes>
-      </BrowserRouter>
-    </AppProvider>
+    <ErrorBoundary>
+      <AppProvider>
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<MainLayout />}>
+              <Route index element={<HomePage />} />
+              <Route
+                path="discover"
+                element={
+                  <Suspense fallback={<RouteLoadingFallback />}>
+                    <DiscoverPage />
+                  </Suspense>
+                }
+              />
+              <Route
+                path="search"
+                element={
+                  <Suspense fallback={<RouteLoadingFallback />}>
+                    <SearchPage />
+                  </Suspense>
+                }
+              />
+              <Route
+                path="library"
+                element={
+                  <Suspense fallback={<RouteLoadingFallback />}>
+                    <LibraryPage />
+                  </Suspense>
+                }
+              />
+              <Route
+                path="import"
+                element={
+                  <Suspense fallback={<RouteLoadingFallback />}>
+                    <ImportMusicPage />
+                  </Suspense>
+                }
+              />
+              <Route
+                path="callback"
+                element={
+                  <Suspense fallback={<RouteLoadingFallback />}>
+                    <CallbackPage />
+                  </Suspense>
+                }
+              />
+              <Route
+                path="playlists"
+                element={
+                  <Suspense fallback={<RouteLoadingFallback />}>
+                    <PlaylistsPage />
+                  </Suspense>
+                }
+              />
+              <Route
+                path="playlist/:id"
+                element={
+                  <Suspense fallback={<RouteLoadingFallback />}>
+                    <PlaylistViewPage />
+                  </Suspense>
+                }
+              />
+              <Route
+                path="albums"
+                element={
+                  <Suspense fallback={<RouteLoadingFallback />}>
+                    <AlbumsPage />
+                  </Suspense>
+                }
+              />
+              <Route
+                path="album/:id"
+                element={
+                  <Suspense fallback={<RouteLoadingFallback />}>
+                    <AlbumDetailPage />
+                  </Suspense>
+                }
+              />
+              <Route
+                path="artists"
+                element={
+                  <Suspense fallback={<RouteLoadingFallback />}>
+                    <ArtistsPage />
+                  </Suspense>
+                }
+              />
+              <Route
+                path="artist/:id"
+                element={
+                  <Suspense fallback={<RouteLoadingFallback />}>
+                    <ArtistDetailPage />
+                  </Suspense>
+                }
+              />
+              <Route
+                path="liked"
+                element={
+                  <Suspense fallback={<RouteLoadingFallback />}>
+                    <LikedSongsPage />
+                  </Suspense>
+                }
+              />
+              <Route
+                path="recently-played"
+                element={
+                  <Suspense fallback={<RouteLoadingFallback />}>
+                    <RecentlyPlayedPage />
+                  </Suspense>
+                }
+              />
+              <Route
+                path="history"
+                element={
+                  <Suspense fallback={<RouteLoadingFallback />}>
+                    <HistoryPage />
+                  </Suspense>
+                }
+              />
+              <Route
+                path="statistics"
+                element={
+                  <Suspense fallback={<RouteLoadingFallback />}>
+                    <StatisticsPage />
+                  </Suspense>
+                }
+              />
+              <Route
+                path="settings"
+                element={
+                  <Suspense fallback={<RouteLoadingFallback />}>
+                    <SettingsPage />
+                  </Suspense>
+                }
+              />
+              <Route
+                path="design-system"
+                element={
+                  <Suspense fallback={<RouteLoadingFallback />}>
+                    <DesignSystemPage />
+                  </Suspense>
+                }
+              />
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Route>
+          </Routes>
+        </BrowserRouter>
+      </AppProvider>
+    </ErrorBoundary>
   );
 };
 

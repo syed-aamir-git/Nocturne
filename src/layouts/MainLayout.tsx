@@ -6,6 +6,7 @@ import { PlayerBar } from '../components/layout/PlayerBar';
 import { RightPanel } from '../components/layout/RightPanel';
 import { MobileNav } from '../components/layout/MobileNav';
 import { ToastContainer } from '../components/primitives/Toast';
+import { ErrorBoundary } from '../components/primitives/ErrorBoundary';
 import { LyricsModal } from '../components/lyrics/LyricsModal';
 import { EqualizerModal } from '../components/audio/EqualizerModal';
 import { NowPlayingModal } from '../components/nowplaying/NowPlayingModal';
@@ -117,7 +118,9 @@ export const MainLayout: React.FC = () => {
             aria-label="Main Content"
             tabIndex={-1}
           >
-            <Outlet />
+            <ErrorBoundary>
+              <Outlet />
+            </ErrorBoundary>
           </main>
           {/* Optional Right-Side Panel */}
           <RightPanel />

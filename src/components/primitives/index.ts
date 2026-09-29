@@ -18,3 +18,4 @@ export * from './EmptyState';
 export * from './TrackContextMenu';
 export * from './Toggle';
 export * from './SelectDropdown';
+export * from './ErrorBoundary';
