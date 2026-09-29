@@ -53,7 +53,13 @@ export const PlaylistViewPage: React.FC = () => {
 
   const playlist = getPlaylistById(id || '');
 
-  const tracks = useMemo(() => playlist?.tracks || [], [playlist?.tracks]);
+  const tracks = useMemo(() => {
+    const rawTracks = playlist?.tracks;
+    if (!rawTracks || !Array.isArray(rawTracks)) return [];
+    return rawTracks.filter(
+      (t): t is Track => Boolean(t && typeof t === 'object' && typeof t.id === 'string' && typeof t.title === 'string')
+    );
+  }, [playlist]);
 
   const totalDurationSeconds = useMemo(() => {
     return tracks.reduce((acc, t) => acc + (t.duration || 0), 0);

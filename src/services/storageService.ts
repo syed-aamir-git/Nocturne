@@ -44,7 +44,33 @@ export const storageService = {
       const stored = localStorage.getItem(PLAYLISTS_KEY);
       if (stored) {
         const parsed = JSON.parse(stored);
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          const sanitized = parsed
+            .filter(
+              (p): p is Playlist =>
+                Boolean(p && typeof p === 'object' && typeof p.id === 'string' && typeof p.title === 'string')
+            )
+            .map((p) => {
+              const tracks = Array.isArray(p.tracks)
+                ? p.tracks.filter(
+                    (t): t is Track =>
+                      Boolean(t && typeof t === 'object' && typeof t.id === 'string' && typeof t.title === 'string')
+                  )
+                : [];
+              const seen = new Set<string>();
+              const deduplicated = tracks.filter((t) => {
+                if (seen.has(t.id)) return false;
+                seen.add(t.id);
+                return true;
+              });
+              return {
+                ...p,
+                tracks: deduplicated,
+                tracksCount: deduplicated.length,
+              };
+            });
+          if (sanitized.length > 0) return sanitized;
+        }
       }
       // Initialize with default mock playlists
       localStorage.setItem(PLAYLISTS_KEY, JSON.stringify(MOCK_PLAYLISTS));

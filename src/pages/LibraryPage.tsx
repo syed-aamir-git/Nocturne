@@ -129,20 +129,37 @@ export const LibraryPage: React.FC = () => {
       ) : (
         <>
           {activeTab === 'playlists' && (
-            <div className="nocturne-grid-albums">
-              {playlists.map((pl) => (
-                <PlaylistCard
-                  key={pl.id}
-                  playlist={pl}
-                  onPlay={(p) => {
-                    if (p.tracks && p.tracks.length > 0) {
-                      playTrack(p.tracks[0], p.tracks, 0);
-                      showToast('Playing Playlist', p.title, 'atmosphere');
-                    }
-                  }}
-                />
-              ))}
-            </div>
+            playlists.length > 0 ? (
+              <div className="nocturne-grid-albums">
+                {playlists.map((pl) => (
+                  <PlaylistCard
+                    key={pl.id}
+                    playlist={pl}
+                    onPlay={(p) => {
+                      if (p.tracks && p.tracks.length > 0) {
+                        playTrack(p.tracks[0], p.tracks, 0);
+                        showToast('Playing Playlist', p.title, 'atmosphere');
+                      }
+                    }}
+                  />
+                ))}
+              </div>
+            ) : (
+              <EmptyState
+                title="No Playlists Created Yet"
+                description="Assemble custom nocturnal orders, rituals, and collections to weave your own twilight tapestries."
+                action={
+                  <div style={{ display: 'flex', gap: 10 }}>
+                    <Button variant="primary" onClick={() => setIsPlaylistModalOpen(true)}>
+                      Create New Playlist
+                    </Button>
+                    <Button variant="secondary" onClick={() => navigate('/import')}>
+                      Import from Spotify
+                    </Button>
+                  </div>
+                }
+              />
+            )
           )}
 
           {activeTab === 'albums' && (
