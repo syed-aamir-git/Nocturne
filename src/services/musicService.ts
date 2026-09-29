@@ -1,6 +1,7 @@
 import type { Album, Artist, Playlist, Track } from '../types';
 import { MOCK_ALBUMS, MOCK_ARTISTS, MOCK_TRACKS } from '../data/mockData';
 import { storageService } from './storageService';
+import { catalogService } from './catalogService';
 
 export interface MoodCategory {
   id: string;
@@ -190,7 +191,8 @@ class MusicService implements MusicServiceInterface {
       return this.simulateDelay({ tracks: [], albums: [], artists: [], playlists: [], genres: [] });
     }
 
-    const tracks = MOCK_TRACKS.filter(
+    // 1. Instant local sanctuary matches
+    const localTracks = MOCK_TRACKS.filter(
       (t) =>
         t.title.toLowerCase().includes(q) ||
         t.artist.toLowerCase().includes(q) ||
@@ -199,14 +201,14 @@ class MusicService implements MusicServiceInterface {
         t.genre.toLowerCase().includes(q)
     );
 
-    const albums = MOCK_ALBUMS.filter(
+    const localAlbums = MOCK_ALBUMS.filter(
       (a) =>
         a.title.toLowerCase().includes(q) ||
         a.artist.toLowerCase().includes(q) ||
         a.genre.toLowerCase().includes(q)
     );
 
-    const artists = MOCK_ARTISTS.filter(
+    const localArtists = MOCK_ARTISTS.filter(
       (ar) =>
         ar.name.toLowerCase().includes(q) ||
         ar.genres.some((g) => g.toLowerCase().includes(q))
@@ -225,7 +227,39 @@ class MusicService implements MusicServiceInterface {
     );
     const genres = allGenres.filter((g) => g.toLowerCase().includes(q));
 
-    return this.simulateDelay({ tracks, albums, artists, playlists, genres });
+    // 2. Fetch from 100M+ global music catalog & live Spotify
+    try {
+      const globalResults = await catalogService.searchGlobal(q);
+
+      // Deduplicate tracks (local take precedence)
+      const existingTrackKeys = new Set(localTracks.map((t) => `${t.title.toLowerCase()}:${t.artist.toLowerCase()}`));
+      const additionalTracks = globalResults.tracks.filter(
+        (t) => !existingTrackKeys.has(`${t.title.toLowerCase()}:${t.artist.toLowerCase()}`)
+      );
+
+      // Deduplicate albums
+      const existingAlbKeys = new Set(localAlbums.map((a) => a.title.toLowerCase()));
+      const additionalAlbums = globalResults.albums.filter(
+        (a) => !existingAlbKeys.has(a.title.toLowerCase())
+      );
+
+      // Deduplicate artists
+      const existingArtKeys = new Set(localArtists.map((a) => a.name.toLowerCase()));
+      const additionalArtists = globalResults.artists.filter(
+        (a) => !existingArtKeys.has(a.name.toLowerCase())
+      );
+
+      return {
+        tracks: [...localTracks, ...additionalTracks],
+        albums: [...localAlbums, ...additionalAlbums],
+        artists: [...localArtists, ...additionalArtists],
+        playlists,
+        genres,
+      };
+    } catch (err) {
+      console.warn('[MusicService] Global search fallback to local:', err);
+      return { tracks: localTracks, albums: localAlbums, artists: localArtists, playlists, genres };
+    }
   }
 }
 
