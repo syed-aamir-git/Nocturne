@@ -94,7 +94,10 @@ export const TrackList: React.FC<TrackListProps> = ({
     setDraggedIndex(null);
   };
 
-  const renderedTracks = reorderable ? tracks : tracks.slice(0, visibleCount);
+  // If the active playing track is beyond the current visible window, expand to include it
+  const activeTrackIndex = currentTrackId ? tracks.findIndex((t) => t.id === currentTrackId) : -1;
+  const effectiveVisibleCount = activeTrackIndex >= visibleCount ? Math.min(tracks.length, activeTrackIndex + 15) : visibleCount;
+  const renderedTracks = reorderable ? tracks : tracks.slice(0, effectiveVisibleCount);
 
   return (
     <div

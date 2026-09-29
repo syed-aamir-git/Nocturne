@@ -68,6 +68,21 @@ export const TrackContextMenu: React.FC<TrackContextMenuProps> = ({
         return;
       }
 
+      if (e.key === 'ArrowRight' && !showPlaylistsSubmenu) {
+        setShowPlaylistsSubmenu(true);
+        setTimeout(() => {
+          submenuRef.current?.querySelector<HTMLButtonElement>('[role="menuitem"]')?.focus();
+        }, 30);
+        return;
+      }
+
+      if (e.key === 'ArrowLeft' && showPlaylistsSubmenu) {
+        e.preventDefault();
+        setShowPlaylistsSubmenu(false);
+        menuRef.current?.querySelector<HTMLButtonElement>('[aria-haspopup="menu"]')?.focus();
+        return;
+      }
+
       if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
         e.preventDefault();
         if (!menuRef.current) return;

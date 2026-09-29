@@ -59,23 +59,46 @@ export const Dropdown: React.FC<DropdownProps> = ({ trigger, items, align = 'rig
     };
   }, [isOpen]);
 
+  useEffect(() => {
+    if (isOpen && containerRef.current) {
+      const timer = setTimeout(() => {
+        const first = containerRef.current?.querySelector<HTMLButtonElement>('[role="menuitem"]');
+        first?.focus();
+      }, 30);
+      return () => clearTimeout(timer);
+    }
+  }, [isOpen]);
+
   return (
     <div className="nocturne-dropdown" ref={containerRef}>
-      <div
-        className="nocturne-dropdown-trigger"
-        onClick={() => setIsOpen((prev) => !prev)}
-        onKeyDown={(e) => {
-          if (e.key === 'Enter' || e.key === ' ') {
-            e.preventDefault();
-            setIsOpen((prev) => !prev);
-          }
-        }}
-        role="button"
-        tabIndex={0}
-        aria-haspopup="menu"
-        aria-expanded={isOpen}
-      >
-        {trigger}
+      <div className="nocturne-dropdown-trigger">
+        {React.isValidElement(trigger) ? (
+          React.cloneElement(trigger as React.ReactElement<any>, {
+            'aria-haspopup': 'menu',
+            'aria-expanded': isOpen,
+            onClick: (e: React.MouseEvent) => {
+              (trigger as any).props?.onClick?.(e);
+              setIsOpen((prev) => !prev);
+            },
+            onKeyDown: (e: React.KeyboardEvent) => {
+              (trigger as any).props?.onKeyDown?.(e);
+              if (e.key === 'ArrowDown' || e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                setIsOpen(true);
+              }
+            },
+          })
+        ) : (
+          <button
+            type="button"
+            className="nocturne-dropdown-default-trigger"
+            aria-haspopup="menu"
+            aria-expanded={isOpen}
+            onClick={() => setIsOpen((prev) => !prev)}
+          >
+            {trigger}
+          </button>
+        )}
       </div>
 
       {isOpen && (

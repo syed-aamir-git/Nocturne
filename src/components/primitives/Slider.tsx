@@ -103,6 +103,7 @@ export const Slider: React.FC<SliderProps> = ({
       return;
     }
     e.preventDefault();
+    e.stopPropagation();
     onChange(nextValue);
     onChangeEnd?.(nextValue);
   };

@@ -45,9 +45,11 @@
   text-align: left;
 }
 
-.nocturne-dropdown-item:hover {
-  background: rgba(255, 255, 255, 0.08);
+.nocturne-dropdown-item:hover,
+.nocturne-dropdown-item:focus-visible {
+  background: rgba(255, 255, 255, 0.1);
   color: var(--text-pure);
+  outline: none;
 }
 
 .nocturne-dropdown-item--active {
@@ -59,9 +61,11 @@
   color: #fb7185;
 }
 
-.nocturne-dropdown-item--danger:hover {
+.nocturne-dropdown-item--danger:hover,
+.nocturne-dropdown-item--danger:focus-visible {
   background: rgba(244, 63, 94, 0.15);
   color: #fff;
+  outline: none;
 }
 
 .nocturne-dropdown-divider {

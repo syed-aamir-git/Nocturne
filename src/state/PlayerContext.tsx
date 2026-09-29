@@ -756,9 +756,19 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         return;
       }
 
+      // Check if target is a focused interactive element (button, link, tab, menuitem)
+      const isFocusedInteractive = target && (
+        target.tagName === 'BUTTON' ||
+        target.tagName === 'A' ||
+        target.getAttribute('role') === 'button' ||
+        target.getAttribute('role') === 'menuitem' ||
+        target.getAttribute('role') === 'tab' ||
+        target.getAttribute('role') === 'menu'
+      );
 
-      // Space = play/pause
+      // Space = play/pause (only when not directly activating a focused interactive control)
       if (e.code === 'Space') {
+        if (isFocusedInteractive) return;
         e.preventDefault();
         togglePlayPause();
         return;
@@ -766,6 +776,7 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
       // Arrow Left = seek backward (5 seconds)
       if (e.code === 'ArrowLeft') {
+        if (isFocusedInteractive) return;
         e.preventDefault();
         seekRelative(-5);
         return;
@@ -773,6 +784,7 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
       // Arrow Right = seek forward (5 seconds)
       if (e.code === 'ArrowRight') {
+        if (isFocusedInteractive) return;
         e.preventDefault();
         seekRelative(5);
         return;

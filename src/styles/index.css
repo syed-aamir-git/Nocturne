@@ -170,6 +170,7 @@ input {
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.8), 0 0 16px var(--accent-glow);
 }
 
+.nocturne-skip-link:focus,
 .nocturne-skip-link:focus-visible {
   top: 16px;
 }

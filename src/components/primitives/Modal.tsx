@@ -90,13 +90,13 @@ export const Modal: React.FC<ModalProps> = ({
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="nocturne-modal-title"
     >
       <div
         className="nocturne-modal-container"
         ref={containerRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="nocturne-modal-title"
         tabIndex={-1}
         style={maxWidth ? { maxWidth } : undefined}
       >
