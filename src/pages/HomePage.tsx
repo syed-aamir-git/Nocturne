@@ -16,6 +16,7 @@ import { TrackList } from '../components/primitives/TrackList';
 import { usePlayer } from '../state/PlayerContext';
 import { useToast } from '../state/ToastContext';
 import { musicService } from '../services/musicService';
+import { recommendationService } from '../services/recommendationService';
 import { getNocturnalHourPhase } from '../utilities/formatters';
 import type { Album, Playlist, Track, Artist } from '../types';
 import './HomePage.css';
@@ -81,42 +82,52 @@ export const HomePage: React.FC = () => {
 
   const moodCollections: MoodCollectionItem[] = [
     {
-      id: 'm1',
+      id: 'ambient',
       name: 'Abyssal Solitude',
       desc: 'Sub-bass drones and vast reverbs for lone contemplation',
       icon: <Moon size={18} />,
     },
     {
-      id: 'm2',
+      id: 'rain',
       name: 'Rain on Stained Glass',
       desc: 'Gentle slowcore melodies meeting crepuscular rain',
       icon: <CloudRain size={18} />,
     },
     {
-      id: 'm3',
+      id: 'midnight',
       name: 'The 3 AM Drift',
       desc: 'Minimal cello passages and slow decay acoustics',
       icon: <Clock size={18} />,
     },
     {
-      id: 'm4',
+      id: 'witching-hour',
       name: 'Witching Hour Chamber',
       desc: 'Liturgical strings and cathedral choir echoes',
       icon: <Sparkles size={18} />,
     },
     {
-      id: 'm5',
+      id: 'night-drive',
       name: 'Velvet Noir',
       desc: 'Hypnotic darkwave pulses and late-night synth noir',
       icon: <Flame size={18} />,
     },
     {
-      id: 'm6',
+      id: 'focus',
       name: 'Analog Tape Saturation',
       desc: 'Warm tape hiss and vintage tube preamps for tired minds',
       icon: <Radio size={18} />,
     },
   ];
+
+  const handleMoodPlay = (moodId: string, moodName: string) => {
+    const moodTracks = recommendationService.getTracksByMood(moodId);
+    if (moodTracks.length > 0) {
+      playTrack(moodTracks[0], moodTracks, 0);
+      showToast('Atmosphere Initiated', `Streaming ${moodName}`, 'atmosphere');
+    } else {
+      navigate('/discover');
+    }
+  };
 
   return (
     <div className="nocturne-home animate-fade-in">
@@ -246,7 +257,7 @@ export const HomePage: React.FC = () => {
             <div
               key={mood.id}
               className="nocturne-mood-slab"
-              onClick={() => showToast('Mood Sanctuary Activated', mood.name, 'atmosphere')}
+              onClick={() => handleMoodPlay(mood.id, mood.name)}
             >
               <div className="nocturne-mood-slab__icon">{mood.icon}</div>
               <span className="nocturne-mood-slab__name">{mood.name}</span>

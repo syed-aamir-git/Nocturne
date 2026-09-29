@@ -30,6 +30,18 @@
   display: flex !important;
 }
 
+.nocturne-topbar__history-nav {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+@media (max-width: 640px) {
+  .nocturne-topbar__history-nav {
+    display: none;
+  }
+}
+
 .nocturne-topbar__search-wrap {
   position: relative;
   width: 100%;

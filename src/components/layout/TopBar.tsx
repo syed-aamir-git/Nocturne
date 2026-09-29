@@ -1,6 +1,6 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Search, Menu, Radio, Download, LogIn, LogOut, Settings as SettingsIcon } from 'lucide-react';
+import { Search, Menu, Radio, Download, LogIn, LogOut, Settings as SettingsIcon, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useUI } from '../../state/UIContext';
 import { useTheme } from '../../state/ThemeContext';
 import { useToast } from '../../state/ToastContext';
@@ -102,6 +102,27 @@ export const TopBar: React.FC = () => {
         >
           <Menu size={20} />
         </IconButton>
+
+        <div className="nocturne-topbar__history-nav">
+          <IconButton
+            variant="ghost"
+            size="sm"
+            onClick={() => navigate(-1)}
+            aria-label="Navigate back"
+            title="Back (Go to previous page)"
+          >
+            <ChevronLeft size={18} />
+          </IconButton>
+          <IconButton
+            variant="ghost"
+            size="sm"
+            onClick={() => navigate(1)}
+            aria-label="Navigate forward"
+            title="Forward (Go to next page)"
+          >
+            <ChevronRight size={18} />
+          </IconButton>
+        </div>
 
         <form className="nocturne-topbar__search-wrap" onSubmit={handleSearchSubmit} role="search">
           <Search size={16} className="nocturne-topbar__search-icon" aria-hidden="true" />
