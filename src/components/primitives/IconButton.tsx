@@ -15,6 +15,7 @@ export const IconButton: React.FC<IconButtonProps> = ({
   active = false,
   className = '',
   'aria-label': ariaLabel,
+  type = 'button',
   ...props
 }) => {
   const classes = [
@@ -28,7 +29,7 @@ export const IconButton: React.FC<IconButtonProps> = ({
     .join(' ');
 
   return (
-    <button className={classes} aria-label={ariaLabel} {...props}>
+    <button type={type} className={classes} aria-label={ariaLabel} {...props}>
       {children}
     </button>
   );

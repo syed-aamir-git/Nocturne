@@ -17,9 +17,9 @@
 .nocturne-topbar__left {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 12px;
   flex: 1;
-  max-width: 480px;
+  max-width: 520px;
 }
 
 .nocturne-topbar__mobile-toggle {
