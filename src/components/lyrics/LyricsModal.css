@@ -114,10 +114,11 @@
 }
 
 .nocturne-lyrics-modal__title {
-  font-family: var(--font-sans);
-  font-size: 15px;
-  font-weight: 600;
-  color: var(--text-high);
+  font-family: var(--font-serif);
+  font-size: 15.5px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--text-pure);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;

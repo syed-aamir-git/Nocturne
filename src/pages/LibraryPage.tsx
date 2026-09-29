@@ -18,7 +18,6 @@ import type { Album, Artist } from '../types';
 export const LibraryPage: React.FC = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('playlists');
-  const [showEmptyDemo, setShowEmptyDemo] = useState(false);
   const [isPlaylistModalOpen, setIsPlaylistModalOpen] = useState(false);
   const [albums, setAlbums] = useState<Album[]>([]);
   const [artists, setArtists] = useState<Artist[]>([]);
@@ -97,37 +96,12 @@ export const LibraryPage: React.FC = () => {
               </Button>
             </>
           )}
-
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={() => setShowEmptyDemo(!showEmptyDemo)}
-          >
-            {showEmptyDemo ? 'Show Content' : 'Simulate Empty Sanctuary'}
-          </Button>
         </div>
       </div>
 
       <Tabs tabs={tabs} activeId={activeTab} onChange={setActiveTab} />
 
-      {showEmptyDemo ? (
-        <EmptyState
-          title="The Archive Lies Dormant"
-          description="You have not yet committed any recordings or midnight rituals to this chamber. Explore the Sanctum to discover sounds tailored to your solitude."
-          action={
-            <Button
-              variant="primary"
-              onClick={() => {
-                setShowEmptyDemo(false);
-                showToast('Chamber Restored', 'Displaying your midnight library', 'atmosphere');
-              }}
-            >
-              Restore Collection
-            </Button>
-          }
-        />
-      ) : (
-        <>
+      <>
           {activeTab === 'playlists' && (
             playlists.length > 0 ? (
               <div className="nocturne-grid-albums">
@@ -224,7 +198,6 @@ export const LibraryPage: React.FC = () => {
             />
           )}
         </>
-      )}
 
       <PlaylistModal
         isOpen={isPlaylistModalOpen}

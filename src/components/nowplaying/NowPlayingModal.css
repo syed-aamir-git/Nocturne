@@ -222,7 +222,7 @@
   border-radius: var(--radius-lg);
   overflow: hidden;
   position: relative;
-  box-shadow: 0 24px 64px -8px rgba(0, 0, 0, 0.95), 0 0 32px var(--accent-glow);
+  box-shadow: 0 24px 64px -8px rgba(0, 0, 0, 0.95), 0 0 20px var(--accent-glow);
   border: 1px solid var(--border-glow);
   background: var(--bg-surface);
   transition: transform var(--transition-smooth), box-shadow var(--transition-smooth);
@@ -232,7 +232,7 @@
 
 .nocturne-nowplaying__hero-art-wrap:hover {
   transform: scale(1.02);
-  box-shadow: 0 32px 72px -6px rgba(0, 0, 0, 0.98), 0 0 44px var(--accent-glow-strong);
+  box-shadow: 0 32px 72px -6px rgba(0, 0, 0, 0.98), 0 0 28px var(--accent-glow-strong);
 }
 
 .nocturne-nowplaying__hero-art-wrap:active {

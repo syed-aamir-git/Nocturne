@@ -36,7 +36,8 @@
   font-weight: 700;
   margin: 0;
   color: var(--text-pure);
-  font-family: var(--font-serif, 'Playfair Display', serif);
+  font-family: var(--font-serif);
+  letter-spacing: 0.02em;
 }
 
 .nocturne-stats-subtitle {

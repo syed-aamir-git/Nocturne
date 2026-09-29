@@ -14,8 +14,8 @@
 .nocturne-album-card:hover {
   background: var(--bg-surface-hover);
   border-color: var(--border-glow);
-  transform: translateY(-4px);
-  box-shadow: var(--shadow-lg), 0 0 25px var(--accent-glow);
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-lg), 0 0 16px var(--accent-glow);
 }
 
 .nocturne-album-card__cover-wrap {

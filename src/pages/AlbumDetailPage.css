@@ -51,7 +51,7 @@
   overflow: hidden;
   background: var(--bg-surface);
   border: 1px solid var(--border-subtle);
-  box-shadow: var(--shadow-lg), 0 0 32px var(--accent-glow);
+  box-shadow: var(--shadow-lg), 0 0 20px var(--accent-glow);
   display: flex;
   align-items: flex-end;
   padding: 36px;
@@ -104,7 +104,7 @@
   overflow: hidden;
   flex-shrink: 0;
   background: var(--bg-surface-elevated);
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.95), 0 0 32px var(--accent-glow);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.95), 0 0 20px var(--accent-glow);
   border: 1px solid var(--border-glow);
   position: relative;
   transition: transform var(--transition-smooth), box-shadow var(--transition-smooth);
@@ -112,7 +112,7 @@
 
 .nocturne-album-page__cover-wrap:hover {
   transform: scale(1.03);
-  box-shadow: 0 28px 72px rgba(0, 0, 0, 0.98), 0 0 40px var(--accent-glow-strong);
+  box-shadow: 0 28px 72px rgba(0, 0, 0, 0.98), 0 0 28px var(--accent-glow-strong);
 }
 
 .nocturne-album-page__cover {

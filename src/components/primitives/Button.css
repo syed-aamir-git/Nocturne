@@ -21,6 +21,11 @@
   pointer-events: none;
 }
 
+.nocturne-button:focus-visible {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: 2px;
+}
+
 /* Sizes */
 .nocturne-button--sm {
   height: 32px;

@@ -26,6 +26,11 @@
   background: rgba(255, 255, 255, 0.04);
 }
 
+.nocturne-tab-btn:focus-visible {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: 2px;
+}
+
 .nocturne-tab-btn--active {
   color: var(--text-pure);
   font-weight: 600;
