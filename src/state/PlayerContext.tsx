@@ -12,6 +12,7 @@ import { audioEngine } from '../audio/AudioEngine';
 import { useAudioSettings } from './AudioSettingsContext';
 import { useAnalytics } from './AnalyticsContext';
 import { MOCK_TRACKS } from '../data/mockData';
+import { catalogService } from '../services/catalogService';
 
 const QUEUE_STORAGE_KEY = 'nocturne_queue_state_v1';
 const PLAYBACK_SESSION_KEY = 'nocturne_playback_session_v1';
@@ -398,19 +399,41 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         }
       }
 
-      if (track.isUnavailable || !track.audioUrl) {
-        setIsLoading(false);
-        setStatus('paused');
-        setPlaybackError('Audio recording is unavailable in this sanctuary');
+      const attemptPlayback = async (urlToPlay: string) => {
+        try {
+          await audioEngine.loadTrack(urlToPlay, true);
+        } catch (err) {
+          console.warn('[PlayerContext] Audio playback could not be initiated:', err);
+          setIsLoading(false);
+          setStatus('error');
+          setPlaybackError(err instanceof Error ? err.message : 'Failed to stream audio');
+        }
+      };
+
+      if (!track.audioUrl) {
+        // Resolve stream on-the-fly from global music catalog
+        catalogService
+          .resolveAudioForTrack(track.title, track.artist)
+          .then((resolvedUrl) => {
+            if (resolvedUrl) {
+              track.audioUrl = resolvedUrl;
+              track.isUnavailable = false;
+              attemptPlayback(resolvedUrl);
+            } else {
+              setIsLoading(false);
+              setStatus('paused');
+              setPlaybackError('Audio recording is unavailable in this sanctuary');
+            }
+          })
+          .catch(() => {
+            setIsLoading(false);
+            setStatus('paused');
+            setPlaybackError('Audio recording is unavailable in this sanctuary');
+          });
         return;
       }
 
-      audioEngine.loadTrack(track.audioUrl, true).catch((err) => {
-        console.warn('[PlayerContext] Audio playback could not be initiated:', err);
-        setIsLoading(false);
-        setStatus('error');
-        setPlaybackError(err instanceof Error ? err.message : 'Failed to stream audio');
-      });
+      attemptPlayback(track.audioUrl);
     },
     [commitListeningSession]
   );
