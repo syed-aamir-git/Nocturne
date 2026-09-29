@@ -23,11 +23,41 @@ function loadStoredSettings(): AudioSettings {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return DEFAULT_SETTINGS;
     const parsed = JSON.parse(raw);
+    if (!parsed || typeof parsed !== 'object') return DEFAULT_SETTINGS;
+
+    // Validate and clamp gains
+    const rawGains = Array.isArray(parsed.gains) && parsed.gains.length === 7 ? parsed.gains : DEFAULT_SETTINGS.gains;
+    const sanitizedGains = rawGains.map((g: any) => {
+      const num = Number(g);
+      return isNaN(num) ? 0 : Math.max(-12, Math.min(12, num));
+    });
+
+    // Validate playbackRate
+    const rawRate = Number(parsed.playbackRate);
+    const validRate = !isNaN(rawRate) && rawRate >= 0.5 && rawRate <= 2.0 ? rawRate : 1.0;
+
+    // Validate crossfadeDuration
+    const validCrossfades: CrossfadeDuration[] = [0, 2, 4, 6, 8, 10];
+    const validCrossfade = validCrossfades.includes(parsed.crossfadeDuration) ? parsed.crossfadeDuration : 4;
+
+    // Validate audioQuality
+    const validQualities: AudioQuality[] = ['lossless', 'high', 'standard', 'saver'];
+    const validQuality = validQualities.includes(parsed.audioQuality) ? parsed.audioQuality : 'lossless';
+
     return {
-      ...DEFAULT_SETTINGS,
-      ...parsed,
-      gains: Array.isArray(parsed.gains) && parsed.gains.length === 7 ? parsed.gains : DEFAULT_SETTINGS.gains,
-      savedPresets: Array.isArray(parsed.savedPresets) ? parsed.savedPresets : [],
+      equalizerEnabled: Boolean(parsed.equalizerEnabled ?? DEFAULT_SETTINGS.equalizerEnabled),
+      currentPresetId: typeof parsed.currentPresetId === 'string' ? parsed.currentPresetId : DEFAULT_SETTINGS.currentPresetId,
+      gains: sanitizedGains,
+      savedPresets: Array.isArray(parsed.savedPresets)
+        ? parsed.savedPresets.filter(
+            (p: any) => p && typeof p.id === 'string' && Array.isArray(p.gains) && p.gains.length === 7
+          )
+        : [],
+      volumeNormalization: Boolean(parsed.volumeNormalization ?? DEFAULT_SETTINGS.volumeNormalization),
+      audioQuality: validQuality,
+      playbackRate: validRate,
+      crossfadeDuration: validCrossfade,
+      autoplay: Boolean(parsed.autoplay ?? DEFAULT_SETTINGS.autoplay),
     };
   } catch (err) {
     console.warn('[AudioSettings] Could not load stored audio settings:', err);
@@ -72,6 +102,7 @@ export interface AudioSettingsContextType {
   openEqualizer: () => void;
   closeEqualizer: () => void;
   toggleEqualizer: () => void;
+  resetSettings: () => void;
 }
 
 const AudioSettingsContext = createContext<AudioSettingsContextType | undefined>(undefined);
@@ -277,6 +308,14 @@ export const AudioSettingsProvider: React.FC<{ children: React.ReactNode }> = ({
   const closeEqualizer = useCallback(() => setIsEqualizerOpen(false), []);
   const toggleEqualizer = useCallback(() => setIsEqualizerOpen((prev) => !prev), []);
 
+  const resetSettings = useCallback(() => {
+    setSettings(DEFAULT_SETTINGS);
+    persistSettings(DEFAULT_SETTINGS);
+    audioEngine.setEQGains([0, 0, 0, 0, 0, 0, 0]);
+    audioEngine.setVolumeNormalization(DEFAULT_SETTINGS.volumeNormalization);
+    audioEngine.setPlaybackRate(DEFAULT_SETTINGS.playbackRate);
+  }, []);
+
   return (
     <AudioSettingsContext.Provider
       value={{
@@ -307,6 +346,7 @@ export const AudioSettingsProvider: React.FC<{ children: React.ReactNode }> = ({
         openEqualizer,
         closeEqualizer,
         toggleEqualizer,
+        resetSettings,
       }}
     >
       {children}

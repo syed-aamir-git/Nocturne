@@ -133,6 +133,16 @@ function loadInitialSettings(): AppearanceSettings {
       if (!['full', 'reduced', 'off'].includes(validated.animationMode)) {
         validated.animationMode = DEFAULT_SETTINGS.animationMode;
       }
+      if (typeof validated.backgroundBlur !== 'number' || isNaN(validated.backgroundBlur)) {
+        validated.backgroundBlur = DEFAULT_SETTINGS.backgroundBlur;
+      } else {
+        validated.backgroundBlur = Math.max(0, Math.min(50, validated.backgroundBlur));
+      }
+      if (typeof validated.interfaceOpacity !== 'number' || isNaN(validated.interfaceOpacity)) {
+        validated.interfaceOpacity = DEFAULT_SETTINGS.interfaceOpacity;
+      } else {
+        validated.interfaceOpacity = Math.max(40, Math.min(100, validated.interfaceOpacity));
+      }
       return validated;
     }
     // Check legacy key

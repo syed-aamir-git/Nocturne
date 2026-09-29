@@ -51,6 +51,43 @@ export interface AnalyticsContextType {
 
 const AnalyticsContext = createContext<AnalyticsContextType | undefined>(undefined);
 
+function sanitizeHistoryEntry(entry: any): ListeningHistoryEntry | null {
+  if (!entry || typeof entry !== 'object') return null;
+  const id = typeof entry.id === 'string' ? entry.id : `hist-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+  const trackId = typeof entry.trackId === 'string' ? entry.trackId : 'unknown-track';
+  const trackTitle = typeof entry.trackTitle === 'string' ? entry.trackTitle : 'Untitled Composition';
+  const artist = typeof entry.artist === 'string' ? entry.artist : 'Unknown Resonance';
+  const album = typeof entry.album === 'string' ? entry.album : 'Nocturne Archive';
+  const artwork = typeof entry.artwork === 'string' ? entry.artwork : '';
+  const startTime = typeof entry.startTime === 'number' && !isNaN(entry.startTime) ? entry.startTime : Date.now();
+  const duration = typeof entry.duration === 'number' && !isNaN(entry.duration) ? Math.max(0, entry.duration) : 180;
+  const durationListened = typeof entry.durationListened === 'number' && !isNaN(entry.durationListened) ? Math.max(0, entry.durationListened) : duration;
+  const completionPercentage = typeof entry.completionPercentage === 'number' && !isNaN(entry.completionPercentage) ? Math.min(100, Math.max(0, entry.completionPercentage)) : 100;
+  const date = typeof entry.date === 'string' ? entry.date : new Date(startTime).toISOString().split('T')[0];
+  const genre = typeof entry.genre === 'string' ? entry.genre : 'Darkwave';
+
+  const endTime = typeof entry.endTime === 'number' && !isNaN(entry.endTime) ? entry.endTime : startTime + durationListened * 1000;
+
+  return {
+    id,
+    trackId,
+    trackTitle,
+    artist,
+    artistId: typeof entry.artistId === 'string' ? entry.artistId : undefined,
+    album,
+    albumId: typeof entry.albumId === 'string' ? entry.albumId : undefined,
+    artwork,
+    startTime,
+    endTime,
+    duration,
+    durationListened,
+    completionPercentage,
+    date,
+    genre,
+    audioUrl: typeof entry.audioUrl === 'string' ? entry.audioUrl : undefined,
+  };
+}
+
 function loadInitialHistory(): ListeningHistoryEntry[] {
   if (typeof window === 'undefined') return [];
   try {
@@ -58,7 +95,10 @@ function loadInitialHistory(): ListeningHistoryEntry[] {
     if (raw) {
       const parsed = JSON.parse(raw);
       if (Array.isArray(parsed)) {
-        return parsed;
+        const sanitized = parsed
+          .map(sanitizeHistoryEntry)
+          .filter((e): e is ListeningHistoryEntry => e !== null);
+        return sanitized;
       }
     }
   } catch (e) {
