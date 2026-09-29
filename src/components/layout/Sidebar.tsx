@@ -84,7 +84,7 @@ export const Sidebar: React.FC = () => {
     {
       label: 'Sanctum',
       items: [
-        { to: '/', label: 'Home', icon: <Home size={18} /> },
+        { to: '/home', label: 'Home', icon: <Home size={18} /> },
         { to: '/discover', label: 'Discover', icon: <Compass size={18} /> },
         { to: '/search', label: 'Search', icon: <Search size={18} /> },
       ],
@@ -122,6 +122,7 @@ export const Sidebar: React.FC = () => {
       label: 'System',
       items: [
         { to: '/settings', label: 'Settings', icon: <Settings size={18} /> },
+        { to: '/', label: 'Welcome Portal', icon: <Sparkles size={18} /> },
       ],
     },
   ];
@@ -136,7 +137,7 @@ export const Sidebar: React.FC = () => {
     >
       {/* Brand Header */}
       <div className="nocturne-sidebar__brand">
-        <NavLink to="/" className="nocturne-sidebar__logo-link" onClick={handleLinkClick}>
+        <NavLink to="/home" className="nocturne-sidebar__logo-link" onClick={handleLinkClick}>
           <div className="nocturne-sidebar__logo-icon">
             <Sparkles size={16} />
           </div>

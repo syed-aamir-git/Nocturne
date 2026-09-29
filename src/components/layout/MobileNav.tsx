@@ -6,7 +6,7 @@ import './MobileNav.css';
 export const MobileNav: React.FC = () => {
   const location = useLocation();
   const items = [
-    { to: '/', label: 'Home', icon: <Home size={20} /> },
+    { to: '/home', label: 'Home', icon: <Home size={20} /> },
     { to: '/discover', label: 'Discover', icon: <Compass size={20} /> },
     { to: '/search', label: 'Search', icon: <Search size={20} /> },
     { to: '/library', label: 'Library', icon: <Library size={20} /> },
