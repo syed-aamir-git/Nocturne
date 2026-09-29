@@ -52,18 +52,50 @@ export const TrackContextMenu: React.FC<TrackContextMenuProps> = ({
   });
 
   useEffect(() => {
+    if (!isOpen) return;
+
+    const timer = setTimeout(() => {
+      if (menuRef.current) {
+        const first = menuRef.current.querySelector<HTMLButtonElement>('[role="menuitem"]');
+        first?.focus();
+      }
+    }, 50);
+
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && isOpen) {
+      if (e.key === 'Escape') {
+        e.preventDefault();
         onClose();
+        return;
+      }
+
+      if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+        e.preventDefault();
+        if (!menuRef.current) return;
+        const currentContainer = showPlaylistsSubmenu && submenuRef.current?.contains(document.activeElement)
+          ? submenuRef.current
+          : menuRef.current;
+        const items = Array.from(
+          currentContainer.querySelectorAll<HTMLButtonElement>('[role="menuitem"]')
+        );
+        if (items.length === 0) return;
+        const activeIdx = items.indexOf(document.activeElement as HTMLButtonElement);
+        if (e.key === 'ArrowDown') {
+          const nextIdx = activeIdx < items.length - 1 ? activeIdx + 1 : 0;
+          items[nextIdx].focus();
+        } else {
+          const prevIdx = activeIdx > 0 ? activeIdx - 1 : items.length - 1;
+          items[prevIdx].focus();
+        }
       }
     };
-    if (isOpen) {
-      window.addEventListener('keydown', handleKeyDown);
-    }
+
+    window.addEventListener('keydown', handleKeyDown);
     return () => {
+      clearTimeout(timer);
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [isOpen, onClose]);
+  }, [isOpen, onClose, showPlaylistsSubmenu]);
+
 
   if (!isOpen || !position) return null;
 
@@ -143,7 +175,7 @@ export const TrackContextMenu: React.FC<TrackContextMenuProps> = ({
       role="menu"
     >
       {/* Play */}
-      <button type="button" className="nocturne-track-menu__item" onClick={handlePlay}>
+      <button type="button" role="menuitem" className="nocturne-track-menu__item" onClick={handlePlay}>
         <div className="nocturne-track-menu__item-left">
           <Play size={14} fill="currentColor" />
           <span>Play Now</span>
@@ -151,7 +183,7 @@ export const TrackContextMenu: React.FC<TrackContextMenuProps> = ({
       </button>
 
       {/* Play Next */}
-      <button type="button" className="nocturne-track-menu__item" onClick={handlePlayNext}>
+      <button type="button" role="menuitem" className="nocturne-track-menu__item" onClick={handlePlayNext}>
         <div className="nocturne-track-menu__item-left">
           <CornerDownRight size={14} />
           <span>Play Next</span>
@@ -159,14 +191,14 @@ export const TrackContextMenu: React.FC<TrackContextMenuProps> = ({
       </button>
 
       {/* Add to Queue */}
-      <button type="button" className="nocturne-track-menu__item" onClick={handleAddToQueue}>
+      <button type="button" role="menuitem" className="nocturne-track-menu__item" onClick={handleAddToQueue}>
         <div className="nocturne-track-menu__item-left">
           <ListPlus size={14} />
           <span>Add to Queue</span>
         </div>
       </button>
 
-      <div className="nocturne-track-menu__divider" />
+      <div className="nocturne-track-menu__divider" role="separator" />
 
       {/* Add to Playlist Submenu Trigger */}
       <div
@@ -176,6 +208,9 @@ export const TrackContextMenu: React.FC<TrackContextMenuProps> = ({
       >
         <button
           type="button"
+          role="menuitem"
+          aria-haspopup="menu"
+          aria-expanded={showPlaylistsSubmenu}
           className="nocturne-track-menu__item"
           onClick={() => setShowPlaylistsSubmenu((prev) => !prev)}
         >
@@ -189,12 +224,15 @@ export const TrackContextMenu: React.FC<TrackContextMenuProps> = ({
         {showPlaylistsSubmenu && (
           <div
             ref={submenuRef}
+            role="menu"
+            aria-label="Playlists submenu"
             className={`nocturne-track-menu__submenu ${
               submenuOpensLeft ? 'nocturne-track-menu__submenu-left' : ''
             }`}
           >
             <button
               type="button"
+              role="menuitem"
               className="nocturne-track-menu__playlist-item"
               onClick={handleCreateNewPlaylist}
               style={{ color: 'var(--accent-secondary)', fontWeight: 500 }}
@@ -203,12 +241,13 @@ export const TrackContextMenu: React.FC<TrackContextMenuProps> = ({
               <span>Create New Playlist</span>
             </button>
 
-            {playlists.length > 0 && <div className="nocturne-track-menu__divider" />}
+            {playlists.length > 0 && <div className="nocturne-track-menu__divider" role="separator" />}
 
             {playlists.map((pl) => (
               <button
                 key={pl.id}
                 type="button"
+                role="menuitem"
                 className="nocturne-track-menu__playlist-item"
                 onClick={() => handleAddToPlaylist(pl.id, pl.title)}
                 title={pl.title}
@@ -226,6 +265,8 @@ export const TrackContextMenu: React.FC<TrackContextMenuProps> = ({
                   <img
                     src={pl.artwork || pl.coverUrl}
                     alt=""
+                    loading="lazy"
+                    decoding="async"
                     style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                   />
                 </div>
@@ -237,7 +278,7 @@ export const TrackContextMenu: React.FC<TrackContextMenuProps> = ({
       </div>
 
       {/* Like / Unlike */}
-      <button type="button" className="nocturne-track-menu__item" onClick={handleToggleLike}>
+      <button type="button" role="menuitem" className="nocturne-track-menu__item" onClick={handleToggleLike}>
         <div className="nocturne-track-menu__item-left">
           <Heart
             size={14}
@@ -248,11 +289,11 @@ export const TrackContextMenu: React.FC<TrackContextMenuProps> = ({
         </div>
       </button>
 
-      <div className="nocturne-track-menu__divider" />
+      <div className="nocturne-track-menu__divider" role="separator" />
 
       {/* Go to Artist */}
       {track.artistId && (
-        <button type="button" className="nocturne-track-menu__item" onClick={handleGoToArtist}>
+        <button type="button" role="menuitem" className="nocturne-track-menu__item" onClick={handleGoToArtist}>
           <div className="nocturne-track-menu__item-left">
             <User size={14} />
             <span>Go to Artist</span>
@@ -262,7 +303,7 @@ export const TrackContextMenu: React.FC<TrackContextMenuProps> = ({
 
       {/* Go to Album */}
       {track.albumId && (
-        <button type="button" className="nocturne-track-menu__item" onClick={handleGoToAlbum}>
+        <button type="button" role="menuitem" className="nocturne-track-menu__item" onClick={handleGoToAlbum}>
           <div className="nocturne-track-menu__item-left">
             <Disc size={14} />
             <span>Go to Album</span>
@@ -273,9 +314,10 @@ export const TrackContextMenu: React.FC<TrackContextMenuProps> = ({
       {/* Optional Remove button (e.g. from playlist or queue) */}
       {onRemove && (
         <>
-          <div className="nocturne-track-menu__divider" />
+          <div className="nocturne-track-menu__divider" role="separator" />
           <button
             type="button"
+            role="menuitem"
             className="nocturne-track-menu__item nocturne-track-menu__item--danger"
             onClick={() => {
               onRemove();
@@ -290,5 +332,6 @@ export const TrackContextMenu: React.FC<TrackContextMenuProps> = ({
         </>
       )}
     </div>
+
   );
 };

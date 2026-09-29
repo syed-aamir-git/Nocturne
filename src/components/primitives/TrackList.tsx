@@ -38,10 +38,36 @@ export const TrackList: React.FC<TrackListProps> = ({
   className = '',
 }) => {
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+  // For large tracklists, render first 40 tracks and incrementally append chunks on scroll
+  const [visibleCount, setVisibleCount] = useState<number>(40);
+  const [prevLength, setPrevLength] = useState<number>(tracks.length);
+  const sentinelRef = React.useRef<HTMLDivElement | null>(null);
+
+  // Synchronously reset visibleCount if tracks change significantly without cascading effect
+  if (tracks.length !== prevLength) {
+    setPrevLength(tracks.length);
+    setVisibleCount(40);
+  }
+
+  React.useEffect(() => {
+    if (reorderable || visibleCount >= tracks.length || !sentinelRef.current) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          setVisibleCount((prev) => Math.min(tracks.length, prev + 30));
+        }
+      },
+      { rootMargin: '300px' }
+    );
+
+    observer.observe(sentinelRef.current);
+    return () => observer.disconnect();
+  }, [visibleCount, tracks.length, reorderable]);
 
   if (!tracks || tracks.length === 0) {
     return (
-      <div className={`nocturne-tracklist__empty ${className}`}>
+      <div className={`nocturne-tracklist__empty ${className}`} role="status">
         <p>{emptyMessage}</p>
       </div>
     );
@@ -68,13 +94,21 @@ export const TrackList: React.FC<TrackListProps> = ({
     setDraggedIndex(null);
   };
 
+  const renderedTracks = reorderable ? tracks : tracks.slice(0, visibleCount);
+
   return (
-    <div className={`nocturne-tracklist-container ${className}`}>
+    <div
+      className={`nocturne-tracklist-container ${className}`}
+      role="region"
+      aria-label="Track list"
+    >
       {showHeader && (
         <div
           className={`nocturne-tracklist__header ${
             !showAlbum ? 'nocturne-tracklist__header--no-album' : ''
           }`}
+          role="row"
+          aria-hidden="true"
         >
           <div className="nocturne-tracklist__header-num">#</div>
           <div className="nocturne-tracklist__header-title">Title</div>
@@ -86,8 +120,8 @@ export const TrackList: React.FC<TrackListProps> = ({
         </div>
       )}
 
-      <div className="nocturne-tracklist__rows">
-        {tracks.map((track, index) => {
+      <div className="nocturne-tracklist__rows" role="list">
+        {renderedTracks.map((track, index) => {
           const isActive = currentTrackId === track.id;
           return (
             <TrackRow
@@ -109,7 +143,19 @@ export const TrackList: React.FC<TrackListProps> = ({
             />
           );
         })}
+        {visibleCount < tracks.length && !reorderable && (
+          <div
+            ref={sentinelRef}
+            style={{ height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+            aria-hidden="true"
+          >
+            <span style={{ fontSize: '11px', color: 'var(--text-low)', letterSpacing: '0.05em' }}>
+              Loading more tracks...
+            </span>
+          </div>
+        )}
       </div>
     </div>
   );
 };
+

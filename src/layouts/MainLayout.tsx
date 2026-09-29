@@ -31,6 +31,8 @@ export const MainLayout: React.FC = () => {
         target &&
         (target.tagName === 'INPUT' ||
           target.tagName === 'TEXTAREA' ||
+          target.tagName === 'SELECT' ||
+          target.getAttribute('role') === 'slider' ||
           target.isContentEditable)
       ) {
         return;
@@ -54,6 +56,11 @@ export const MainLayout: React.FC = () => {
 
   return (
     <div className="nocturne-layout">
+      {/* Skip to Main Content Link for Keyboard / Screen Reader Accessibility */}
+      <a href="#main-content" className="nocturne-skip-link">
+        Skip to main content
+      </a>
+
       {/* Dynamic Background Atmosphere Layer */}
       <div className={`nocturne-layout__bg-layer nocturne-layout__bg-${backgroundMode}`}>
         {backgroundMode === 'album_art' && (
@@ -92,7 +99,13 @@ export const MainLayout: React.FC = () => {
       <div className="nocturne-layout__body">
         <TopBar />
         <div className="nocturne-layout__center-split">
-          <main className="nocturne-layout__content" id="main-content">
+          <main
+            className="nocturne-layout__content"
+            id="main-content"
+            role="main"
+            aria-label="Main Content"
+            tabIndex={-1}
+          >
             <Outlet />
           </main>
           {/* Optional Right-Side Panel */}

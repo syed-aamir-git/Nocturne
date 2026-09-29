@@ -13,7 +13,7 @@ export interface PlaylistCardProps {
   className?: string;
 }
 
-export const PlaylistCard: React.FC<PlaylistCardProps> = ({
+const PlaylistCardComponent: React.FC<PlaylistCardProps> = ({
   playlist,
   onPlay,
   onClick,
@@ -49,6 +49,7 @@ export const PlaylistCard: React.FC<PlaylistCardProps> = ({
       onClick={handleClick}
       role="button"
       tabIndex={0}
+      aria-label={`Playlist ${playlist.title}`}
       onKeyDown={(e) => {
         if (e.key === 'Enter' || e.key === ' ') {
           handleClick();
@@ -63,6 +64,7 @@ export const PlaylistCard: React.FC<PlaylistCardProps> = ({
             className="nocturne-playlist-card__cover"
             onError={() => setImgError(true)}
             loading="lazy"
+            decoding="async"
           />
         ) : (
           <div
@@ -118,3 +120,6 @@ export const PlaylistCard: React.FC<PlaylistCardProps> = ({
     </div>
   );
 };
+
+export const PlaylistCard = React.memo(PlaylistCardComponent);
+

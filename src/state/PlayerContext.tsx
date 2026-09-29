@@ -743,15 +743,19 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     const handleKeyDown = (e: KeyboardEvent) => {
       const target = e.target as HTMLElement | null;
       if (
-        target &&
-        (target.tagName === 'INPUT' ||
-          target.tagName === 'TEXTAREA' ||
-          target.tagName === 'SELECT' ||
-          target.getAttribute('role') === 'slider' ||
-          target.isContentEditable)
+        e.metaKey ||
+        e.ctrlKey ||
+        e.altKey ||
+        (target &&
+          (target.tagName === 'INPUT' ||
+            target.tagName === 'TEXTAREA' ||
+            target.tagName === 'SELECT' ||
+            target.getAttribute('role') === 'slider' ||
+            target.isContentEditable))
       ) {
         return;
       }
+
 
       // Space = play/pause
       if (e.code === 'Space') {

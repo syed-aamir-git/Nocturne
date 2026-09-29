@@ -12,7 +12,7 @@ export interface AlbumCardProps {
   className?: string;
 }
 
-export const AlbumCard: React.FC<AlbumCardProps> = ({
+const AlbumCardComponent: React.FC<AlbumCardProps> = ({
   album,
   onPlay,
   onClick,
@@ -50,6 +50,7 @@ export const AlbumCard: React.FC<AlbumCardProps> = ({
       onClick={handleClick}
       role="button"
       tabIndex={0}
+      aria-label={`Album ${album.title} by ${album.artist}`}
       onKeyDown={(e) => {
         if (e.key === 'Enter' || e.key === ' ') {
           handleClick();
@@ -64,6 +65,7 @@ export const AlbumCard: React.FC<AlbumCardProps> = ({
             className="nocturne-album-card__cover"
             onError={() => setImgError(true)}
             loading="lazy"
+            decoding="async"
           />
         ) : (
           <div
@@ -105,3 +107,6 @@ export const AlbumCard: React.FC<AlbumCardProps> = ({
     </div>
   );
 };
+
+export const AlbumCard = React.memo(AlbumCardComponent);
+

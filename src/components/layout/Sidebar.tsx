@@ -131,6 +131,7 @@ export const Sidebar: React.FC = () => {
       className={`nocturne-sidebar ${isEffectiveCollapsed ? 'nocturne-sidebar--collapsed' : ''} ${
         mobileMenuOpen ? 'nocturne-sidebar--open' : ''
       }`}
+      role="navigation"
       aria-label="Primary Navigation"
     >
       {/* Brand Header */}
@@ -171,6 +172,7 @@ export const Sidebar: React.FC = () => {
                 <NavLink
                   to={item.to}
                   onClick={handleLinkClick}
+                  aria-current={isActive ? 'page' : undefined}
                   className={`nocturne-sidebar__nav-item ${
                     isActive ? 'nocturne-sidebar__nav-item--active' : ''
                   }`}

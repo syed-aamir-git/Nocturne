@@ -139,3 +139,70 @@ input {
   color: inherit;
   outline: none;
 }
+
+/* ==========================================================================
+   Accessibility: Visible Focus States
+   ========================================================================== */
+:focus-visible {
+  outline: 2px solid var(--accent-primary) !important;
+  outline-offset: 2px !important;
+  box-shadow: 0 0 12px var(--accent-glow) !important;
+}
+
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* Skip to content link for screen-reader & keyboard users */
+.nocturne-skip-link {
+  position: fixed;
+  top: -120px;
+  left: 20px;
+  background: var(--accent-primary);
+  color: #000000 !important;
+  font-weight: 700;
+  font-size: 13px;
+  padding: 10px 18px;
+  border-radius: var(--radius-sm);
+  z-index: 10000;
+  text-decoration: none;
+  transition: top var(--transition-snappy);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.8), 0 0 16px var(--accent-glow);
+}
+
+.nocturne-skip-link:focus-visible {
+  top: 16px;
+}
+
+/* Screen Reader Utility */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* Accessibility: Reduced Motion Support */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+

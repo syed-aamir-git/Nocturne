@@ -11,7 +11,7 @@ export interface ArtistCardProps {
   className?: string;
 }
 
-export const ArtistCard: React.FC<ArtistCardProps> = ({
+const ArtistCardComponent: React.FC<ArtistCardProps> = ({
   artist,
   onClick,
   className = '',
@@ -35,6 +35,7 @@ export const ArtistCard: React.FC<ArtistCardProps> = ({
       onClick={handleClick}
       role="button"
       tabIndex={0}
+      aria-label={`Artist ${artist.name}`}
       onKeyDown={(e) => {
         if (e.key === 'Enter' || e.key === ' ') {
           handleClick();
@@ -49,6 +50,7 @@ export const ArtistCard: React.FC<ArtistCardProps> = ({
             className="nocturne-artist-card__avatar"
             onError={() => setImgError(true)}
             loading="lazy"
+            decoding="async"
           />
         ) : (
           <div
@@ -90,3 +92,6 @@ export const ArtistCard: React.FC<ArtistCardProps> = ({
     </div>
   );
 };
+
+export const ArtistCard = React.memo(ArtistCardComponent);
+

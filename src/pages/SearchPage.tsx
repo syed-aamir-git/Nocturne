@@ -176,8 +176,8 @@ export const SearchPage: React.FC = () => {
       </div>
 
       {/* Prominent Search Bar */}
-      <form onSubmit={handleSearchSubmit} className="nocturne-search__input-wrap">
-        <SearchIcon size={20} color="var(--accent-secondary)" />
+      <form onSubmit={handleSearchSubmit} className="nocturne-search__input-wrap" role="search">
+        <SearchIcon size={20} color="var(--accent-secondary)" aria-hidden="true" />
         <input
           ref={inputRef}
           type="text"
@@ -187,6 +187,7 @@ export const SearchPage: React.FC = () => {
           onChange={(e) => handleInputChange(e.target.value)}
           onKeyDown={handleKeyDown}
           autoFocus
+          aria-label="Search tracks, artists, albums, playlists, or genres"
         />
         {searchQuery && (
           <button
@@ -201,6 +202,7 @@ export const SearchPage: React.FC = () => {
               display: 'flex',
               alignItems: 'center',
             }}
+            aria-label="Clear search input"
             title="Clear search"
           >
             <X size={18} />

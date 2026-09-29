@@ -28,7 +28,7 @@ export interface TrackRowProps {
   onDrop?: (e: React.DragEvent<HTMLDivElement>, index: number) => void;
 }
 
-export const TrackRow: React.FC<TrackRowProps> = ({
+const TrackRowComponent: React.FC<TrackRowProps> = ({
   track,
   index,
   isActive = false,
@@ -45,6 +45,7 @@ export const TrackRow: React.FC<TrackRowProps> = ({
   onDragOver,
   onDrop,
 }) => {
+
   const { isLiked, toggleLike } = useLibrary();
   const { addToQueue } = usePlayer();
   const { showToast } = useToast();
@@ -107,12 +108,14 @@ export const TrackRow: React.FC<TrackRowProps> = ({
         onContextMenu={handleContextMenu}
         role="button"
         tabIndex={0}
+        aria-label={`${isActive && isPlaying ? 'Pause' : 'Play'} ${track.title} by ${track.artist}`}
         draggable={draggable}
         onDragStart={(e) => onDragStart?.(e, index)}
         onDragOver={(e) => onDragOver?.(e, index)}
         onDrop={(e) => onDrop?.(e, index)}
         onKeyDown={(e) => {
-          if (e.key === 'Enter') {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
             handleRowClick();
           }
         }}
@@ -165,8 +168,10 @@ export const TrackRow: React.FC<TrackRowProps> = ({
               className="nocturne-track-row__cover"
               onError={() => setImgError(true)}
               loading="lazy"
+              decoding="async"
             />
           ) : (
+
             <div className="nocturne-track-row__cover nocturne-track-row__cover--fallback">
               <Music size={16} color="var(--accent-secondary)" />
             </div>
@@ -338,3 +343,5 @@ export const TrackRow: React.FC<TrackRowProps> = ({
     </>
   );
 };
+
+export const TrackRow = React.memo(TrackRowComponent);

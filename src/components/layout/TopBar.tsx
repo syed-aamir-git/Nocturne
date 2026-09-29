@@ -103,14 +103,15 @@ export const TopBar: React.FC = () => {
           <Menu size={20} />
         </IconButton>
 
-        <form className="nocturne-topbar__search-wrap" onSubmit={handleSearchSubmit}>
-          <Search size={16} className="nocturne-topbar__search-icon" />
+        <form className="nocturne-topbar__search-wrap" onSubmit={handleSearchSubmit} role="search">
+          <Search size={16} className="nocturne-topbar__search-icon" aria-hidden="true" />
           <input
             ref={inputRef}
             type="text"
             className="nocturne-topbar__search-input"
             placeholder="Search gothic soundscapes, artists, or late-night drones..."
             value={searchQuery}
+            aria-label="Search gothic soundscapes, artists, or late-night drones"
             onFocus={() => {
               if (location.pathname !== '/search') {
                 navigate('/search');
@@ -126,7 +127,7 @@ export const TopBar: React.FC = () => {
               }
             }}
           />
-          <span className="nocturne-topbar__search-shortcut">⌘K</span>
+          <span className="nocturne-topbar__search-shortcut" aria-hidden="true">⌘K</span>
         </form>
       </div>
 
@@ -140,7 +141,7 @@ export const TopBar: React.FC = () => {
         {/* Theme mood selector dropdown */}
         <Dropdown
           trigger={
-            <button type="button" className="nocturne-topbar__theme-btn">
+            <button type="button" className="nocturne-topbar__theme-btn" aria-label={`Current atmosphere: ${currentTheme.name}. Click to change theme.`}>
               <span
                 className="nocturne-topbar__theme-dot"
                 style={{ backgroundColor: currentTheme.accent, color: currentTheme.accent }}
@@ -159,6 +160,7 @@ export const TopBar: React.FC = () => {
               type="button"
               style={{ background: 'transparent', border: 'none', padding: 0, cursor: 'pointer' }}
               title={isConnected ? `Connected as ${userProfile?.name}` : `${localProfile.name} • Preferences`}
+              aria-label={isConnected ? `Connected as ${userProfile?.name}` : `${localProfile.name} account menu`}
             >
               <Avatar
                 name={(isConnected && userProfile?.name) || localProfile.name}

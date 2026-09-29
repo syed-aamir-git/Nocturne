@@ -86,10 +86,15 @@ export const Slider: React.FC<SliderProps> = ({
   // Keyboard accessibility
   const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
     let nextValue = value;
+    const largeStep = Math.max(step * 5, (max - min) * 0.1);
     if (e.key === 'ArrowRight' || e.key === 'ArrowUp') {
       nextValue = Math.min(max, value + step);
     } else if (e.key === 'ArrowLeft' || e.key === 'ArrowDown') {
       nextValue = Math.max(min, value - step);
+    } else if (e.key === 'PageUp') {
+      nextValue = Math.min(max, value + largeStep);
+    } else if (e.key === 'PageDown') {
+      nextValue = Math.max(min, value - largeStep);
     } else if (e.key === 'Home') {
       nextValue = min;
     } else if (e.key === 'End') {
@@ -125,3 +130,4 @@ export const Slider: React.FC<SliderProps> = ({
     </div>
   );
 };
+

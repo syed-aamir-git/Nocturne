@@ -25,8 +25,29 @@ export const Dropdown: React.FC<DropdownProps> = ({ trigger, items, align = 'rig
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && isOpen) {
+      if (!isOpen) return;
+
+      if (e.key === 'Escape') {
+        e.preventDefault();
         setIsOpen(false);
+        return;
+      }
+
+      if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+        e.preventDefault();
+        if (!containerRef.current) return;
+        const menuItems = Array.from(
+          containerRef.current.querySelectorAll<HTMLButtonElement>('[role="menuitem"]')
+        );
+        if (menuItems.length === 0) return;
+        const activeIdx = menuItems.indexOf(document.activeElement as HTMLButtonElement);
+        if (e.key === 'ArrowDown') {
+          const nextIdx = activeIdx < menuItems.length - 1 ? activeIdx + 1 : 0;
+          menuItems[nextIdx].focus();
+        } else {
+          const prevIdx = activeIdx > 0 ? activeIdx - 1 : menuItems.length - 1;
+          menuItems[prevIdx].focus();
+        }
       }
     };
 
@@ -43,6 +64,16 @@ export const Dropdown: React.FC<DropdownProps> = ({ trigger, items, align = 'rig
       <div
         className="nocturne-dropdown-trigger"
         onClick={() => setIsOpen((prev) => !prev)}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            setIsOpen((prev) => !prev);
+          }
+        }}
+        role="button"
+        tabIndex={0}
+        aria-haspopup="menu"
+        aria-expanded={isOpen}
       >
         {trigger}
       </div>
@@ -54,6 +85,7 @@ export const Dropdown: React.FC<DropdownProps> = ({ trigger, items, align = 'rig
           }`}
           role="menu"
         >
+
           {items.map((item, index) => {
             if (item === 'divider') {
               return <div key={`div-${index}`} className="nocturne-dropdown-divider" role="separator" />;

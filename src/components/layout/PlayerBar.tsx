@@ -152,6 +152,8 @@ export const PlayerBar: React.FC = () => {
               alt={currentTrack.title}
               className="nocturne-player__cover"
               onError={() => setImgError(true)}
+              loading="lazy"
+              decoding="async"
             />
           ) : (
             <div

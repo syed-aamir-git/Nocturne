@@ -1,9 +1,10 @@
 import React from 'react';
-import { NavLink } from 'react-router-dom';
+import { NavLink, useLocation } from 'react-router-dom';
 import { Home, Compass, Search, Library, Heart } from 'lucide-react';
 import './MobileNav.css';
 
 export const MobileNav: React.FC = () => {
+  const location = useLocation();
   const items = [
     { to: '/', label: 'Home', icon: <Home size={20} /> },
     { to: '/discover', label: 'Discover', icon: <Compass size={20} /> },
@@ -21,6 +22,7 @@ export const MobileNav: React.FC = () => {
           className={({ isActive }) =>
             `nocturne-mobile-nav__item ${isActive ? 'nocturne-mobile-nav__item--active' : ''}`
           }
+          aria-current={location.pathname === item.to ? 'page' : undefined}
         >
           {item.icon}
           <span>{item.label}</span>
