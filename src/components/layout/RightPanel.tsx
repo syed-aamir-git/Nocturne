@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   X,
   Activity,
@@ -24,6 +24,7 @@ import { IconButton } from '../primitives/IconButton';
 import { AddTracksModal } from '../modals/AddTracksModal';
 import { formatDuration } from '../../utilities/formatters';
 import type { Track } from '../../types';
+import { sanitizeSyncedLyrics, sanitizePlainLyrics } from '../../utilities/lyrics';
 import './RightPanel.css';
 
 export const RightPanel: React.FC = () => {
@@ -50,9 +51,17 @@ export const RightPanel: React.FC = () => {
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
-  if (!rightPanelOpen) return null;
-
   const coverSrc = currentTrack?.artwork || currentTrack?.coverUrl || '';
+
+  const syncedLyrics = useMemo(() => {
+    return sanitizeSyncedLyrics(currentTrack?.syncedLyrics);
+  }, [currentTrack?.syncedLyrics]);
+
+  const plainLyrics = useMemo(() => {
+    return sanitizePlainLyrics(currentTrack?.lyrics);
+  }, [currentTrack?.lyrics]);
+
+  if (!rightPanelOpen) return null;
 
   // HTML5 Drag and Drop handlers for queue
   const handleDragStart = (e: React.DragEvent<HTMLDivElement>, index: number) => {
@@ -564,7 +573,7 @@ export const RightPanel: React.FC = () => {
                   textTransform: 'uppercase',
                 }}
               >
-                {currentTrack.syncedLyrics ? 'SYNCED INSCRIPTION' : 'LYRICS & POETRY'}
+                {syncedLyrics.length > 0 ? 'SYNCED INSCRIPTION' : 'LYRICS & POETRY'}
               </span>
 
               <button
@@ -589,7 +598,7 @@ export const RightPanel: React.FC = () => {
               </button>
             </div>
 
-            {!currentTrack.lyrics && (!currentTrack.syncedLyrics || currentTrack.syncedLyrics.length === 0) ? (
+            {!plainLyrics && syncedLyrics.length === 0 ? (
               <div
                 style={{
                   padding: '32px 16px',
@@ -615,11 +624,11 @@ export const RightPanel: React.FC = () => {
                   Transcriptions for this instrumental composition have not yet been recorded.
                 </p>
               </div>
-            ) : currentTrack.syncedLyrics && currentTrack.syncedLyrics.length > 0 ? (
+            ) : syncedLyrics.length > 0 ? (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                {currentTrack.syncedLyrics.map((line, idx) => {
+                {syncedLyrics.map((line, idx) => {
                   const isPastOrCurrent = currentTime >= line.time;
-                  const nextLine = currentTrack.syncedLyrics![idx + 1];
+                  const nextLine = syncedLyrics[idx + 1];
                   const isCurrent =
                     isPastOrCurrent && (!nextLine || currentTime < nextLine.time);
 
@@ -671,7 +680,7 @@ export const RightPanel: React.FC = () => {
                   margin: 0,
                 }}
               >
-                {currentTrack.lyrics}
+                {plainLyrics}
               </pre>
             )}
           </div>
@@ -860,6 +869,19 @@ export const RightPanel: React.FC = () => {
                 {currentTrack.credits?.copyrightNotice || '© 2024-2025 Nocturne Sanctuary Records.'}
               </p>
             </div>
+          </div>
+        )}
+
+        {/* Empty state for non-queue tabs when no composition is playing */}
+        {!currentTrack && rightPanelTab !== 'queue' && (
+          <div style={{ textAlign: 'center', padding: '64px 20px', color: 'var(--text-low)' }}>
+            <Music size={36} style={{ marginBottom: 14, opacity: 0.5 }} />
+            <p style={{ fontFamily: 'var(--font-serif)', fontSize: '1.05rem', color: 'var(--text-medium)', margin: '0 0 6px 0' }}>
+              No Active Composition
+            </p>
+            <p style={{ fontSize: '12px', margin: 0, lineHeight: 1.5 }}>
+              Begin playing any track in the sanctuary to reveal its {rightPanelTab === 'lyrics' ? 'lyrics and poetry' : rightPanelTab === 'info' ? 'acoustic metrics' : 'guild credits'}.
+            </p>
           </div>
         )}
       </div>

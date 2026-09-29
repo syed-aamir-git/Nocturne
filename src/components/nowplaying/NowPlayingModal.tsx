@@ -35,6 +35,7 @@ import { Tooltip } from '../primitives/Tooltip';
 import type { SyncedLyricLine } from '../../types';
 import type { AudioQuality } from '../../types/audio';
 import { CROSSFADE_OPTIONS } from '../../types/audio';
+import { sanitizeSyncedLyrics, sanitizePlainLyrics } from '../../utilities/lyrics';
 import './NowPlayingModal.css';
 
 export const NowPlayingModal: React.FC = () => {
@@ -140,10 +141,14 @@ export const NowPlayingModal: React.FC = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [showAudioSettings]);
 
-  // Synced lyrics extraction & active line calculation
+  // Synced lyrics extraction & active line calculation safely
   const syncedLyrics: SyncedLyricLine[] = useMemo(() => {
-    return currentTrack?.syncedLyrics || [];
-  }, [currentTrack]);
+    return sanitizeSyncedLyrics(currentTrack?.syncedLyrics);
+  }, [currentTrack?.syncedLyrics]);
+
+  const plainLyrics = useMemo(() => {
+    return sanitizePlainLyrics(currentTrack?.lyrics);
+  }, [currentTrack?.lyrics]);
 
   const activeLineIndex = useMemo(() => {
     if (!syncedLyrics || syncedLyrics.length === 0) return -1;
@@ -298,7 +303,7 @@ export const NowPlayingModal: React.FC = () => {
   const currentLyricSnippet =
     activeLineIndex >= 0 && syncedLyrics[activeLineIndex]
       ? syncedLyrics[activeLineIndex].text
-      : currentTrack.lyrics?.split('\n').filter(Boolean)[0] || null;
+      : plainLyrics.split('\n').filter(Boolean)[0] || null;
 
   return (
     <div
@@ -695,9 +700,9 @@ export const NowPlayingModal: React.FC = () => {
                     );
                   })}
                 </div>
-              ) : currentTrack.lyrics ? (
+              ) : plainLyrics ? (
                 <div className="nocturne-nowplaying__plain-lyrics">
-                  {currentTrack.lyrics}
+                  {plainLyrics}
                 </div>
               ) : (
                 <div style={{ textAlign: 'center', padding: '60px 20px', color: 'var(--text-low)' }}>
@@ -743,67 +748,97 @@ export const NowPlayingModal: React.FC = () => {
                 )}
               </div>
 
-              <div className="nocturne-nowplaying__queue-list">
-                {queue.map((track, idx) => {
-                  const isCur = idx === queueIndex;
-                  return (
-                    <div
-                      key={`${track.id}-${idx}`}
-                      onClick={() => playQueueIndex(idx)}
-                      className={`nocturne-nowplaying__queue-item ${
-                        isCur ? 'nocturne-nowplaying__queue-item--active' : ''
-                      }`}
-                    >
-                      <img
-                        src={track.artwork || track.coverUrl || ''}
-                        alt={track.title}
-                        className="nocturne-nowplaying__queue-thumb"
-                      />
-                      <div style={{ overflow: 'hidden' }}>
-                        <div
-                          style={{
-                            fontWeight: isCur ? 700 : 500,
-                            fontSize: '13.5px',
-                            color: isCur ? 'var(--accent-secondary)' : 'var(--text-pure)',
-                            whiteSpace: 'nowrap',
-                            overflow: 'hidden',
-                            textOverflow: 'ellipsis',
-                          }}
-                        >
-                          {track.title}
+              {queue.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: '48px 20px', color: 'var(--text-low)' }}>
+                  <ListMusic size={36} style={{ marginBottom: 12, opacity: 0.5 }} />
+                  <p style={{ fontFamily: 'var(--font-serif)', fontSize: '1.1rem', margin: 0, color: 'var(--text-medium)' }}>
+                    Playback Queue is Empty
+                  </p>
+                  <p style={{ fontSize: '12px', margin: '6px 0 0 0' }}>
+                    Select a ritual composition or album to fill the nocturne sequence.
+                  </p>
+                </div>
+              ) : (
+                <div className="nocturne-nowplaying__queue-list">
+                  {queue.map((track, idx) => {
+                    if (!track) return null;
+                    const isCur = idx === queueIndex;
+                    return (
+                      <div
+                        key={`${track.id || idx}-${idx}`}
+                        onClick={() => playQueueIndex(idx)}
+                        className={`nocturne-nowplaying__queue-item ${
+                          isCur ? 'nocturne-nowplaying__queue-item--active' : ''
+                        }`}
+                      >
+                        {track.artwork || track.coverUrl ? (
+                          <img
+                            src={track.artwork || track.coverUrl}
+                            alt={track.title || 'Track artwork'}
+                            className="nocturne-nowplaying__queue-thumb"
+                            onError={(e) => {
+                              e.currentTarget.style.display = 'none';
+                            }}
+                          />
+                        ) : (
+                          <div
+                            className="nocturne-nowplaying__queue-thumb"
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              background: 'var(--bg-surface-elevated)',
+                            }}
+                          >
+                            <Music size={14} color="var(--accent-secondary)" />
+                          </div>
+                        )}
+                        <div style={{ overflow: 'hidden', flex: 1 }}>
+                          <div
+                            style={{
+                              fontWeight: isCur ? 700 : 500,
+                              fontSize: '13.5px',
+                              color: isCur ? 'var(--accent-secondary)' : 'var(--text-pure)',
+                              whiteSpace: 'nowrap',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                            }}
+                          >
+                            {track.title || 'Untitled Composition'}
+                          </div>
+                          <div
+                            style={{
+                              fontSize: '11.5px',
+                              color: 'var(--text-medium)',
+                              whiteSpace: 'nowrap',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                            }}
+                          >
+                            {track.artist || 'Unknown Resonance'}
+                          </div>
                         </div>
-                        <div
-                          style={{
-                            fontSize: '11.5px',
-                            color: 'var(--text-medium)',
-                            whiteSpace: 'nowrap',
-                            overflow: 'hidden',
-                            textOverflow: 'ellipsis',
-                          }}
-                        >
-                          {track.artist}
-                        </div>
+                        <span style={{ fontSize: '11px', fontFamily: 'var(--font-mono)', color: 'var(--text-low)', flexShrink: 0 }}>
+                          {formatDuration(track.duration)}
+                        </span>
+                        {queue.length > 1 && (
+                          <IconButton
+                            variant="ghost"
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              removeFromQueue(idx);
+                            }}
+                            aria-label="Remove from queue"
+                          >
+                            <X size={14} />
+                          </IconButton>
+                        )}
                       </div>
-                      <span style={{ fontSize: '11px', fontFamily: 'var(--font-mono)', color: 'var(--text-low)' }}>
-                        {formatDuration(track.duration)}
-                      </span>
-                      {queue.length > 1 && (
-                        <IconButton
-                          variant="ghost"
-                          size="sm"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            removeFromQueue(idx);
-                          }}
-                          aria-label="Remove from queue"
-                        >
-                          <X size={14} />
-                        </IconButton>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           )}
 

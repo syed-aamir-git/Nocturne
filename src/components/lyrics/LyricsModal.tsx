@@ -22,6 +22,7 @@ import { formatDuration } from '../../utilities/formatters';
 import { Slider } from '../primitives/Slider';
 import { IconButton } from '../primitives/IconButton';
 import type { SyncedLyricLine, LyricsState } from '../../types';
+import { sanitizeSyncedLyrics, sanitizePlainLyrics } from '../../utilities/lyrics';
 import './LyricsModal.css';
 
 export const LyricsModal: React.FC = () => {
@@ -53,11 +54,17 @@ export const LyricsModal: React.FC = () => {
 
   // Simulated lyrics network / deciphering state
   const [simulatedState, setSimulatedState] = useState<LyricsState>('loading');
+  const [artFailedTrackId, setArtFailedTrackId] = useState<string | null>(null);
+  const artLoadFailed = Boolean(currentTrack && artFailedTrackId === currentTrack.id);
 
-  // Determine current active lyric line for synced mode
+  // Determine current active lyric line for synced mode safely
   const syncedLyrics: SyncedLyricLine[] = useMemo(() => {
-    return currentTrack?.syncedLyrics || [];
-  }, [currentTrack]);
+    return sanitizeSyncedLyrics(currentTrack?.syncedLyrics);
+  }, [currentTrack?.syncedLyrics]);
+
+  const plainLyrics: string = useMemo(() => {
+    return sanitizePlainLyrics(currentTrack?.lyrics);
+  }, [currentTrack?.lyrics]);
 
   const activeLineIndex = useMemo(() => {
     if (!syncedLyrics || syncedLyrics.length === 0) return -1;
@@ -78,14 +85,14 @@ export const LyricsModal: React.FC = () => {
     if (simulatedState === 'loading') return 'loading';
     if (simulatedState === 'error') return 'error';
 
-    const hasLyrics = Boolean(currentTrack.lyrics);
-    const hasSynced = Boolean(currentTrack.syncedLyrics && currentTrack.syncedLyrics.length > 0);
+    const hasLyrics = Boolean(plainLyrics);
+    const hasSynced = syncedLyrics.length > 0;
 
     if (hasLyrics || hasSynced) {
       return 'available';
     }
     return 'not_available';
-  }, [currentTrack, simulatedState]);
+  }, [currentTrack, simulatedState, plainLyrics, syncedLyrics]);
 
   // Quick initial loading state simulation when switching tracks
   useEffect(() => {
@@ -98,8 +105,8 @@ export const LyricsModal: React.FC = () => {
     }, 0);
 
     const resolveTimer = setTimeout(() => {
-      const hasLyrics = Boolean(currentTrack.lyrics);
-      const hasSynced = Boolean(currentTrack.syncedLyrics && currentTrack.syncedLyrics.length > 0);
+      const hasLyrics = Boolean(sanitizePlainLyrics(currentTrack.lyrics));
+      const hasSynced = sanitizeSyncedLyrics(currentTrack.syncedLyrics).length > 0;
       setSimulatedState(hasLyrics || hasSynced ? 'available' : 'not_available');
     }, 240);
 
@@ -112,7 +119,7 @@ export const LyricsModal: React.FC = () => {
   // Default to synced mode if synced lyrics exist
   useEffect(() => {
     if (!currentTrack) return;
-    const hasSynced = Boolean(currentTrack.syncedLyrics && currentTrack.syncedLyrics.length > 0);
+    const hasSynced = sanitizeSyncedLyrics(currentTrack.syncedLyrics).length > 0;
     const modeTimer = setTimeout(() => {
       setLyricsMode(hasSynced ? 'synced' : 'plain');
       setIsUserScrolling(false);
@@ -208,7 +215,7 @@ export const LyricsModal: React.FC = () => {
   return (
     <div className="nocturne-lyrics-modal" role="dialog" aria-modal="true" aria-label="Lyrics and Lore">
       {/* Blurred Ambient Artwork Backdrop */}
-      {artworkUrl && (
+      {artworkUrl && !artLoadFailed && (
         <div
           className="nocturne-lyrics-modal__backdrop"
           style={{ backgroundImage: `url(${artworkUrl})` }}
@@ -416,7 +423,7 @@ export const LyricsModal: React.FC = () => {
                       className="nocturne-lyrics-plain-container"
                       style={{ fontSize: fontSize === 'large' ? '24px' : '19px' }}
                     >
-                      {currentTrack.lyrics || 'No plain lyrics text recorded for this track.'}
+                      {plainLyrics || 'No plain lyrics text recorded for this track.'}
                     </div>
                   )}
 
@@ -440,11 +447,12 @@ export const LyricsModal: React.FC = () => {
           {lyricsTab === 'info' && (
             <div className="nocturne-song-info-container">
               <div className="nocturne-song-info__hero">
-                {artworkUrl ? (
+                {artworkUrl && !artLoadFailed ? (
                   <img
                     src={artworkUrl}
-                    alt={currentTrack.title}
+                    alt={currentTrack.title || 'Composition artwork'}
                     className="nocturne-song-info__art-large"
+                    onError={() => setArtFailedTrackId(currentTrack.id)}
                   />
                 ) : (
                   <div
@@ -461,11 +469,11 @@ export const LyricsModal: React.FC = () => {
                 )}
 
                 <div className="nocturne-song-info__details">
-                  <span className="nocturne-song-info__badge">{currentTrack.genre}</span>
-                  <h2 className="nocturne-song-info__track-name">{currentTrack.title}</h2>
-                  <span className="nocturne-song-info__artist-link">{currentTrack.artist}</span>
+                  <span className="nocturne-song-info__badge">{currentTrack.genre || 'Sanctuary Frequency'}</span>
+                  <h2 className="nocturne-song-info__track-name">{currentTrack.title || 'Untitled Composition'}</h2>
+                  <span className="nocturne-song-info__artist-link">{currentTrack.artist || 'Unknown Resonance'}</span>
                   <span className="nocturne-song-info__album-name">
-                    Album: {currentTrack.album} • Track #{currentTrack.trackNumber}
+                    Album: {currentTrack.album || 'Nocturne Archive'} {currentTrack.trackNumber ? `• Track #${currentTrack.trackNumber}` : ''}
                   </span>
                 </div>
               </div>
