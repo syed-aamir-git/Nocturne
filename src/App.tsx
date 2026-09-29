@@ -7,6 +7,7 @@ import { ErrorBoundary } from './components/primitives/ErrorBoundary';
 import './styles/index.css';
 
 // Route Code Splitting: Lazy-load secondary pages to dramatically optimize initial page load bundle
+const LandingPage = React.lazy(() => import('./pages/LandingPage').then((m) => ({ default: m.LandingPage })));
 const DiscoverPage = React.lazy(() => import('./pages/DiscoverPage').then((m) => ({ default: m.DiscoverPage })));
 const SearchPage = React.lazy(() => import('./pages/SearchPage').then((m) => ({ default: m.SearchPage })));
 const LibraryPage = React.lazy(() => import('./pages/LibraryPage').then((m) => ({ default: m.LibraryPage })));
@@ -70,8 +71,35 @@ export const App: React.FC = () => {
       <AppProvider>
         <BrowserRouter>
           <Routes>
-            <Route path="/" element={<MainLayout />}>
-              <Route index element={<HomePage />} />
+            {/* Landing page portal (Flow step 1: Landing Page -> step 2: Enter Nocturne) */}
+            <Route
+              path="/"
+              element={
+                <Suspense fallback={<RouteLoadingFallback />}>
+                  <LandingPage />
+                </Suspense>
+              }
+            />
+            <Route
+              path="/landing"
+              element={
+                <Suspense fallback={<RouteLoadingFallback />}>
+                  <LandingPage />
+                </Suspense>
+              }
+            />
+            <Route
+              path="/welcome"
+              element={
+                <Suspense fallback={<RouteLoadingFallback />}>
+                  <LandingPage />
+                </Suspense>
+              }
+            />
+
+            {/* Main Application Sanctuary Shell */}
+            <Route element={<MainLayout />}>
+              <Route path="home" element={<HomePage />} />
               <Route
                 path="discover"
                 element={
@@ -209,7 +237,7 @@ export const App: React.FC = () => {
                   </Suspense>
                 }
               />
-              <Route path="*" element={<Navigate to="/" replace />} />
+              <Route path="*" element={<Navigate to="/home" replace />} />
             </Route>
           </Routes>
         </BrowserRouter>
