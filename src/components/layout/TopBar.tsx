@@ -1,6 +1,6 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Search, Menu, Radio, Download, LogIn, LogOut, Settings as SettingsIcon, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Search, Menu, Radio, Download, LogIn, LogOut, Settings as SettingsIcon, ChevronLeft, ChevronRight, Sparkles } from 'lucide-react';
 import { useUI } from '../../state/UIContext';
 import { useTheme } from '../../state/ThemeContext';
 import { useToast } from '../../state/ToastContext';
@@ -195,6 +195,12 @@ export const TopBar: React.FC = () => {
             isConnected
               ? [
                   {
+                    id: 'welcome',
+                    label: 'Welcome Portal (Demo Landing)',
+                    icon: <Sparkles size={14} />,
+                    onClick: () => navigate('/'),
+                  },
+                  {
                     id: 'status',
                     label: `Spotify: ${userProfile?.name || 'Linked'}`,
                     icon: <Radio size={14} color="var(--indicator-success)" />,
@@ -220,6 +226,12 @@ export const TopBar: React.FC = () => {
                   },
                 ]
               : [
+                  {
+                    id: 'welcome',
+                    label: 'Welcome Portal (Demo Landing)',
+                    icon: <Sparkles size={14} />,
+                    onClick: () => navigate('/'),
+                  },
                   {
                     id: 'auth',
                     label: 'Continue with Spotify',
