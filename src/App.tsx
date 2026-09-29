@@ -192,6 +192,7 @@ export const App: React.FC = () => {
                   </Suspense>
                 }
               />
+              <Route path="stats" element={<Navigate to="/statistics" replace />} />
               <Route
                 path="settings"
                 element={
