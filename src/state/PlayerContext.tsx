@@ -650,10 +650,15 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     setPlaybackError(null);
     setIsLoading(true);
     if (currTrk.audioUrl && !currTrk.isUnavailable) {
-      audioEngine.loadTrack(currTrk.audioUrl, true, currTime).catch((err) => {
-        setPlaybackError(err instanceof Error ? err.message : 'Retry failed');
-        setIsLoading(false);
-      });
+      audioEngine
+        .loadTrack(currTrk.audioUrl, true, currTime)
+        .then(() => {
+          setIsLoading(false);
+        })
+        .catch((err) => {
+          setPlaybackError(err instanceof Error ? err.message : 'Retry failed');
+          setIsLoading(false);
+        });
     } else {
       setPlaybackError('Audio recording is unavailable in this sanctuary');
       setIsLoading(false);

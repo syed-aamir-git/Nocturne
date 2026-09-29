@@ -133,7 +133,7 @@ export const SettingsPage: React.FC = () => {
     openEqualizer,
     gains,
     setBandGain,
-    resetEQ,
+    resetSettings,
   } = useAudioSettings();
 
   const { history, clearHistory } = useAnalytics();
@@ -288,12 +288,7 @@ export const SettingsPage: React.FC = () => {
 
   const handleExecuteResetPreferences = () => {
     resetToDefaults();
-    resetEQ();
-    setAudioQuality('lossless');
-    setVolumeNormalization(true);
-    setPlaybackRate(1.0);
-    setCrossfadeDuration(4);
-    setAutoplay(true);
+    resetSettings();
     setShuffle(false);
     setRepeatMode('off');
     setSpatialStereo(false);

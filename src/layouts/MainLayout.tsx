@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { Outlet } from 'react-router-dom';
+import { Outlet, useLocation } from 'react-router-dom';
 import { Sidebar } from '../components/layout/Sidebar';
 import { TopBar } from '../components/layout/TopBar';
 import { PlayerBar } from '../components/layout/PlayerBar';
@@ -18,6 +18,7 @@ import { usePlayer } from '../state/PlayerContext';
 import './MainLayout.css';
 
 export const MainLayout: React.FC = () => {
+  const location = useLocation();
   const { mobileMenuOpen, setMobileMenuOpen, toggleLyrics, toggleNowPlaying } = useUI();
   const { toggleEqualizer } = useAudioSettings();
   const { toasts, removeToast } = useToast();
@@ -118,7 +119,7 @@ export const MainLayout: React.FC = () => {
             aria-label="Main Content"
             tabIndex={-1}
           >
-            <ErrorBoundary>
+            <ErrorBoundary key={location.pathname}>
               <Outlet />
             </ErrorBoundary>
           </main>
