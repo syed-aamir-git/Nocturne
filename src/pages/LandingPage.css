@@ -1,0 +1,545 @@
+/* ==========================================================================
+   Nocturne Cinematic Landing Page
+   A stunning, dark gothic, atmospheric entrance designed to WOW within 10s
+   ========================================================================== */
+
+.nocturne-landing {
+  min-height: 100vh;
+  width: 100%;
+  background-color: var(--bg-abyss, #040306);
+  color: var(--text-high, #ebdff7);
+  font-family: var(--font-sans);
+  position: relative;
+  overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Background Atmosphere & Ambient Vignette */
+.nocturne-landing__bg-glow {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background:
+    radial-gradient(ellipse 70% 50% at 50% 10%, rgba(168, 85, 247, 0.16) 0%, transparent 70%),
+    radial-gradient(circle at 15% 45%, rgba(120, 50, 180, 0.1) 0%, transparent 50%),
+    radial-gradient(circle at 85% 70%, rgba(70, 30, 120, 0.08) 0%, transparent 55%),
+    radial-gradient(ellipse 100% 100% at 50% 100%, rgba(4, 3, 6, 0.95) 30%, transparent 100%);
+}
+
+.nocturne-landing__stars {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  background-image: radial-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 1px);
+  background-size: 32px 32px;
+  opacity: 0.5;
+}
+
+/* Top Navigation Bar */
+.nocturne-landing__nav {
+  position: relative;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 24px 40px;
+  max-width: 1360px;
+  margin: 0 auto;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.nocturne-landing__brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-decoration: none;
+  color: inherit;
+}
+
+.nocturne-landing__brand-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: var(--radius-sm, 8px);
+  background: var(--bg-surface-elevated, #181622);
+  border: 1px solid var(--border-glow, rgba(168, 85, 247, 0.3));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--accent-primary, #a855f7);
+  box-shadow: 0 0 16px var(--accent-glow, rgba(168, 85, 247, 0.25));
+}
+
+.nocturne-landing__brand-title {
+  font-family: var(--font-serif);
+  font-size: 1.35rem;
+  font-weight: 800;
+  letter-spacing: 0.15em;
+  color: var(--text-pure, #ffffff);
+  text-transform: uppercase;
+}
+
+.nocturne-landing__nav-links {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+}
+
+.nocturne-landing__nav-link {
+  color: var(--text-medium, #9d8fb2);
+  text-decoration: none;
+  font-size: 13.5px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  transition: color var(--transition-snappy, 140ms ease);
+}
+
+.nocturne-landing__nav-link:hover {
+  color: var(--text-pure, #ffffff);
+}
+
+.nocturne-landing__nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* ==========================================================================
+   Hero Centerpiece
+   ========================================================================== */
+.nocturne-landing__hero {
+  position: relative;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 80px 24px 60px;
+  max-width: 960px;
+  margin: 0 auto;
+}
+
+.nocturne-landing__badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  border-radius: var(--radius-full, 9999px);
+  background: rgba(168, 85, 247, 0.12);
+  border: 1px solid var(--border-glow, rgba(168, 85, 247, 0.35));
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  color: var(--accent-secondary, #c084fc);
+  text-transform: uppercase;
+  margin-bottom: 28px;
+  box-shadow: 0 0 16px var(--accent-glow, rgba(168, 85, 247, 0.2));
+  animation: landingBadgePulse 3s ease-in-out infinite alternate;
+}
+
+@keyframes landingBadgePulse {
+  0% {
+    box-shadow: 0 0 12px rgba(168, 85, 247, 0.15);
+  }
+  100% {
+    box-shadow: 0 0 24px rgba(168, 85, 247, 0.35);
+  }
+}
+
+.nocturne-landing__headline {
+  font-family: var(--font-serif);
+  font-size: clamp(2.8rem, 7vw, 5.2rem);
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  line-height: 1.05;
+  color: var(--text-pure, #ffffff);
+  margin: 0 0 18px 0;
+  text-shadow: 0 4px 24px rgba(0, 0, 0, 0.9);
+}
+
+.nocturne-landing__headline-span {
+  display: block;
+  font-size: clamp(1.4rem, 3.2vw, 2.4rem);
+  font-weight: 400;
+  color: var(--accent-secondary, #c084fc);
+  letter-spacing: 0.06em;
+  margin-top: 10px;
+  font-style: italic;
+  font-family: var(--font-serif);
+}
+
+.nocturne-landing__subhead {
+  font-size: clamp(1rem, 2vw, 1.25rem);
+  line-height: 1.65;
+  color: var(--text-medium, #9d8fb2);
+  max-width: 680px;
+  margin: 0 auto 36px;
+  font-weight: 400;
+}
+
+.nocturne-landing__cta-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 48px;
+}
+
+.nocturne-landing__primary-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 36px;
+  border-radius: var(--radius-sm, 8px);
+  background: var(--accent-primary, #a855f7);
+  color: #ffffff;
+  font-family: var(--font-serif);
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  border: 1px solid var(--accent-secondary, #c084fc);
+  cursor: pointer;
+  box-shadow: 0 0 28px var(--accent-glow-strong, rgba(168, 85, 247, 0.4)), 0 8px 32px rgba(0, 0, 0, 0.8);
+  transition: all var(--transition-smooth, 240ms ease);
+}
+
+.nocturne-landing__primary-btn:hover {
+  background: var(--accent-secondary, #c084fc);
+  transform: translateY(-2px);
+  box-shadow: 0 0 40px var(--accent-glow-strong, rgba(168, 85, 247, 0.6)), 0 12px 36px rgba(0, 0, 0, 0.9);
+}
+
+.nocturne-landing__primary-btn:active {
+  transform: translateY(1px);
+}
+
+.nocturne-landing__secondary-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 16px 28px;
+  border-radius: var(--radius-sm, 8px);
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-pure, #ffffff);
+  font-family: var(--font-sans);
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  border: 1px solid var(--border-medium, rgba(255, 255, 255, 0.12));
+  backdrop-filter: blur(12px);
+  cursor: pointer;
+  transition: all var(--transition-smooth, 240ms ease);
+}
+
+.nocturne-landing__secondary-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.25);
+  transform: translateY(-2px);
+}
+
+/* Audio Preview Floating Bar */
+.nocturne-landing__preview-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 14px 22px;
+  border-radius: var(--radius-md, 12px);
+  background: rgba(16, 15, 22, 0.85);
+  border: 1px solid var(--border-glow, rgba(168, 85, 247, 0.3));
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.7), 0 0 20px var(--accent-glow, rgba(168, 85, 247, 0.2));
+  width: 100%;
+  max-width: 580px;
+}
+
+.nocturne-landing__preview-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  text-align: left;
+}
+
+.nocturne-landing__preview-thumb {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-xs, 4px);
+  object-fit: cover;
+  flex-shrink: 0;
+  border: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.1));
+}
+
+.nocturne-landing__preview-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.nocturne-landing__preview-title {
+  font-family: var(--font-serif);
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--text-pure);
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.nocturne-landing__preview-artist {
+  font-size: 11.5px;
+  color: var(--text-medium);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.nocturne-landing__preview-wave {
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+  height: 20px;
+  margin-left: auto;
+  margin-right: 12px;
+}
+
+.nocturne-landing__preview-bar {
+  width: 3px;
+  background: var(--accent-primary);
+  border-radius: 2px;
+  height: 30%;
+  transition: height 0.2s ease;
+}
+
+.nocturne-landing__preview-bar--playing {
+  animation: landingEqBounce 1.1s ease-in-out infinite alternate;
+}
+
+.nocturne-landing__preview-bar:nth-child(1) { animation-delay: 0.1s; }
+.nocturne-landing__preview-bar:nth-child(2) { animation-delay: 0.35s; }
+.nocturne-landing__preview-bar:nth-child(3) { animation-delay: 0.2s; }
+.nocturne-landing__preview-bar:nth-child(4) { animation-delay: 0.5s; }
+.nocturne-landing__preview-bar:nth-child(5) { animation-delay: 0.25s; }
+
+@keyframes landingEqBounce {
+  0% { height: 25%; }
+  100% { height: 100%; }
+}
+
+/* ==========================================================================
+   Pillars & Architecture Section
+   ========================================================================== */
+.nocturne-landing__section {
+  position: relative;
+  z-index: 10;
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 60px 24px 80px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.nocturne-landing__section-head {
+  text-align: center;
+  max-width: 640px;
+  margin: 0 auto 48px;
+}
+
+.nocturne-landing__section-eyebrow {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--accent-secondary);
+  display: block;
+  margin-bottom: 8px;
+}
+
+.nocturne-landing__section-title {
+  font-family: var(--font-serif);
+  font-size: clamp(1.8rem, 3.8vw, 2.6rem);
+  font-weight: 700;
+  color: var(--text-pure);
+  letter-spacing: 0.02em;
+  margin: 0 0 12px 0;
+}
+
+.nocturne-landing__section-sub {
+  font-size: 14px;
+  color: var(--text-medium);
+  line-height: 1.6;
+  margin: 0;
+}
+
+.nocturne-landing__pillars-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 20px;
+}
+
+.nocturne-landing__pillar-card {
+  padding: 32px 28px;
+  border-radius: var(--radius-md, 12px);
+  background: var(--bg-surface, #100f16);
+  border: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.05));
+  box-shadow: var(--shadow-md, 0 8px 24px rgba(0, 0, 0, 0.7));
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  transition: all var(--transition-smooth, 240ms ease);
+}
+
+.nocturne-landing__pillar-card:hover {
+  transform: translateY(-4px);
+  border-color: var(--border-glow, rgba(168, 85, 247, 0.3));
+  box-shadow: var(--shadow-lg), 0 0 20px var(--accent-glow);
+}
+
+.nocturne-landing__pillar-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-sm, 8px);
+  background: var(--bg-surface-elevated, #181622);
+  border: 1px solid var(--border-medium, rgba(255, 255, 255, 0.09));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--accent-primary, #a855f7);
+  box-shadow: 0 0 14px var(--accent-glow);
+}
+
+.nocturne-landing__pillar-title {
+  font-family: var(--font-serif);
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text-pure);
+  letter-spacing: 0.02em;
+  margin: 0;
+}
+
+.nocturne-landing__pillar-desc {
+  font-size: 13.5px;
+  color: var(--text-medium);
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* ==========================================================================
+   Soundstage Teaser Carousel / Showcase
+   ========================================================================== */
+.nocturne-landing__showcase-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 20px;
+}
+
+.nocturne-landing__showcase-card {
+  border-radius: var(--radius-md, 12px);
+  overflow: hidden;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  cursor: pointer;
+  transition: all var(--transition-smooth);
+}
+
+.nocturne-landing__showcase-card:hover {
+  transform: translateY(-4px);
+  border-color: var(--border-glow);
+  box-shadow: var(--shadow-lg), 0 0 16px var(--accent-glow);
+}
+
+.nocturne-landing__showcase-art {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  border-radius: var(--radius-sm);
+  object-fit: cover;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.8);
+}
+
+.nocturne-landing__showcase-title {
+  font-family: var(--font-serif);
+  font-size: 14.5px;
+  font-weight: 700;
+  color: var(--text-pure);
+  letter-spacing: 0.02em;
+}
+
+.nocturne-landing__showcase-meta {
+  font-size: 12px;
+  color: var(--text-medium);
+}
+
+/* ==========================================================================
+   Bottom Final Call To Action
+   ========================================================================== */
+.nocturne-landing__footer-cta {
+  position: relative;
+  z-index: 10;
+  text-align: center;
+  padding: 80px 24px;
+  background: linear-gradient(180deg, transparent 0%, rgba(16, 15, 22, 0.9) 100%);
+  border-top: 1px solid var(--border-subtle);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+}
+
+.nocturne-landing__footer-title {
+  font-family: var(--font-serif);
+  font-size: clamp(2rem, 4.5vw, 3.2rem);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--text-pure);
+  margin: 0;
+}
+
+.nocturne-landing__footer-desc {
+  font-size: 15px;
+  color: var(--text-medium);
+  max-width: 520px;
+  line-height: 1.6;
+  margin: 0;
+}
+
+.nocturne-landing__copyright {
+  margin-top: 40px;
+  font-size: 12px;
+  color: var(--text-low);
+  font-family: var(--font-mono);
+  letter-spacing: 0.05em;
+}
+
+/* Responsive Rules */
+@media (max-width: 768px) {
+  .nocturne-landing__nav {
+    padding: 16px 20px;
+  }
+  .nocturne-landing__nav-links {
+    display: none;
+  }
+  .nocturne-landing__hero {
+    padding: 50px 20px 40px;
+  }
+  .nocturne-landing__preview-card {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .nocturne-landing__preview-wave {
+    margin: 8px 0;
+  }
+  .nocturne-landing__pillars-grid {
+    grid-template-columns: 1fr;
+  }
+}
