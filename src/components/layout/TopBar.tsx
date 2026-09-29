@@ -130,9 +130,9 @@ export const TopBar: React.FC = () => {
             ref={inputRef}
             type="text"
             className="nocturne-topbar__search-input"
-            placeholder="Search gothic soundscapes, artists, or late-night drones..."
+            placeholder="Search 100M+ songs on Spotify, artists, or soundscapes..."
             value={searchQuery}
-            aria-label="Search gothic soundscapes, artists, or late-night drones"
+            aria-label="Search 100M+ songs on Spotify, artists, or soundscapes"
             onFocus={() => {
               if (location.pathname !== '/search') {
                 navigate('/search');

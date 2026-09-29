@@ -184,7 +184,7 @@ export const SearchPage: React.FC = () => {
           Search & Resonance
         </h1>
         <p style={{ color: 'var(--text-medium)', fontSize: '14px', margin: 0 }}>
-          Search songs, artists, albums, playlists, and acoustic nocturnal genres
+          Search over 100M+ songs on Spotify, global artists, albums, and nocturnal soundscapes
         </p>
       </div>
 
@@ -195,12 +195,12 @@ export const SearchPage: React.FC = () => {
           ref={inputRef}
           type="text"
           className="nocturne-search__input"
-          placeholder="Search tracks, artists, albums, playlists, or genres..."
+          placeholder="Search any song on Spotify, artist, album, or gothic resonance..."
           value={searchQuery}
           onChange={(e) => handleInputChange(e.target.value)}
           onKeyDown={handleKeyDown}
           autoFocus
-          aria-label="Search tracks, artists, albums, playlists, or genres"
+          aria-label="Search any song on Spotify, artist, album, or gothic resonance"
         />
         {searchQuery && (
           <button
