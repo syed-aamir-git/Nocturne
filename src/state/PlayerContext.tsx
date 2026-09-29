@@ -45,6 +45,7 @@ export interface PlayerContextType extends PlayerState {
   removeFromQueue: (index: number) => void;
   clearQueue: () => void;
   reorderQueue: (startIndex: number, endIndex: number) => void;
+  retry: () => void;
 }
 
 const PlayerContext = createContext<PlayerContextType | undefined>(undefined);
@@ -66,12 +67,18 @@ function loadInitialQueue(): { queue: Track[]; queueIndex: number } {
     if (raw) {
       const parsed = JSON.parse(raw);
       if (Array.isArray(parsed.queue) && parsed.queue.length > 0) {
-        const safeIdx = Math.max(0, Math.min(parsed.queueIndex || 0, parsed.queue.length - 1));
-        return { queue: parsed.queue, queueIndex: safeIdx };
+        const validQueue = parsed.queue.filter((t: unknown): t is Track => Boolean(t && typeof t === 'object' && (t as Track).id));
+        if (validQueue.length > 0) {
+          const safeIdx = Math.max(0, Math.min(parsed.queueIndex || 0, validQueue.length - 1));
+          return { queue: validQueue, queueIndex: safeIdx };
+        }
       }
     }
   } catch (e) {
-    console.warn('[PlayerContext] Failed to load stored queue:', e);
+    console.warn('[PlayerContext] Corrupted queue storage detected; falling back to mock queue:', e);
+    try {
+      localStorage.removeItem(QUEUE_STORAGE_KEY);
+    } catch {}
   }
   return { queue: MOCK_TRACKS, queueIndex: 0 };
 }
@@ -80,9 +87,25 @@ function loadInitialPlaybackSession(): StoredPlaybackSession | null {
   if (typeof window === 'undefined') return null;
   try {
     const raw = localStorage.getItem(PLAYBACK_SESSION_KEY);
-    if (raw) return JSON.parse(raw);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (parsed && typeof parsed === 'object' && typeof parsed.trackId === 'string') {
+        return {
+          trackId: parsed.trackId,
+          position: typeof parsed.position === 'number' && !isNaN(parsed.position) ? Math.max(0, parsed.position) : 0,
+          duration: typeof parsed.duration === 'number' && !isNaN(parsed.duration) ? Math.max(0, parsed.duration) : 0,
+          volume: typeof parsed.volume === 'number' && !isNaN(parsed.volume) ? Math.max(0, Math.min(1, parsed.volume)) : 0.8,
+          muted: Boolean(parsed.muted),
+          shuffle: Boolean(parsed.shuffle),
+          repeatMode: ['off', 'all', 'one'].includes(parsed.repeatMode) ? parsed.repeatMode : 'off',
+        };
+      }
+    }
   } catch (e) {
-    console.warn('[PlayerContext] Failed to load stored playback session:', e);
+    console.warn('[PlayerContext] Corrupted playback session detected; resetting:', e);
+    try {
+      localStorage.removeItem(PLAYBACK_SESSION_KEY);
+    } catch {}
   }
   return null;
 }
@@ -334,6 +357,11 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   // Load and play a specific track
   const playTrack = useCallback(
     (track: Track, newQueue?: Track[], startIndex?: number) => {
+      if (!track || !track.id) {
+        console.warn('[PlayerContext] Invalid track provided to playTrack');
+        return;
+      }
+
       setPlaybackError(null);
       setIsLoading(true);
       crossfadeTriggeredTrackId.current = null;
@@ -349,36 +377,40 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       }
 
       setCurrentTrack(track);
-      setDuration(track.duration);
+      setDuration(track.duration || 0);
       setCurrentTime(0);
 
-      if (newQueue) {
-        setQueue(newQueue);
+      if (newQueue && Array.isArray(newQueue)) {
+        const cleanQueue = newQueue.filter((t): t is Track => Boolean(t && t.id));
+        setQueue(cleanQueue);
         const idx =
           startIndex !== undefined
             ? startIndex
-            : newQueue.findIndex((t) => t.id === track.id);
+            : cleanQueue.findIndex((t) => t.id === track.id);
         setQueueIndex(idx !== -1 ? idx : 0);
       } else {
         const existingIdx = stateRef.current.queue.findIndex((t) => t.id === track.id);
         if (existingIdx !== -1) {
           setQueueIndex(existingIdx);
         } else {
-          setQueue((prev) => [...prev, track]);
+          setQueue((prev) => [...prev.filter(Boolean), track]);
           setQueueIndex(stateRef.current.queue.length);
         }
       }
 
-      if (track.audioUrl && !track.isUnavailable) {
-        audioEngine.loadTrack(track.audioUrl, true).catch((err) => {
-          console.warn('[PlayerContext] Audio playback could not be initiated:', err);
-          setIsLoading(false);
-          setStatus('paused');
-        });
-      } else {
+      if (track.isUnavailable || !track.audioUrl) {
         setIsLoading(false);
         setStatus('paused');
+        setPlaybackError('Audio recording is unavailable in this sanctuary');
+        return;
       }
+
+      audioEngine.loadTrack(track.audioUrl, true).catch((err) => {
+        console.warn('[PlayerContext] Audio playback could not be initiated:', err);
+        setIsLoading(false);
+        setStatus('error');
+        setPlaybackError(err instanceof Error ? err.message : 'Failed to stream audio');
+      });
     },
     [commitListeningSession]
   );
@@ -551,15 +583,20 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   }, []);
 
   const addToQueue = useCallback((track: Track) => {
-    setQueue((prev) => [...prev, track]);
+    if (!track || !track.id) return;
+    setQueue((prev) => [...prev.filter(Boolean), track]);
   }, []);
 
   const addTracksToQueue = useCallback((tracks: Track[]) => {
-    setQueue((prev) => [...prev, ...tracks]);
+    if (!Array.isArray(tracks)) return;
+    const valid = tracks.filter((t): t is Track => Boolean(t && t.id));
+    if (valid.length === 0) return;
+    setQueue((prev) => [...prev.filter(Boolean), ...valid]);
   }, []);
 
   const playNext = useCallback(
     (track: Track) => {
+      if (!track || !track.id) return;
       const { queue: currQ, queueIndex: currIdx, currentTrack: currTrk } = stateRef.current;
       if (!currTrk || currQ.length === 0) {
         playTrack(track, [track], 0);
@@ -575,7 +612,7 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const playQueueIndex = useCallback(
     (index: number) => {
       const { queue: currQ } = stateRef.current;
-      if (index >= 0 && index < currQ.length) {
+      if (index >= 0 && index < currQ.length && currQ[index]) {
         playTrack(currQ[index], currQ, index);
       }
     },
@@ -584,15 +621,43 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
   const removeFromQueue = useCallback((index: number) => {
     setQueue((prev) => {
+      if (index < 0 || index >= prev.length) return prev;
       const next = prev.filter((_, i) => i !== index);
+      const { queueIndex: currIdx } = stateRef.current;
+
+      if (index === currIdx) {
+        if (next.length === 0) {
+          audioEngine.pause();
+          setCurrentTrack(null);
+          setStatus('idle');
+          setQueueIndex(0);
+        } else {
+          const nextIndex = Math.min(index, next.length - 1);
+          setQueueIndex(nextIndex);
+          playTrack(next[nextIndex], next, nextIndex);
+        }
+      } else if (index < currIdx) {
+        setQueueIndex(Math.max(0, currIdx - 1));
+      }
+
       return next;
     });
-    setQueueIndex((currIdx) => {
-      if (index < currIdx) {
-        return currIdx - 1;
-      }
-      return currIdx;
-    });
+  }, [playTrack]);
+
+  const retry = useCallback(() => {
+    const { currentTrack: currTrk, currentTime: currTime } = stateRef.current;
+    if (!currTrk) return;
+    setPlaybackError(null);
+    setIsLoading(true);
+    if (currTrk.audioUrl && !currTrk.isUnavailable) {
+      audioEngine.loadTrack(currTrk.audioUrl, true, currTime).catch((err) => {
+        setPlaybackError(err instanceof Error ? err.message : 'Retry failed');
+        setIsLoading(false);
+      });
+    } else {
+      setPlaybackError('Audio recording is unavailable in this sanctuary');
+      setIsLoading(false);
+    }
   }, []);
 
   const clearQueue = useCallback(() => {
@@ -867,6 +932,7 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         removeFromQueue,
         clearQueue,
         reorderQueue,
+        retry,
       }}
     >
       {children}

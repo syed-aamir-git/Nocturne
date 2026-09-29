@@ -44,6 +44,20 @@ export class NocturneAudioEngine implements AudioEngineInterface {
       this.createChannelSlot(0),
       this.createChannelSlot(1),
     ];
+
+    if (typeof window !== 'undefined') {
+      window.addEventListener('offline', () => {
+        this.notifyListeners((l) => {
+          l.onError?.(new Error('Network connection severed; audio transmission interrupted'));
+        });
+      });
+      window.addEventListener('online', () => {
+        const primarySlot = this.channels[this.activeIndex];
+        if (primarySlot.src && primarySlot.audio.paused && this.isBuffering) {
+          this.play().catch(() => {});
+        }
+      });
+    }
   }
 
   private createChannelSlot(index: number): AudioChannelSlot {
@@ -381,8 +395,13 @@ export class NocturneAudioEngine implements AudioEngineInterface {
     const opId = ++this.operationId;
     this.cancelCrossfade();
 
-    if (!src) {
-      console.warn('[NocturneAudioEngine] Empty audio source passed to loadTrack');
+    if (!src || typeof src !== 'string' || src.trim().length === 0) {
+      console.warn('[NocturneAudioEngine] Invalid or empty audio source passed to loadTrack');
+      this.isBuffering = false;
+      this.notifyListeners((l) => {
+        l.onLoading?.(false);
+        l.onError?.(new Error('Audio source is unavailable or unresolvable in this sanctuary'));
+      });
       return;
     }
 

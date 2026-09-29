@@ -53,6 +53,7 @@ export const PlayerBar: React.FC = () => {
     toggleShuffle,
     cycleRepeatMode,
     isCrossfading,
+    retry,
   } = usePlayer();
 
   const {
@@ -209,13 +210,24 @@ export const PlayerBar: React.FC = () => {
                 style={{
                   display: 'inline-flex',
                   alignItems: 'center',
-                  gap: 3,
-                  fontSize: '9.5px',
+                  gap: 4,
+                  fontSize: '10px',
                   color: 'var(--indicator-error, #ff6b6b)',
+                  cursor: 'pointer',
+                  padding: '1px 6px',
+                  borderRadius: '3px',
+                  background: 'rgba(239, 68, 68, 0.12)',
+                  border: '1px solid rgba(239, 68, 68, 0.25)',
                 }}
-                title={error}
+                title={`${error} • Click to retry streaming`}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  retry();
+                  showToast('Re-initiating Stream', currentTrack.title, 'default');
+                }}
               >
-                <AlertCircle size={10} /> Stream Warning
+                <AlertCircle size={11} />
+                <span>Retry Stream</span>
               </span>
             )}
           </div>
