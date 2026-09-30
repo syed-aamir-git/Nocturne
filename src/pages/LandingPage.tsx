@@ -23,7 +23,7 @@ export const LandingPage: React.FC = () => {
   const { playTrack, currentTrack, status, togglePlayPause } = usePlayer();
   const { showToast } = useToast();
 
-  const previewTrack = MOCK_TRACKS[0]; // Hymn to the Violet Hour
+  const previewTrack = MOCK_TRACKS[0]; // Deftones - Change (In the House of Flies)
   const isPreviewPlaying = currentTrack?.id === previewTrack.id && status === 'playing';
 
   const handleTogglePreview = () => {
@@ -149,7 +149,7 @@ export const LandingPage: React.FC = () => {
               leftIcon={isPreviewPlaying ? <Pause size={14} /> : <Play size={14} fill="currentColor" />}
               onClick={handleTogglePreview}
             >
-              {isPreviewPlaying ? 'Pause' : 'Play Hymn'}
+              {isPreviewPlaying ? 'Pause' : 'Play Sample'}
             </Button>
           </div>
         </section>

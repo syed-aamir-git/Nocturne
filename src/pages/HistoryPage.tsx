@@ -45,7 +45,7 @@ export const HistoryPage: React.FC = () => {
         album: entry.album,
         albumId: entry.albumId || 'unknown',
         artwork: entry.artwork,
-        audioUrl: entry.audioUrl || '/audio/nocturne-darkwave-1.wav',
+        audioUrl: entry.audioUrl || '',
         duration: entry.duration,
         genre: entry.genre,
         releaseDate: entry.date,
