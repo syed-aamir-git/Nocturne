@@ -11,7 +11,6 @@ import type {
   TopRankedItem,
   WeekdayListeningStat,
 } from '../types/analytics';
-import { generateSeedHistory } from '../services/analyticsSeed';
 import { storageService } from '../services/storageService';
 import {
   calculateDailyListening,
@@ -104,11 +103,7 @@ function loadInitialHistory(): ListeningHistoryEntry[] {
   } catch (e) {
     console.warn('[AnalyticsContext] Failed to load listening history:', e);
   }
-  const seed = generateSeedHistory();
-  try {
-    localStorage.setItem(HISTORY_STORAGE_KEY, JSON.stringify(seed));
-  } catch {}
-  return seed;
+  return [];
 }
 
 export const AnalyticsProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
