@@ -4,16 +4,6 @@ import { MOCK_PLAYLISTS, MOCK_TRACKS } from '../data/mockData';
 const LIKED_TRACKS_KEY = 'nocturne_liked_track_ids_v1';
 const PLAYLISTS_KEY = 'nocturne_playlists_v1';
 
-// Initial default favorites to give the platform an immediate atmospheric feel
-const DEFAULT_LIKED_TRACK_IDS = [
-  'tr-1',  // Hymn to the Violet Hour
-  'tr-2',  // Cremation of the Moon
-  'tr-10', // Abyssal Drift
-  'tr-18', // Tape Hiss & Broken Strings
-  'tr-22', // Neon Sepulchre
-  'tr-25', // Crypt of the Forgotten Sovereign
-];
-
 export const storageService = {
   getLikedTrackIds(): string[] {
     try {
@@ -22,12 +12,10 @@ export const storageService = {
         const parsed = JSON.parse(stored);
         if (Array.isArray(parsed)) return parsed;
       }
-      // Initialize with default liked tracks
-      localStorage.setItem(LIKED_TRACKS_KEY, JSON.stringify(DEFAULT_LIKED_TRACK_IDS));
-      return DEFAULT_LIKED_TRACK_IDS;
+      return [];
     } catch (e) {
       console.warn('[StorageService] Error reading liked tracks from localStorage:', e);
-      return DEFAULT_LIKED_TRACK_IDS;
+      return [];
     }
   },
 
